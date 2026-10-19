@@ -2,23 +2,33 @@
 //! and this machine's desktop, reached over RDP through a relay the browser's client speaks RDCleanPath to
 //! (`docs/remote.md`, `docs/api.md`).
 
+pub mod account;
+pub mod health;
+pub mod http;
 pub mod settings;
+pub mod store;
 
 use std::io;
 
-use axum::Router;
 use tokio::net::TcpListener;
 
+use crate::account::Account;
+use crate::http::Standing;
 use crate::settings::Settings;
+use crate::store::Store;
 
-/// Answers on the settings' address until the process is told to stop.
+/// Opens the store and reads the account, then answers the routes on the settings' address until the
+/// process is told to stop.
 pub async fn serve(settings: Settings) -> Result<(), String> {
+  let store = Store::open(&settings.store.path).await.map_err(|why| why.to_string())?;
+  let account = Account::current()?;
   let listen = settings.server.listen;
+  let router = http::router(Standing::new(settings, store, account)).map_err(|faults| faults.join("; "))?;
   let listener = TcpListener::bind(listen)
     .await
     .map_err(|why| format!("{listen} could not be listened on: {why}"))?;
 
-  axum::serve(listener, Router::new())
+  axum::serve(listener, router)
     .with_graceful_shutdown(stopped())
     .await
     .map_err(|why: io::Error| why.to_string())

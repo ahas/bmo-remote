@@ -17,6 +17,7 @@ minimal services stand on the new repositories; until then the only check is the
 | Folder | Holds |
 |---|---|
 | `src/` | The service and its command, one crate split into its own modules |
+| `migrations/` | The store, its table made by these statements in order |
 | `deploy/` | The service's user unit and the tmux configuration its sessions' server runs with |
 | `docs/` | The canonical statements of what the service does |
 
