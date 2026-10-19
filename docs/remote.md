@@ -167,6 +167,11 @@
   the pointer's shapes as 「The pointer」 says, to notice a redirection as 「Redirection」 says, and to type
   what 「The on-screen keyboard」 sends. Where the desktop asks for network-level authentication the relay
   is what answers it, as 「Credentials」 says.
+  - **The relay runs in the desktop sidecar,** a bun process of this repository's own under
+    `desktop-sidecar/`, which the service starts beside itself and hands the desktop's three sockets on to
+    over the loopback address (`docs/api.md`, 「The desktop sidecar」). The relay, the pointer's reader, the
+    typist, the input method's reader and the focus watcher are all the sidecar's; the service takes the
+    upgrades behind its token and carries their frames.
 - **The split is Guacamole's:** a server-side relay, a browser-side display, and an input layer that turns
   pointer and keys into protocol events. Guacamole's daemon and its protocol are not used; the RDP stack
   runs in the browser.
@@ -371,16 +376,18 @@
 
 ### A text field taking focus
 
-- **RDP says nothing of focus**, so the session itself is asked. The service runs a focus watcher in the
+- **RDP says nothing of focus**, so the session itself is asked. The sidecar runs a focus watcher in the
   account's desktop session while at least one keys socket is open, and stops it when the last one closes.
-  - It is an AT-SPI client on the account's session bus, the bus fcitx5 is asked on, inside the service.
+  - It is an AT-SPI client on the account's session bus, the bus fcitx5 is asked on: a Python script beside
+    the sidecar, `remote/desktop-focus.py` in its folder, run as the sidecar's child with `python3 -I` and
+    writing each answer it settles on as a line of JSON. It needs GObject introspection's AT-SPI binding.
   - It listens for `object:state-changed:focused`. The object holding focus counts as a text field where
     it is editable and not read-only, or is a terminal.
   - It settles on a new answer a moment after the last change, so focus passing from one field to the
     next is no change at all.
   - A watcher that ends or never starts leaves the page without focus messages; it is started again with
     the next keys socket.
-- **The service sends each change to every keys socket** as `{"type": "focus", "editable": …}`. It sends
+- **The sidecar sends each change to every keys socket** as `{"type": "focus", "editable": …}`. It sends
   changes only, never the state a socket finds on joining, so connecting never raises the keyboard by
   itself.
 - **On a touch screen the page follows it.** A text field taking focus puts focus in the box, as the button
@@ -548,6 +555,10 @@ there, redirects it to the account's wayland session.
 
 - **Each socket is a route of the service's own router,** beside the HTTP routes, and says which path is its
   own: the terminal socket, the desktop socket, and the desktop's pointer and keys sockets.
+- **The desktop's three sockets are handed on.** Each takes its upgrade behind the token, opens the same path
+  with the same query on the desktop sidecar, and carries frames both ways until either side closes
+  (`docs/api.md`, 「The desktop sidecar」). In the sidecar each socket says which path is its own, and a
+  path none claims is refused.
 - **An upgrade to a path under `/api/remote/` that no socket claims** is refused with 404 before anything
   else.
 - **A development instance** is the same binary on settings of its own, answering the same routes; there is

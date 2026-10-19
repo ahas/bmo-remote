@@ -16,6 +16,14 @@ port = 3389
 # The password the relay answers the desktop's authentication with (docs/remote.md, 「Credentials」) has no
 # default: a deployment sets `password` in its local settings or its environment, and none is kept here.
 
+[sidecar]
+# Where the desktop sidecar answers the desktop's sockets for the service, as host:port: a loopback address.
+listen = "127.0.0.1:3321"
+# The program that runs it: a path, or a name found on the PATH.
+bun = "bun"
+# Its package folder, the one a release carries.
+folder = "desktop-sidecar"
+
 [terminal]
 # The tmux socket the sessions stand on: letters, digits, `_` and `-`.
 socket = "bmo-remote"

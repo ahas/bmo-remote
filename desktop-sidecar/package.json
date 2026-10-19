@@ -1,0 +1,16 @@
+{
+  "name": "bmo-remote-desktop-sidecar",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The remote desktop's relay, pointer, keys and focus watcher, answering the service's desktop sockets on the loopback address.",
+  "scripts": {
+    "start": "bun src/main.ts",
+    "typecheck": "tsc --noEmit",
+    "check": "bun install --frozen-lockfile && bun run typecheck"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.4",
+    "typescript": "^5.9.3"
+  }
+}

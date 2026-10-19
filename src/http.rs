@@ -14,6 +14,7 @@ use axum::routing::{MethodFilter, MethodRouter};
 use serde_json::{Map, Value, json};
 
 use crate::account::Account;
+use crate::desktop::sidecar::Sidecar;
 use crate::settings::Settings;
 use crate::store::Store;
 use crate::terminal::tmux::Tmux;
@@ -158,10 +159,12 @@ pub struct Standing {
   pub account: Arc<Account>,
   /// The tmux server the terminal sessions stand on.
   pub tmux: Arc<Tmux>,
+  /// The desktop sidecar the desktop's sockets are handed on to.
+  pub sidecar: Arc<Sidecar>,
 }
 
 impl Standing {
-  pub fn new(settings: Settings, store: Store, account: Account) -> Self {
+  pub fn new(settings: Settings, store: Store, account: Account, sidecar: Sidecar) -> Self {
     let tmux = Tmux::new(&settings.terminal.socket, &settings.terminal.config, &account.shell);
 
     Self {
@@ -169,6 +172,7 @@ impl Standing {
       store,
       account: Arc::new(account),
       tmux: Arc::new(tmux),
+      sidecar: Arc::new(sidecar),
     }
   }
 }

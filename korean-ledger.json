@@ -1,4 +1,7 @@
 {
   "client/app/domain/remote/desktop-input.ts": 3,
-  "client/app/domain/remote/terminal-ime.ts": 11
+  "client/app/domain/remote/terminal-ime.ts": 11,
+  "desktop-sidecar/src/rdp-hangul.ts": 2,
+  "desktop-sidecar/src/rdp-typist.ts": 2,
+  "desktop-sidecar/src/remote-input-method.ts": 2
 }

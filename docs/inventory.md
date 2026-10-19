@@ -26,32 +26,35 @@ what the old behaviour was held to.
   build's tests; bmo-web's list left out the verb, its two lang files and `docs/remote.md`, which are not
   the console's. Neither names the three files found by what the terminal reads.
 
-## The server modules: 19 files, 3,566 lines, ported to Rust
+## The server modules: 19 files, 3,566 lines
 
-The old console server's TypeScript, under `client/server/utils/`. Each becomes a module of the one crate
-(`docs/api.md` is what it serves).
+The old console server's TypeScript, under `client/server/utils/`. The terminal's are ported to modules of
+the one crate; the desktop's are copied as they are into the desktop sidecar's `desktop-sidecar/src/`, with
+only their imports and the settings they read changed (`docs/api.md`, 「The desktop sidecar」). A Rust port
+of a desktop module stands in `src/desktop/` beside some of them; the service runs none of it, the sidecar
+answering the desktop.
 
 | Old file | Lines | Here |
 |---|---|---|
 | `remote-tmux.ts` | 273 | `src/terminal/tmux.rs`: the tmux server, its sessions and their labels |
 | `remote-pty.ts` | 113 | `src/terminal/pty.rs`: one attach client in a pseudo-terminal per viewer |
 | `remote-terminal-socket.ts` | 185 | `src/terminal/socket.rs`: the terminal socket |
-| `remote-sockets.ts` | 72 | `src/terminal/socket.rs` and `src/http.rs`: which paths are a socket's, and the refusal of the rest |
-| `remote-guard.ts` | 44 | `src/guard.rs`: the bearer token. Its sign-in and `Origin` checks are bmo-web's (「Not carried」) |
-| `rdcleanpath.ts` | 294 | `src/desktop/rdcleanpath.rs`: the RDCleanPath request, response and errors. Its TPKT length is `framing.rs`'s and its core-data rewrite `client_info.rs`'s. The request's encoder and the response's reader, which only its tests use, are not carried (「Tests deferred」) |
-| `rdp-negotiation.ts` | 115 | `src/desktop/negotiation.rs`: the X.224 request's protocols and routing token rewritten |
-| `rdp-nla.ts` | 450 | `src/desktop/nla.rs`: CredSSP with NTLMv2, and the public key CredSSP binds read out of the server's certificate |
-| `rdp-framing.ts` | 210 | `src/desktop/framing.rs`: where each TPKT and fast-path PDU ends |
-| `rdp-redirection.ts` | 118 | `src/desktop/redirection.rs`: a server redirection packet read |
-| `rdp-client-info.ts` | 174 | `src/desktop/client_info.rs`: the logon packet and the core data rewritten. The performance flags each quality puts in the logon packet are that quality's, in `src/desktop/quality.rs` |
-| `rdp-pointers.ts` | 147 | `src/desktop/pointers.rs`: the fast-path pointer updates read into shapes |
-| `rdp-input.ts` | 103 | `src/desktop/input.rs`: fast-path input PDUs |
-| `rdp-typist.ts` | 187 | `src/desktop/typist.rs`: the keys socket's messages typed into the stream |
-| `rdp-hangul.ts` | 42 | `src/desktop/hangul.rs`: a syllable as its 두벌식 keys |
-| `remote-input-method.ts` | 143 | `src/desktop/input_method.rs`: fcitx5's state and trigger keys |
-| `remote-desktop-focus.ts` | 92 | `src/desktop/focus.rs`: the focus watcher, started and stopped with the keys sockets |
-| `remote-desktop-socket.ts` | 740 | `src/desktop/socket.rs`: the desktop and pointer sockets, the relay and its failures |
-| `remote-desktop-keys.ts` | 64 | `src/desktop/keys.rs`: the keys socket |
+| `remote-sockets.ts` | 72 | `src/http.rs` for the service's own routes and sockets; copied for the sidecar's sockets, its guard read from the sidecar's own `guard.ts` |
+| `remote-guard.ts` | 44 | `src/http.rs` and the sidecar's `guard.ts`: the bearer token. Its sign-in and `Origin` checks are bmo-web's (「Not carried」) |
+| `rdcleanpath.ts` | 294 | copied as it is; a Rust port in `src/desktop/rdcleanpath.rs` |
+| `rdp-negotiation.ts` | 115 | copied as it is; a Rust port in `src/desktop/negotiation.rs` |
+| `rdp-nla.ts` | 450 | copied as it is; a Rust port in `src/desktop/nla.rs` |
+| `rdp-framing.ts` | 210 | copied as it is; a Rust port in `src/desktop/framing.rs` |
+| `rdp-redirection.ts` | 118 | copied as it is; a Rust port in `src/desktop/redirection.rs` |
+| `rdp-client-info.ts` | 174 | copied, its quality type read from the sidecar's `quality.ts`; a Rust port in `src/desktop/client_info.rs` |
+| `rdp-pointers.ts` | 147 | copied as it is; a Rust port in `src/desktop/pointers.rs` |
+| `rdp-input.ts` | 103 | copied as it is |
+| `rdp-typist.ts` | 187 | copied as it is |
+| `rdp-hangul.ts` | 42 | copied as it is |
+| `remote-input-method.ts` | 143 | copied as it is; a Rust port in `src/desktop/input_method.rs` |
+| `remote-desktop-focus.ts` | 92 | copied as it is |
+| `remote-desktop-socket.ts` | 740 | copied, the desktop's address, its default port and the kept port read from the sidecar's `settings.ts` and `store.ts`, and the quality's check from its `quality.ts` |
+| `remote-desktop-keys.ts` | 64 | copied as it is |
 
 ## The routes: 5 files, 88 lines, ported to Rust
 
@@ -71,7 +74,7 @@ at the same path, behind this service's bearer token in place of the console's s
 | Old file | Lines | Here |
 |---|---|---|
 | `client/remote/tmux.conf` | 40 | `deploy/tmux.conf`, carried as it is and named by the `terminal.config` setting |
-| `client/remote/desktop-focus.py` | 83 | `src/desktop/focus.rs`, an AT-SPI client inside the service in place of the Python helper it started |
+| `client/remote/desktop-focus.py` | 83 | `desktop-sidecar/remote/desktop-focus.py`, copied as it is: the focus watcher the sidecar starts |
 
 ## The command: 3 files, 87 lines
 
@@ -126,7 +129,7 @@ Carried into the console plugin bundle under `client/`, at the same paths below 
 | Old file | Part | Here |
 |---|---|---|
 | `client/app/assets/css/main.css` | the two `@font-face` rules of `CaskaydiaCove Nerd Font Mono` and the one of `Noto Sans Symbols 2 Subset` | the bundle's own style sheet, `client/app/assets/css/terminal-fonts.css` |
-| `client/shared/config.ts` | `REMOTE_DESKTOP_QUALITIES` and `isRemoteDesktopQuality` | `src/desktop/quality.rs` for the relay, `client/shared/remote.ts` for the screen |
+| `client/shared/config.ts` | `REMOTE_DESKTOP_QUALITIES` and `isRemoteDesktopQuality` | the sidecar's `quality.ts` for the relay, copied as they are; `client/shared/remote.ts` for the screen; a Rust port in `src/desktop/quality.rs` |
 | `client/shared/types.ts` | `RemoteTerminalInfo` | `src/terminal/tmux.rs` for the routes, `client/shared/remote.ts` for the screen |
 | `bot/bmo-server/src/verbs/machine.rs` | the `node remote-desktop` arm, with its alias `remote-desktop` and its `--port` and `--default` flags | `src/command.rs` |
 | `docs/web.md` | the section 「Remote screen」 | `docs/screen.md` |
@@ -200,11 +203,14 @@ here as before.
 
 | Unit | Old place | Here |
 |---|---|---|
-| `bmo-remote.service` | none: the console server answered the routes | `deploy/bmo-remote.service`, the service itself |
+| `bmo-remote.service` | none: the console server answered the routes | `deploy/bmo-remote.service`, the service itself, which starts the desktop sidecar as its child |
 | `bmo-remote-<socket>.service` | a transient user unit the console started for the tmux server | the same transient unit, started by this service with `systemd-run --user` |
 
 ## Crates and packages
 
+- **The desktop sidecar is a bun package with no runtime package:** bun runs its TypeScript as it stands,
+  reads the store with its built-in SQLite and serves its sockets with its built-in server; TypeScript and
+  bun's types are its development packages alone. The crates below serve the Rust port in `src/desktop/`.
 - **The relay's protocol reading stands on maintained crates:** `ironrdp-rdcleanpath` for the RDCleanPath
   PDUs, `ironrdp-pdu` for the TPKT and fast-path framing and the security protocols, `sspi` for the CredSSP
   client with NTLM, and `x509-cert` with `der` for the server's certificate and a CredSSP message's length.

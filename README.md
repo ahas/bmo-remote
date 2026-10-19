@@ -10,7 +10,7 @@ hands the remote screen's requests on, as `docs/api.md` states.
 
 No test is carried, written or run in this repository yet. The tests are written and run here once the
 minimal services stand on the new repositories; until then the only check is the build check, `cargo check
---all-targets` and the bundle's typecheck. `docs/inventory.md` lists the tests the old behaviour was held to.
+--all-targets`, and the typechecks of the bundle and the desktop sidecar. `docs/inventory.md` lists the tests the old behaviour was held to.
 
 ## Layout
 
@@ -19,6 +19,7 @@ minimal services stand on the new repositories; until then the only check is the
 | `src/` | The service and its command, one crate split into its own modules |
 | `migrations/` | The store, its table made by these statements in order |
 | `client/` | The console plugin bundle: the remote screen, a project of its own |
+| `desktop-sidecar/` | The desktop sidecar: the bun package the service starts to answer the desktop's sockets, a project of its own |
 | `deploy/` | The service's user unit and the tmux configuration its sessions' server runs with |
 | `docs/` | The canonical statements of what the service does |
 

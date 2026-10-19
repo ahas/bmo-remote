@@ -10,3 +10,4 @@ pub mod pointers;
 pub mod quality;
 pub mod rdcleanpath;
 pub mod redirection;
+pub mod sidecar;

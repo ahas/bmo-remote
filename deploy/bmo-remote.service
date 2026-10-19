@@ -1,7 +1,7 @@
 # The remote service's user unit. A deployment runs it from its deploy tree, whose settings.local.toml links
 # to the data root's env/remote.toml (docs/api.md, 「Settings」). The tmux server the terminal sessions stand
 # on is a transient unit of its own, so stopping this one keeps every session (docs/remote.md, 「The server
-# outlives the service」).
+# outlives the service」). The desktop sidecar is its child and goes with it.
 [Unit]
 Description=bmo-remote: the console's terminal sessions and remote desktop
 After=network-online.target
@@ -12,6 +12,9 @@ ConditionPathExists=%h/.local/share/bmo/data/env/remote.toml
 [Service]
 Type=simple
 WorkingDirectory=%h/.local/share/bmo-remote/deploy
+# The desktop sidecar the service starts beside itself is run by the account's bun, which a user unit's PATH
+# does not hold (docs/api.md, 「The desktop sidecar」).
+Environment=BMO_REMOTE_SIDECAR__BUN=%h/.bun/bin/bun
 ExecStart=%h/.local/share/bmo-remote/deploy/bin/bmo-remote serve
 Restart=always
 RestartSec=2

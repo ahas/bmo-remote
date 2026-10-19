@@ -25,6 +25,7 @@ pub const ENVIRONMENT_PREFIX: &str = "BMO_REMOTE";
 pub struct Settings {
   pub server: Server,
   pub desktop: Desktop,
+  pub sidecar: Sidecar,
   pub terminal: Terminal,
   pub store: Store,
 }
@@ -56,6 +57,18 @@ impl Desktop {
   pub fn kept_password(&self) -> Option<&str> {
     self.password.as_deref().filter(|password| !password.is_empty())
   }
+}
+
+/// The desktop sidecar, the bun process answering the desktop's sockets (`docs/api.md`, 「The desktop
+/// sidecar」).
+#[derive(Clone, Debug, Deserialize)]
+pub struct Sidecar {
+  /// Where it answers, a loopback address.
+  pub listen: SocketAddr,
+  /// The program that runs it.
+  pub bun: PathBuf,
+  /// Its package folder.
+  pub folder: PathBuf,
 }
 
 /// The tmux server the terminal sessions stand on (`docs/remote.md`, 「tmux holds them」).
@@ -98,6 +111,7 @@ impl Settings {
 
     settings.terminal.config = dir.join(&settings.terminal.config);
     settings.store.path = dir.join(&settings.store.path);
+    settings.sidecar.folder = dir.join(&settings.sidecar.folder);
 
     Ok(settings)
   }

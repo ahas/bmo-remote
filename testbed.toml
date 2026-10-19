@@ -10,8 +10,9 @@ languages = ["bun"]
 
 [projects]
 # The console plugin bundle under client/ is a project of its own, the vendored RDP backend's manifest inside
-# it: its check script installs its locked packages and typechecks it.
-paths = ["client"]
+# it, and so is the desktop sidecar under desktop-sidecar/: each one's check script installs its locked
+# packages and typechecks it.
+paths = ["client", "desktop-sidecar"]
 
 [check]
 # The sweeps that read the tree before anything runs: Korean in the code, the README's folder table and the

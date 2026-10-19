@@ -82,7 +82,8 @@ socket is open (`docs/remote.md`, 「The terminal socket」).
 
 Three websockets per desktop connection, tied by a pointer channel: a name the page makes up for one
 connection, `[a-z0-9]{8,40}`, sent in each socket's `pointer` query (`docs/remote.md`, 「The relay」,
-「The pointer」, 「The on-screen keyboard」).
+「The pointer」, 「The on-screen keyboard」). The service takes each upgrade behind its token and hands the
+socket on to the desktop sidecar (「The desktop sidecar」), which answers it as this section says.
 
 ### `/api/remote/desktop/socket`
 
@@ -135,6 +136,34 @@ socket at once, 1008.
 | `key` | browser to service | `key`: a physical key code, with `ctrl+`, `alt+`, `shift+` or `meta+` before it; `count?`: 1 to 500, 1 where none |
 
 A message of any other shape is ignored.
+
+### The desktop sidecar
+
+The desktop's three sockets are answered by a bun process of this repository's own, `desktop-sidecar/`,
+which the service starts and hands each desktop socket on to over the loopback address. Only the service
+calls it.
+
+- **The service starts it** as it starts to serve: `bun src/main.ts` in the folder `sidecar.folder` names,
+  run by the program `sidecar.bun` names, with the environment below on top of the service's own. Where it
+  ends, the service starts it again two seconds later; where the service stops, it goes with it.
+- **What the service gives it,** each in its environment:
+
+| Variable | What it is |
+|---|---|
+| `BMO_REMOTE_SIDECAR_HOST` | the loopback address it listens on, the host of `sidecar.listen` |
+| `BMO_REMOTE_SIDECAR_PORT` | the port it listens on, the port of `sidecar.listen` |
+| `BMO_REMOTE_SIDECAR_TOKEN` | the bearer it takes, made afresh each time the service starts it |
+| `BMO_REMOTE_DESKTOP_HOST` | `desktop.host` |
+| `BMO_REMOTE_DESKTOP_PORT` | `desktop.port`, dialled where the store holds no port |
+| `BMO_REMOTE_DESKTOP_PASSWORD` | `desktop.password`, set only where one is kept |
+| `BMO_REMOTE_STORE_PATH` | `store.path`, the store it reads the kept port from on every connection |
+
+- **What it answers:** an upgrade to `/api/remote/desktop/socket`, `/api/remote/desktop/pointer` or
+  `/api/remote/desktop/keys` with the query the browser sent, carrying `Authorization: Bearer` and its
+  token; a wrong or missing token is refused 401 and any other path 404.
+- **What the service carries:** every frame both ways as it came, keeping its kind, binary or text, and the
+  close code and reason either side ends with. Where the sidecar cannot be reached, the service closes the
+  browser's socket 1011.
 
 ## Refusals
 
@@ -190,8 +219,12 @@ It calls no other unit.
 
 - **tmux and `systemd-run`** on this machine, for the terminal sessions and their server's transient unit.
 - **The passwd database** of this machine, for the account's login shell.
-- **The RDP server** at `desktop.host` and the stored port or `desktop.port`, over TLS.
-- **fcitx5 and AT-SPI** on the account's session bus, for the input method's state and a text field's focus.
+- **bun**, which runs the desktop sidecar (「The desktop sidecar」).
+- **The RDP server** at `desktop.host` and the stored port or `desktop.port`, over TLS, dialled by the
+  sidecar.
+- **fcitx5 and AT-SPI** on the account's session bus, for the input method's state and a text field's focus:
+  the sidecar runs `fcitx5-remote`, and the focus watcher under `python3` with GObject introspection's AT-SPI
+  binding.
 
 ## Settings
 
@@ -208,6 +241,9 @@ from the settings folder. An empty token lets no caller in.
 | `desktop` | `host` | the RDP server's address | `127.0.0.1` |
 | `desktop` | `port` | the RDP server's port where the store holds none | `3389` |
 | `desktop` | `password` | the password the relay answers the desktop's authentication with (`docs/remote.md`, 「Credentials」), kept in the local settings or the environment | none |
+| `sidecar` | `listen` | where the desktop sidecar answers, a loopback `host:port` (「The desktop sidecar」) | `127.0.0.1:3321` |
+| `sidecar` | `bun` | the program that runs it, a path or a name found on the `PATH` | `bun` |
+| `sidecar` | `folder` | its package folder, the one a release carries | `desktop-sidecar` |
 | `terminal` | `socket` | the tmux socket's name, letters, digits, `_` and `-` | `bmo-remote` |
 | `terminal` | `config` | the tmux configuration file, the one a release carries | `deploy/tmux.conf` |
 | `store` | `path` | the SQLite file of 「The store」 | `remote.db` |

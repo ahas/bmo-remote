@@ -8,6 +8,10 @@ token = "remote-token"
 [desktop]
 password = "desktop-password"
 
+[sidecar]
+# A development instance's desktop sidecar listens on a port of its own, beside a deployed instance's.
+listen = "127.0.0.1:3331"
+
 [terminal]
 # A development instance names a socket of its own, so it never reaches a deployed instance's sessions.
 socket = "bmo-remote-dev"

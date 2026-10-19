@@ -3,7 +3,7 @@
 [package]
 name = "bmo-remote"
 description = "The console's terminal sessions on this machine and its desktop reached over RDP."
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 publish = false
 
@@ -24,6 +24,8 @@ clap = { version = "4.6.7", features = ["derive"] }
 config = { version = "0.15", default-features = false, features = ["toml"] }
 # A CredSSP message's length read off the stream.
 der = "0.7.10"
+# The stream and the sink of the frames a desktop socket hands on to the desktop sidecar.
+futures-util = { version = "0.3.34", default-features = false, features = ["sink"] }
 # Each route registers itself beside its own answer.
 inventory = "0.3.24"
 # The desktop relay's RDP framing and security protocols.
@@ -48,6 +50,8 @@ sqlx = { version = "0.8.6", default-features = false, features = ["sqlite", "run
 sspi = { version = "0.23.0", default-features = false }
 thiserror = "2.0.17"
 tokio = { version = "1.53.2", features = ["macros", "net", "process", "rt-multi-thread", "signal", "sync", "time"] }
+# The desktop's sockets handed on to the desktop sidecar, as a websocket client toward it.
+tokio-tungstenite = { version = "0.29.0", default-features = false, features = ["connect"] }
 # The desktop's certificate, for the public key CredSSP binds.
 x509-cert = { version = "0.2.5", default-features = false }
 # fcitx5's state, asked on the account's session bus.
