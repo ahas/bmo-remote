@@ -3,6 +3,7 @@
 
 pub mod client_info;
 pub mod framing;
+pub mod input_method;
 pub mod negotiation;
 pub mod nla;
 pub mod quality;

@@ -211,6 +211,9 @@ here as before.
   The X.224 request's rewrite, the redirection packet's read and the core data's rewrite are written by
   hand: decoding them with `ironrdp-pdu` and encoding them again would not keep the browser's own bytes,
   and it has no decoder for the redirection packet.
+- **The input method is read with maintained crates:** `zbus` asks fcitx5's controller for its state on the
+  account's session bus, in place of the `fcitx5-remote` command, and `rust-ini` reads fcitx5's
+  configuration files for its trigger keys and its Hangul layout.
 - **No crate of the old workspace is depended on.** The verb read `bmo-lang` for its lines, `bmo-policy` for
   filling them and the old server's settings module for the archive row; its lines are English here, and
   the row is this repository's store.

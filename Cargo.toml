@@ -36,6 +36,8 @@ portable-pty = "0.9.0"
 rand = "0.9.2"
 # The health command asking the service, over plain HTTP on the loopback address.
 reqwest = { version = "0.13.5", default-features = false, features = ["json"] }
+# fcitx5's configuration files, for its trigger keys and its Hangul layout.
+rust-ini = "0.21.3"
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"
 # The store, one SQLite file.
@@ -46,6 +48,8 @@ thiserror = "2.0.17"
 tokio = { version = "1.53.2", features = ["macros", "net", "process", "rt-multi-thread", "signal", "sync", "time"] }
 # The desktop's certificate, for the public key CredSSP binds.
 x509-cert = { version = "0.2.5", default-features = false }
+# fcitx5's state, asked on the account's session bus.
+zbus = { version = "5.19.0", default-features = false, features = ["tokio"] }
 
 # Build output kept small: line tables alone for a backtrace, split out, and no incremental cache.
 [profile.dev]
