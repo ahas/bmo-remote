@@ -208,9 +208,12 @@ here as before.
 - **The relay's protocol reading stands on maintained crates:** `ironrdp-rdcleanpath` for the RDCleanPath
   PDUs, `ironrdp-pdu` for the TPKT and fast-path framing and the security protocols, `sspi` for the CredSSP
   client with NTLM, and `x509-cert` with `der` for the server's certificate and a CredSSP message's length.
-  The X.224 request's rewrite, the redirection packet's read and the core data's rewrite are written by
-  hand: decoding them with `ironrdp-pdu` and encoding them again would not keep the browser's own bytes,
-  and it has no decoder for the redirection packet.
+  The X.224 request's rewrite, the redirection packet's read, the core data's rewrite and the logon packet's
+  rewrite are written by hand: decoding them with `ironrdp-pdu` and encoding them again would not keep the
+  browser's own bytes, and it has no decoder for the redirection packet.
+- **The pointer updates are decoded with `ironrdp-pdu`,** asked only for the pointer update codes. Turning a
+  shape's masks into RGBA pixels is written by hand, since no crate draws an RDP pointer the way a browser
+  cursor is drawn. A new shape's pixels reach the page in base64 through `base64`.
 - **The input method is read with maintained crates:** `zbus` asks fcitx5's controller for its state on the
   account's session bus, in place of the `fcitx5-remote` command, and `rust-ini` reads fcitx5's
   configuration files for its trigger keys and its Hangul layout.

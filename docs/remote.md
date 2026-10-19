@@ -409,6 +409,9 @@
   larger than 32 pixels is scaled down to 32, hot spot with it; a hidden pointer is no cursor, and the
   default is the browser's arrow.
 - **What a cursor cannot do is drawn black:** a pixel that inverts the screen under it.
+- **A shape that cannot be drawn is not sent,** and the page keeps the cursor it had: a side of none or
+  above 384 pixels, the largest a browser takes as a cursor; a colour depth other than 1, 24 or 32 bits; or
+  masks that are not whole scanlines, each padded to two bytes.
 - **The desktop works without it.** The page waits for its pointer socket at most a moment before
   connecting, and a pointer socket naming no valid channel is closed at once.
 

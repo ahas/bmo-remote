@@ -6,6 +6,7 @@ pub mod framing;
 pub mod input_method;
 pub mod negotiation;
 pub mod nla;
+pub mod pointers;
 pub mod quality;
 pub mod rdcleanpath;
 pub mod redirection;
