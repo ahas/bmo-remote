@@ -4,7 +4,12 @@
   "private": true,
   "type": "module",
   "main": "./nuxt.config.ts",
-  "files": ["nuxt.config.ts", "app", "shared", "vendor/iron-remote-desktop-rdp"],
+  "files": [
+    "nuxt.config.ts",
+    "app",
+    "shared",
+    "vendor/iron-remote-desktop-rdp"
+  ],
   "scripts": {
     "prepare": "nuxi prepare",
     "typecheck": "nuxi prepare && vue-tsc --noEmit -p .nuxt/tsconfig.app.json",
@@ -15,6 +20,7 @@
     "@devolutions/iron-remote-desktop-rdp": "file:./vendor/iron-remote-desktop-rdp",
     "@nuxt/ui": "^4.11.2",
     "@xterm/xterm": "5.5.0",
+    "get-east-asian-width": "^1.7.0",
     "vue": "^3.5.24",
     "vue-router": "^5.2.0"
   },
@@ -25,7 +31,9 @@
     "vue-i18n": "^11.4.8"
   },
   "peerDependenciesMeta": {
-    "bmo-ui": { "optional": true }
+    "bmo-ui": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@nuxtjs/i18n": "^10.6.0",

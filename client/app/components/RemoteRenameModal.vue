@@ -33,7 +33,7 @@ const open = defineModel<boolean>("open", { default: false });
 const name = ref("");
 const saving = ref(false);
 const error = ref<string | undefined>();
-// Its Save button is on only while the name differs from the one it opened with (docs/web.md, 「Forms」).
+// Its Save button is on only while the name differs from the one it opened with (bmo-ui's docs/components.md, 「Forms」).
 const dirty = computed(() => name.value !== props.current);
 
 watch(open, (opened) => {

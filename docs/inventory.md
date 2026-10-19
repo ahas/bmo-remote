@@ -108,7 +108,9 @@ Carried into the console plugin bundle under `client/`, at the same paths below 
 - **The IronRDP build's work directory** is the user's cache folder where none is named, outside every
   repository and data folder.
 - **The packages** the screen stands on are pinned as the old console pinned them: `@xterm/xterm` 5.5.0,
-  `@devolutions/iron-remote-desktop` 0.11.0, and the vendored `@devolutions/iron-remote-desktop-rdp`.
+  `@devolutions/iron-remote-desktop` 0.11.0, and the vendored `@devolutions/iron-remote-desktop-rdp`. The terminal IME reads
+  which characters take two cells from `get-east-asian-width`, Unicode's East Asian Width, rather than from
+  a table of its own.
 
 ## The documents: 1 file
 

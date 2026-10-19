@@ -1,6 +1,6 @@
 import type { Terminal } from "@xterm/xterm";
 
-// Copy and paste for the remote terminal, carried over from trainer's terminal.
+// Copy and paste for the remote terminal (docs/remote.md, 「The terminal interface」).
 //
 // xterm turns the browser's own selection off and draws its own, which never reaches the
 // clipboard, and it sends Ctrl+C to the shell as an interrupt — so on Windows and Linux there is no

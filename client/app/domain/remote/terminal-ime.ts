@@ -1,7 +1,8 @@
+import { eastAsianWidth } from "get-east-asian-width";
+
 import type { Terminal } from "@xterm/xterm";
 
-// Korean input for the remote terminal (docs/remote.md, 「Rules the interface keeps」), carried over
-// from trainer's terminal.
+// Korean input for the remote terminal (docs/remote.md, 「Rules the interface keeps」).
 //
 // xterm's own composition handling defers both `keydown(229)` and `compositionend` with
 // `setTimeout(0)` and diffs the helper textarea when they run. The two delayed queues race, so a
@@ -43,24 +44,10 @@ const NON_INPUT_KEYS = new Set([
 // Input types that end the line the keyboard was writing.
 const LINE_BREAKS = new Set(["insertLineBreak", "insertParagraph"]);
 
-// Whether the terminal gives a character two cells. Only what a composer produces is ever shown in
-// the preview, and these ranges cover it.
+// Whether the terminal gives a character two cells: the wide and fullwidth characters of Unicode's East
+// Asian Width, which is what the composer's preview holds.
 function isWide(character: string): boolean {
-  const code = character.codePointAt(0) ?? 0;
-
-  return (
-    (code >= 0x1100 && code <= 0x115f) ||
-    (code >= 0x2e80 && code <= 0x303e) ||
-    (code >= 0x3041 && code <= 0x33ff) ||
-    (code >= 0x3400 && code <= 0x4dbf) ||
-    (code >= 0x4e00 && code <= 0x9fff) ||
-    (code >= 0xa960 && code <= 0xa97f) ||
-    (code >= 0xac00 && code <= 0xd7a3) ||
-    (code >= 0xf900 && code <= 0xfaff) ||
-    (code >= 0xfe30 && code <= 0xfe6f) ||
-    (code >= 0xff00 && code <= 0xff60) ||
-    (code >= 0xffe0 && code <= 0xffe6)
-  );
+  return eastAsianWidth(character.codePointAt(0) ?? 0) === 2;
 }
 
 const CAPTURED_EVENTS = ["compositionstart", "compositionupdate", "compositionend", "keydown", "input"] as const;

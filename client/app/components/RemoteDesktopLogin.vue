@@ -1,5 +1,5 @@
 <template>
-  <!-- Asks for the desktop's password. The user is this PC's account; the password is kept for this
+  <!-- Asks for the desktop's password. The user is this machine's account; the password is kept for this
        visit only and never written anywhere. -->
   <form class="mx-auto flex w-full max-w-sm flex-col gap-4 p-4" autocomplete="off" @submit.prevent="emit('connect')">
     <div class="flex items-center gap-2 text-lg font-semibold">

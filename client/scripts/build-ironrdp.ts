@@ -27,7 +27,7 @@ function run(command: string, args: string[], cwd: string): void {
   const done = spawnSync(command, args, { cwd, stdio: "inherit" });
 
   if (done.status !== 0) {
-    console.error(`${command} 실패 (종료 코드 ${done.status})`);
+    console.error(`${command} failed (exit code ${done.status})`);
     process.exit(1);
   }
 }
@@ -57,4 +57,4 @@ const manifest = JSON.parse(readFileSync(join(client, "dist/package.json"), "utf
 
 manifest.version = `${manifest.version}-egfx.${IRONRDP_COMMIT.slice(0, 7)}`;
 writeFileSync(join(vendor, "package.json"), `${JSON.stringify(manifest, null, 2)}\n`);
-console.log(`${vendor} 에 ${manifest.version} 을 썼습니다.`);
+console.log(`Wrote ${manifest.version} to ${vendor}.`);

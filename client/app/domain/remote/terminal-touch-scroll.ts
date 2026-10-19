@@ -1,7 +1,7 @@
 import type { Terminal } from "@xterm/xterm";
 
 // Finger swipes on the remote terminal, turned into wheel steps (docs/remote.md, 「Rules the
-// interface keeps」), carried over from trainer's terminal.
+// interface keeps」).
 //
 // A full-screen program — tmux, an editor, codex — puts the terminal on the alternate screen, where
 // no past lines pile up; a phone has nothing to scroll there however far the finger goes. The past

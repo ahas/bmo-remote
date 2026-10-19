@@ -1,5 +1,5 @@
 <template>
-  <!-- One terminal as trainer lays it out: what the connection is doing, the terminal, and on a phone the
+  <!-- One terminal: what the connection is doing, the terminal, and on a phone the
        extra keys. The remote screen's tab and a window of its own both stand on it. The terminal is
        dark in either screen mode, so its controls take the dark colours too. -->
   <div class="dark flex min-h-0 flex-col bg-black text-white">

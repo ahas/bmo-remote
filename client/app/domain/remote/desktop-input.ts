@@ -485,26 +485,18 @@ export interface DesktopTyping {
   key: (name: string, count?: number) => void;
 }
 
-// What a 12-key keyboard (천지인) spells a syllable with on its way, as ranges of code points: the dots
+// What a 12-key keyboard (천지인) spells a syllable with on its way, as ranges of characters: the dots
 // of an unfinished vowel, conjoining jamo no syllable took up, and the old compatibility jamo, ㆍ
 // among them. No key of the desktop types them, so the desktop drops them (docs/remote.md, 「The
 // on-screen keyboard」).
-const UNFINISHED: readonly [number, number][] = [
-  [0x00b7, 0x00b7],
-  [0x2025, 0x2025],
-  [0x1100, 0x11ff],
-  [0x3164, 0x318e]
-];
+// The last range begins at the Hangul filler, which draws nothing.
+const UNFINISHED = /[·‥ᄀ-ᇿㅤ-ㆎ]/u;
 
 // What the desktop holds of a line the box holds: the box's text, its Hangul composed, without what
 // no key of the desktop types.
 function desktopLine(value: string): string {
   return [...value.normalize("NFC")]
-    .filter((character) => {
-      const point = character.codePointAt(0)!;
-
-      return !UNFINISHED.some(([first, last]) => point >= first && point <= last);
-    })
+    .filter((character) => !UNFINISHED.test(character))
     .join("");
 }
 

@@ -1,4 +1,4 @@
-// The remote screen's terminals (docs/remote.md), carried over from trainer's terminal hub. This module
+// The remote screen's terminals (docs/remote.md, 「The terminal interface」). This module
 // holds its state outside any component and is opened as it is by the tests, so it imports what it
 // uses rather than leaning on Nuxt's auto-imports.
 import { readonly, ref } from "vue";
@@ -95,7 +95,7 @@ const CLOSE_NORMAL = 1000;
 // Waits between reconnection attempts (ms); the last one repeats.
 const RETRY_DELAYS_MS = [500, 1000, 2000, 4000, 8000, 15000];
 
-// trainer's Argonaut theme, on a black background.
+// The Argonaut theme, on a black background.
 const ARGONAUT_THEME: ITheme = {
   foreground: "#FFFAF4",
   background: "#000000",

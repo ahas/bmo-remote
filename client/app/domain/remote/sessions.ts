@@ -1,6 +1,6 @@
 import { moveTab, pinnedFirst } from "bmo-ui/app/domain/tabs";
 
-// The remote screen's open tabs (docs/web.md, 「Remote screen」): which sessions stand on the bar, in
+// The remote screen's open tabs (docs/screen.md): which sessions stand on the bar, in
 // what order, which are pinned and which one is shown. Every running terminal session stands as a
 // tab; closing a terminal tab ends its session. The state is kept for the account on the server.
 

@@ -1,5 +1,5 @@
 <template>
-  <!-- This PC's terminals and desktop as tabs (docs/web.md, 「Remote screen」). Every running terminal
+  <!-- This machine's terminals and desktop as tabs (docs/screen.md). Every running terminal
        session stands as a tab, and every open tab stays mounted, so switching never ends or
        reconnects a session. Closing a terminal tab ends its session, once confirmed. -->
   <UDashboardPanel id="remote" :ui="{ body: 'p-0 sm:p-0 gap-0 sm:gap-0 overflow-y-hidden [&>*]:max-w-none' }">

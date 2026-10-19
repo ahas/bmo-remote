@@ -1,5 +1,5 @@
 <template>
-  <!-- What is done with the shown view and how it is shown, as one menu (docs/web.md, 「Remote screen」):
+  <!-- What is done with the shown view and how it is shown, as one menu (docs/screen.md):
        the whole window and a window of its own first, then the view's own settings. On a touch screen
        the desktop's keyboard stands beside it as a button, since a menu would take focus from the
        desktop before the keyboard could be raised in it. -->

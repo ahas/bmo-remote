@@ -1,5 +1,5 @@
 <template>
-  <!-- The keys a phone keyboard lacks, as trainer's terminal lays them out: two rows sharing the width.
+  <!-- The keys a phone keyboard lacks, laid out as two rows sharing the width.
        The last row of the terminal's column, so the terminal keeps the rest. -->
   <div class="extra-keys flex shrink-0 flex-col gap-1 border-t border-white/10 bg-[#212121] p-1" role="group" :aria-label="$t('remote.label.extra_keys')">
     <div v-for="(row, index) in KEY_ROWS" :key="index" class="flex gap-1">
