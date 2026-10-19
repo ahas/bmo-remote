@@ -19,6 +19,7 @@ use tokio_tungstenite::tungstenite::protocol::CloseFrame;
 use tokio_tungstenite::tungstenite::{self, Message};
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
 
+use crate::account::Account;
 use crate::http::{Call, Refused, Route};
 use crate::settings::Settings;
 
@@ -45,16 +46,16 @@ pub struct Sidecar {
 }
 
 impl Sidecar {
-  /// Starts the sidecar the settings name, and starts it again whenever it ends, for as long as the service
-  /// runs; it is killed with the task that holds it.
-  pub fn start(settings: &Settings) -> Self {
+  /// Starts the sidecar the settings name, told the account's name, and starts it again whenever it ends, for
+  /// as long as the service runs; it is killed with the task that holds it.
+  pub fn start(settings: &Settings, account: &Account) -> Self {
     let token = rand::random::<[u8; 32]>().iter().map(|byte| format!("{byte:02x}")).collect::<String>();
     let sidecar = Self {
       address: settings.sidecar.listen,
       token: token.clone(),
     };
 
-    tokio::spawn(keep_running(settings.clone(), token));
+    tokio::spawn(keep_running(settings.clone(), account.name.clone(), token));
 
     sidecar
   }
@@ -77,7 +78,7 @@ impl Sidecar {
 }
 
 /// The sidecar's process, as the settings name it, with what it reads in its environment.
-fn command(settings: &Settings, token: &str) -> Command {
+fn command(settings: &Settings, account: &str, token: &str) -> Command {
   let mut command = Command::new(&settings.sidecar.bun);
 
   for (name, _) in std::env::vars_os() {
@@ -95,6 +96,7 @@ fn command(settings: &Settings, token: &str) -> Command {
     .env("BMO_REMOTE_DESKTOP_HOST", &settings.desktop.host)
     .env("BMO_REMOTE_DESKTOP_PORT", settings.desktop.port.to_string())
     .env("BMO_REMOTE_STORE_PATH", &settings.store.path)
+    .env("USER", account)
     .stdin(Stdio::null())
     .kill_on_drop(true);
 
@@ -106,9 +108,9 @@ fn command(settings: &Settings, token: &str) -> Command {
 }
 
 /// Runs the sidecar, and runs it again a moment after each end, each start and end written to the log.
-async fn keep_running(settings: Settings, token: String) {
+async fn keep_running(settings: Settings, account: String, token: String) {
   loop {
-    match command(&settings, &token).spawn() {
+    match command(&settings, &account, &token).spawn() {
       Ok(mut child) => match child.wait().await {
         Ok(status) => eprintln!("bmo-remote: the desktop sidecar ended, {status}; it is started again"),
         Err(why) => eprintln!("bmo-remote: the desktop sidecar could not be waited on: {why}"),

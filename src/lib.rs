@@ -27,7 +27,7 @@ pub async fn serve(settings: Settings) -> Result<(), String> {
   let store = Store::open(&settings.store.path).await.map_err(|why| why.to_string())?;
   let account = Account::current()?;
   let listen = settings.server.listen;
-  let sidecar = Sidecar::start(&settings);
+  let sidecar = Sidecar::start(&settings, &account);
   let router =
     http::router(Standing::new(settings, store, account, sidecar)).map_err(|faults| faults.join("; "))?;
   let listener = TcpListener::bind(listen)

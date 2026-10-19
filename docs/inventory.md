@@ -191,13 +191,14 @@ alone, on a loopback address, and checks its token (`docs/api.md`, 「Who checks
 The terminal sessions, their labels and how many viewers each has are tmux's own and are kept nowhere else,
 here as before.
 
-## Secrets and settings: 3
+## Secrets and settings: 4
 
 | What | Old place | Here |
 |---|---|---|
 | the desktop's RDP password | the console's environment, `BMO_REMOTE_DESKTOP_PASSWORD` | the setting `desktop.password`, in the deployment's local settings file |
 | the tmux socket's name | the console's environment, `BMO_REMOTE_TMUX_SOCKET`, else a name chosen by whether the console ran from a workbench | the setting `terminal.socket` |
 | the tmux configuration | `remote/tmux.conf` in the tree the console ran from | the setting `terminal.config`, naming the deployed `tmux.conf` |
+| the account the desktop is authenticated as | `USER` in the console's environment, which bun answers the process's account from and which the console's user unit is given by the service manager | the service's account from the passwd database, handed to the desktop sidecar as `USER` (`docs/api.md`, 「The desktop sidecar」) |
 
 ## Service units: 2
 

@@ -157,6 +157,7 @@ calls it.
 | `BMO_REMOTE_DESKTOP_PORT` | `desktop.port`, dialled where the store holds no port |
 | `BMO_REMOTE_DESKTOP_PASSWORD` | `desktop.password`, set only where one is kept |
 | `BMO_REMOTE_STORE_PATH` | `store.path`, the store it reads the kept port from on every connection |
+| `USER` | the account's name (「The account」), which the relay authenticates to the desktop as; bun answers the process's account from this variable rather than from the passwd database, so it is set whatever the service's own environment holds |
 
 - **What it answers:** an upgrade to `/api/remote/desktop/socket`, `/api/remote/desktop/pointer` or
   `/api/remote/desktop/keys` with the query the browser sent, carrying `Authorization: Bearer` and its
