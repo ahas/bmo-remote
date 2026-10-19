@@ -16,6 +16,7 @@ use serde_json::{Map, Value, json};
 use crate::account::Account;
 use crate::settings::Settings;
 use crate::store::Store;
+use crate::terminal::tmux::Tmux;
 
 pub use inventory;
 
@@ -155,14 +156,19 @@ pub struct Standing {
   pub store: Store,
   /// The account the service runs as, which the terminal and the desktop are reached as.
   pub account: Arc<Account>,
+  /// The tmux server the terminal sessions stand on.
+  pub tmux: Arc<Tmux>,
 }
 
 impl Standing {
   pub fn new(settings: Settings, store: Store, account: Account) -> Self {
+    let tmux = Tmux::new(&settings.terminal.socket, &settings.terminal.config, &account.shell);
+
     Self {
       settings: Arc::new(settings),
       store,
       account: Arc::new(account),
+      tmux: Arc::new(tmux),
     }
   }
 }

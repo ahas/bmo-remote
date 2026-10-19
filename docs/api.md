@@ -148,6 +148,7 @@ A message of any other shape is ignored.
 | 404 | `not_found` | an upgrade to a path no socket claims | |
 | 500 | `terminals_failed_because` | tmux could not be asked for its sessions | what tmux said |
 | 500 | `open_failed_because` | a session could not be started | what tmux said |
+| 500 | `failed` | tmux failed while a session was renamed or ended | |
 
 ## The store
 
