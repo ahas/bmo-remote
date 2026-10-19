@@ -1,0 +1,11 @@
+{
+  // Nuxt's own project configs carry the bundle's code; the typecheck reads the app's with the host's
+  // declarations beside it (nuxt.config.ts).
+  "files": [],
+  "references": [
+    { "path": "./.nuxt/tsconfig.app.json" },
+    { "path": "./.nuxt/tsconfig.server.json" },
+    { "path": "./.nuxt/tsconfig.shared.json" },
+    { "path": "./.nuxt/tsconfig.node.json" }
+  ]
+}

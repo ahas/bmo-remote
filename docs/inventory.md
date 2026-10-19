@@ -102,6 +102,11 @@ Carried into the console plugin bundle under `client/`, at the same paths below 
   plugin bundle」): `useKeptTabs`, `DeployMark`, `TodoOpenButton` and `UsageMeters`.
 - **The screen's words** are the host's language pack: the 75 keys under `remote` it reads, listed in
   `docs/api.md`, and none is carried here.
+- **Where the screen showed the server's sentence** — a session not opened, renamed or ended, and the
+  terminal socket's `error` — it shows the pack's words for the refusal's code (`docs/api.md`, 「The console
+  plugin bundle」), through `client/app/domain/remote/refusals.ts`, since the service answers English and codes.
+- **The IronRDP build's work directory** is the user's cache folder where none is named, outside every
+  repository and data folder.
 - **The packages** the screen stands on are pinned as the old console pinned them: `@xterm/xterm` 5.5.0,
   `@devolutions/iron-remote-desktop` 0.11.0, and the vendored `@devolutions/iron-remote-desktop-rdp`.
 

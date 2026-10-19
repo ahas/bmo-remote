@@ -1,0 +1,31 @@
+/* The remote terminal's own faces (docs/remote.md, 「The terminal interface」). A terminal draws what the
+   programs in it print — powerline, Nerd icons, box drawing — so its face keeps the Nerd glyphs and a bold
+   weight, under a family name of its own so the rest of the console keeps its small cut. The symbols subset
+   holds exactly the glyphs the mono face lacks, so it only ever draws where the first has nothing.
+   CaskaydiaCove is the Nerd Fonts build of Cascadia Code, Copyright (c) 2019 Microsoft Corporation; both
+   faces are under the SIL Open Font License 1.1, whose texts sit beside them. */
+
+@font-face {
+  font-family: "CaskaydiaCove Nerd Font Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/CaskaydiaCoveNerdFontMono-Regular.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "CaskaydiaCove Nerd Font Mono";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("../fonts/CaskaydiaCoveNerdFontMono-Bold.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Noto Sans Symbols 2 Subset";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/NotoSansSymbols2-subset.woff2") format("woff2");
+}
+

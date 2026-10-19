@@ -18,12 +18,31 @@ minimal services stand on the new repositories; until then the only check is the
 |---|---|
 | `src/` | The service and its command, one crate split into its own modules |
 | `migrations/` | The store, its table made by these statements in order |
+| `client/` | The console plugin bundle: the remote screen, a project of its own |
 | `deploy/` | The service's user unit and the tmux configuration its sessions' server runs with |
 | `docs/` | The canonical statements of what the service does |
 
 At the root stand the Cargo manifest, `VERSION`, `testbed.toml`, `rustfmt.toml`, `CLAUDE.md`,
 `korean-ledger.json`, `settings.toml` and `settings.local.toml.example`, the example of the local settings a
 deployment gives.
+
+## The console plugin bundle
+
+`client/` holds the console's remote screen as a Nuxt layer on top of bmo-ui, packed as `bmo-remote-client`,
+with the IronRDP web client's RDP backend vendored under `client/vendor/` and the script that builds it under
+`client/scripts/`. A host console extends it as it extends bmo-ui, and owes it:
+
+- bmo-ui itself, at the version the bundle's peer names; for the bundle's own install and typecheck a packed
+  copy stands in `client/vendor/`;
+- its i18n module and a language pack answering the keys the screen reads (`docs/api.md`, 「The console
+  plugin bundle」);
+- the title-bar pieces `DeployMark`, `TodoOpenButton` and `UsageMeters`, and `useKeptTabs`, declared in
+  `client/host/`;
+- the routes and sockets under `/api/remote/` handed on to this service (`docs/api.md`, 「What the console
+  does」).
+
+The screen says a refusal by its code in the pack's words. The bundle's check is `bun install
+--frozen-lockfile && bun run typecheck` inside `client/`.
 
 ## Documents
 
