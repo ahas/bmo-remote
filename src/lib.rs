@@ -4,6 +4,7 @@
 
 pub mod account;
 pub mod command;
+pub mod desktop;
 pub mod health;
 pub mod http;
 pub mod settings;

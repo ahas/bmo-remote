@@ -445,9 +445,9 @@ NLA, and the browser is kept out of it.
 - **The relay adds NLA to what the connection asks for** where it holds the password and the browser asked
   for none. The server still chooses: one that chooses plain TLS is spoken to as before.
 - **CredSSP runs over the TLS connection before the browser is answered**: NTLMv2 against the server's
-  challenge, the server's public key bound into the exchange with a nonce of the relay's own, and the
-  credentials delegated last. This exchange is all the relay authenticates; nothing of the RDP connection
-  sequence after it is the relay's.
+  challenge, the server's public key bound into the exchange with a nonce of the relay's own, the server's
+  answer checked to bind the same key, and the credentials delegated last. This exchange is all the relay
+  authenticates; nothing of the RDP connection sequence after it is the relay's.
 - **The browser is told TLS was chosen**, since it did not authenticate. The client writes what it was told
   into its core data, and a server reads a core data that disagrees with its own choice as a downgrade
   attack, so the relay writes the server's real choice back into that block as it passes.

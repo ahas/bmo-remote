@@ -38,12 +38,12 @@ The old console server's TypeScript, under `client/server/utils/`. Each becomes 
 | `remote-terminal-socket.ts` | 185 | `src/terminal/socket.rs`: the terminal socket |
 | `remote-sockets.ts` | 72 | `src/terminal/socket.rs` and `src/http.rs`: which paths are a socket's, and the refusal of the rest |
 | `remote-guard.ts` | 44 | `src/guard.rs`: the bearer token. Its sign-in and `Origin` checks are bmo-web's (「Not carried」) |
-| `rdcleanpath.ts` | 294 | `src/desktop/rdcleanpath.rs`: the RDCleanPath request, response and errors |
+| `rdcleanpath.ts` | 294 | `src/desktop/rdcleanpath.rs`: the RDCleanPath request, response and errors. Its TPKT length is `framing.rs`'s and its core-data rewrite `client_info.rs`'s. The request's encoder and the response's reader, which only its tests use, are not carried (「Tests deferred」) |
 | `rdp-negotiation.ts` | 115 | `src/desktop/negotiation.rs`: the X.224 request's protocols and routing token rewritten |
-| `rdp-nla.ts` | 450 | `src/desktop/nla.rs`: CredSSP with NTLMv2 |
+| `rdp-nla.ts` | 450 | `src/desktop/nla.rs`: CredSSP with NTLMv2, and the public key CredSSP binds read out of the server's certificate |
 | `rdp-framing.ts` | 210 | `src/desktop/framing.rs`: where each TPKT and fast-path PDU ends |
 | `rdp-redirection.ts` | 118 | `src/desktop/redirection.rs`: a server redirection packet read |
-| `rdp-client-info.ts` | 174 | `src/desktop/client_info.rs`: the logon packet and the core data rewritten |
+| `rdp-client-info.ts` | 174 | `src/desktop/client_info.rs`: the logon packet and the core data rewritten. The performance flags each quality puts in the logon packet are that quality's, in `src/desktop/quality.rs` |
 | `rdp-pointers.ts` | 147 | `src/desktop/pointers.rs`: the fast-path pointer updates read into shapes |
 | `rdp-input.ts` | 103 | `src/desktop/input.rs`: fast-path input PDUs |
 | `rdp-typist.ts` | 187 | `src/desktop/typist.rs`: the keys socket's messages typed into the stream |
@@ -205,6 +205,12 @@ here as before.
 
 ## Crates and packages
 
+- **The relay's protocol reading stands on maintained crates:** `ironrdp-rdcleanpath` for the RDCleanPath
+  PDUs, `ironrdp-pdu` for the TPKT and fast-path framing and the security protocols, `sspi` for the CredSSP
+  client with NTLM, and `x509-cert` with `der` for the server's certificate and a CredSSP message's length.
+  The X.224 request's rewrite, the redirection packet's read and the core data's rewrite are written by
+  hand: decoding them with `ironrdp-pdu` and encoding them again would not keep the browser's own bytes,
+  and it has no decoder for the redirection packet.
 - **No crate of the old workspace is depended on.** The verb read `bmo-lang` for its lines, `bmo-policy` for
   filling them and the old server's settings module for the archive row; its lines are English here, and
   the row is this repository's store.

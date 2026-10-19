@@ -20,8 +20,14 @@ axum = { version = "0.8.9", features = ["ws"] }
 clap = { version = "4.6.7", features = ["derive"] }
 # The settings: the built-in defaults, the deployment's files and the environment, layered in that order.
 config = { version = "0.15", default-features = false, features = ["toml"] }
+# A CredSSP message's length read off the stream.
+der = "0.7.10"
 # Each route registers itself beside its own answer.
 inventory = "0.3.24"
+# The desktop relay's RDP framing and security protocols.
+ironrdp-pdu = "0.9.0"
+# The handshake the browser's RDP client speaks to the relay.
+ironrdp-rdcleanpath = "0.2.2"
 # The account the service runs as, read from the passwd database.
 nix = { version = "0.30.1", features = ["user"] }
 # One pseudo-terminal per viewer of a terminal session.
@@ -34,8 +40,12 @@ serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"
 # The store, one SQLite file.
 sqlx = { version = "0.8.6", default-features = false, features = ["sqlite", "runtime-tokio", "macros", "migrate"] }
+# The relay's network-level authentication toward the desktop: CredSSP with NTLM.
+sspi = { version = "0.23.0", default-features = false }
 thiserror = "2.0.17"
 tokio = { version = "1.53.2", features = ["macros", "net", "process", "rt-multi-thread", "signal", "sync", "time"] }
+# The desktop's certificate, for the public key CredSSP binds.
+x509-cert = { version = "0.2.5", default-features = false }
 
 # Build output kept small: line tables alone for a backtrace, split out, and no incremental cache.
 [profile.dev]
