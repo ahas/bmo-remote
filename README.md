@@ -41,8 +41,9 @@ with the IronRDP web client's RDP backend vendored under `client/vendor/` and th
 - the routes and sockets under `/api/remote/` handed on to this service (`docs/api.md`, 「What the console
   does」).
 
-The screen says a refusal by its code in the pack's words. The bundle's check is `bun install
---frozen-lockfile && bun run typecheck` inside `client/`.
+The screen says a refusal by its code in the pack's words. The bundle's check is `bun run check` inside
+`client/`, which installs its locked packages and typechecks it; the testbed runs it as the check of a project
+of its own.
 
 ## Documents
 

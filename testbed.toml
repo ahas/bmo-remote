@@ -1,11 +1,17 @@
 # How the testbed checks, builds and deploys this repository, in the testbed's declaration format. The
-# tests are deferred (README.md), so the suite gathers nothing yet.
+# tests are deferred (README.md), so the suite gathers no test file yet.
 
 testbed = 0
 name = "bmo-remote"
 
 [test]
-languages = []
+# Bun runs the console bundle's check script.
+languages = ["bun"]
+
+[projects]
+# The console plugin bundle under client/ is a project of its own, the vendored RDP backend's manifest inside
+# it: its check script installs its locked packages and typechecks it.
+paths = ["client"]
 
 [check]
 # The sweeps that read the tree before anything runs: Korean in the code, the README's folder table and the
@@ -29,13 +35,6 @@ lane = "wide"
 [[check.step]]
 id = "fmt"
 command = "cargo fmt --all --check"
-
-# The console plugin bundle is a project of its own under client/, typechecked against its own install.
-[[check.step]]
-id = "client-typecheck"
-dir = "client"
-command = "bun install --frozen-lockfile && bun run typecheck"
-when = ["client/**"]
 
 [build]
 binaries = ["bmo-remote"]
