@@ -208,7 +208,7 @@ from the settings folder. An empty token lets no caller in.
 | `desktop` | `port` | the RDP server's port where the store holds none | `3389` |
 | `desktop` | `password` | the password the relay answers the desktop's authentication with (`docs/remote.md`, 「Credentials」), kept in the local settings or the environment | none |
 | `terminal` | `socket` | the tmux socket's name, letters, digits, `_` and `-` | `bmo-remote` |
-| `terminal` | `config` | the tmux configuration file | `tmux.conf` |
+| `terminal` | `config` | the tmux configuration file, the one a release carries | `deploy/tmux.conf` |
 | `store` | `path` | the SQLite file of 「The store」 | `remote.db` |
 
 ## The console plugin bundle

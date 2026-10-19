@@ -1,0 +1,35 @@
+# The remote terminal and the remote desktop as one service: the HTTP and websocket server and its command
+# in one binary. The only manifest at the root; the console plugin bundle keeps its own under `client/`.
+[package]
+name = "bmo-remote"
+description = "The console's terminal sessions on this machine and its desktop reached over RDP."
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[lib]
+test = false
+
+[[bin]]
+name = "bmo-remote"
+path = "src/main.rs"
+test = false
+
+[dependencies]
+axum = "0.8.9"
+clap = { version = "4.6.7", features = ["derive"] }
+# The settings: the built-in defaults, the deployment's files and the environment, layered in that order.
+config = { version = "0.15", default-features = false, features = ["toml"] }
+serde = { version = "1.0.229", features = ["derive"] }
+thiserror = "2.0.17"
+tokio = { version = "1.53.2", features = ["macros", "net", "rt-multi-thread", "signal"] }
+
+# Build output kept small: line tables alone for a backtrace, split out, and no incremental cache.
+[profile.dev]
+debug = "line-tables-only"
+split-debuginfo = "unpacked"
+incremental = false
+
+[profile.release]
+debug = false
+strip = "debuginfo"

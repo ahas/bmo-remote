@@ -1,0 +1,27 @@
+# The remote service's settings (docs/api.md, 「Settings」). A deployment's settings.local.toml overrides any
+# key here, and BMO_REMOTE_<TABLE>__<KEY> in the environment overrides both. A relative path is read from the
+# settings folder.
+
+[server]
+# Where the service answers, as host:port: a loopback address, so only this machine reaches it.
+listen = "127.0.0.1:3320"
+# The bearer token every caller presents. A deployment names its own.
+token = ""
+
+[desktop]
+# The RDP server's address: this machine.
+host = "127.0.0.1"
+# The RDP server's port where the store holds none.
+port = 3389
+# The password the relay answers the desktop's authentication with (docs/remote.md, 「Credentials」) has no
+# default: a deployment sets `password` in its local settings or its environment, and none is kept here.
+
+[terminal]
+# The tmux socket the sessions stand on: letters, digits, `_` and `-`.
+socket = "bmo-remote"
+# The tmux configuration file the server is started with and applied again at every start.
+config = "deploy/tmux.conf"
+
+[store]
+# The SQLite file the stored desktop port stands in.
+path = "remote.db"

@@ -1,0 +1,16 @@
+# Copied to settings.local.toml by a deployment, with its own values. Any key left out keeps the value
+# settings.toml gives it; BMO_REMOTE_<TABLE>__<KEY> in the environment overrides both.
+
+[server]
+listen = "127.0.0.1:3320"
+token = "remote-token"
+
+[desktop]
+password = "desktop-password"
+
+[terminal]
+# A development instance names a socket of its own, so it never reaches a deployed instance's sessions.
+socket = "bmo-remote-dev"
+
+[store]
+path = "/srv/bmo-remote/remote.db"

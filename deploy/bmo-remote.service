@@ -1,0 +1,23 @@
+# The remote service's user unit. A deployment runs it from its deploy tree, whose settings.local.toml links
+# to the data root's env/remote.toml (docs/api.md, 「Settings」). The tmux server the terminal sessions stand
+# on is a transient unit of its own, so stopping this one keeps every session (docs/remote.md, 「The server
+# outlives the service」).
+[Unit]
+Description=bmo-remote: the console's terminal sessions and remote desktop
+After=network-online.target
+# Without its settings the service has no token or desktop password, so the unit does not start where the
+# deployment wrote none.
+ConditionPathExists=%h/.local/share/bmo/data/env/remote.toml
+
+[Service]
+Type=simple
+WorkingDirectory=%h/.local/share/bmo-remote/deploy
+ExecStart=%h/.local/share/bmo-remote/deploy/bin/bmo-remote serve
+Restart=always
+RestartSec=2
+TimeoutStopSec=30
+
+[Install]
+WantedBy=default.target
+# The repository's one service: stopped, restarted and watched by every deployment, which waits on its health.
+X-BMO-Deploy=bot
