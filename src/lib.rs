@@ -3,6 +3,7 @@
 //! (`docs/remote.md`, `docs/api.md`).
 
 pub mod account;
+pub mod command;
 pub mod health;
 pub mod http;
 pub mod settings;
