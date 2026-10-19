@@ -34,8 +34,8 @@ with the IronRDP web client's RDP backend vendored under `client/vendor/` and th
 
 - bmo-ui itself, at the version the bundle's peer names; for the bundle's own install and typecheck a packed
   copy stands in `client/vendor/`;
-- its i18n module and a language pack answering the keys the screen reads (`docs/api.md`, 「The console
-  plugin bundle」);
+- its i18n module, which merges the bundle's own language pack under `client/i18n/locales/` into the host's,
+  and a pack answering the few keys every screen shares (`docs/api.md`, 「The console plugin bundle」);
 - the title-bar pieces `DeployMark`, `TodoOpenButton` and `UsageMeters`, and `useKeptTabs`, declared in
   `client/host/`;
 - the routes and sockets under `/api/remote/` handed on to this service (`docs/api.md`, 「What the console

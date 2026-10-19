@@ -572,7 +572,8 @@ there, redirects it to the account's wayland session.
   Noto Sans Symbols 2 subset and a fallback list; the Korean IME handling; the copy and paste handling (OSC
   52 included); the mobile extra-keys row with its key repeat and haptics; and the font-size and padding
   choices.
-- **The screen's words** are the console's language pack; the screen holds none of its own.
+- **The screen's words** are its bundle's own language pack, which the console's i18n module merges into its
+  own; the words every screen shares are the console's.
 - **The terminal's faces are fetched only on the remote screen.** They are a family of their own beside the
   console's small monospace cut, and a browser loads a face only when text asks for it.
 - **The user's choices stay in the browser:** font size, padding and whether the extra keys show (without a

@@ -46,12 +46,14 @@ structure (archive document #301, 「원칙」).
 ## Language
 
 - Everything in this repository is English: code, comments, strings, tests, documents, commit messages and
-  branch names.
+  branch names. The one exception is the screen's language pack under `client/i18n/locales/`, a file to a
+  language, each in its own.
 - **Hangul the code inherently handles** — the 두벌식 keys a syllable is typed as, the terminal IME's
   composition — is written plainly, never as an escape or a character code, and each file's count of lines
   holding it stands in `korean-ledger.json`. No other Korean stands in code or tests.
 - What the service answers is an English sentence for a log and a snake_case code a screen shows in its own
-  language's words (`docs/api.md`, 「Refusals」). The screen's words stand in bmo-web's language pack.
+  language's words (`docs/api.md`, 「Refusals」). The screen's words stand in the bundle's own language pack,
+  one key for every code (`docs/api.md`, 「The console plugin bundle」).
 - No personal data: no user names, home directories, machine names, internal addresses or names of any
   agent. What the service needs at runtime comes from its settings, never from the code.
 

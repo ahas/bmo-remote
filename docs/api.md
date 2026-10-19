@@ -220,21 +220,30 @@ from the settings folder. An empty token lets no caller in.
 - **What its host serves it:** the bmo-ui layer, and the routes and sockets above under `/api/remote/`,
   handed on to this service with its token behind the console's sign-in.
 - **How a host takes it:** the bundle is packed from `client/` with `bun pm pack` into
-  `bmo-remote-client-<version>.tgz`, carrying its manifest, its Nuxt configuration, `app/`, `shared/` and the
-  vendored RDP backend. A host keeps the packed bundle in its own tree and depends on it by that file,
-  depends on bmo-ui at the version the bundle's peer names, and names `bmo-remote-client` in its Nuxt
-  configuration's `extends`, which brings bmo-ui's layer with it.
+  `bmo-remote-client-<version>.tgz`, carrying its manifest, its Nuxt configuration, `app/`, `shared/`, its
+  language pack under `i18n/` and the vendored RDP backend. A host keeps the packed bundle in its own tree
+  and depends on it by that file, depends on bmo-ui at the version the bundle's peer names, and names
+  `bmo-remote-client` in its Nuxt configuration's `extends`, which brings bmo-ui's layer with it.
 - **What its host owes it,** declared in `client/host/` for the bundle's own typecheck alone:
   - the components `DeployMark`, `TodoOpenButton` and `UsageMeters` of the console's top bar, registered by
     name and handed no props;
   - `useKeptTabs(screen, { read, restore })`, made importable by name as Nuxt makes a project's own
     composables, which keeps the screen's open tabs for the account under the screen's key `remote`;
-  - its i18n module and a language pack answering the keys below, as bmo-ui asks of every host.
-- **Wording:** the bundle holds no words of its own. It reads these 80 keys from the host's language pack, and
-  shows a refusal of the routes, or an `error` of the terminal socket, by the key its code names, under
-  `remote.error.` but for `terminal_disconnected`, which is `remote.status.terminal_disconnected`:
-  - `common.action.cancel`, `common.action.more`, `common.action.save`, `common.label.name`
-  - `screens.label.remote`
+  - its i18n module, which merges the bundle's own pack into the host's locale of the same code, and a pack
+    answering the five shared keys below, as bmo-ui asks of every host.
+- **Wording:** the screen's own words are the bundle's language pack, one file to a language under
+  `client/i18n/locales/`: `ko.yaml`, and `en.yaml` holding the same keys. The bundle's Nuxt configuration
+  registers them as the host registers its own locales, by code (`ko`, `en`), language tag (`ko-KR`,
+  `en-US`) and file, and the host's i18n module reads a layer's locales as part of its own: where both name a
+  code, the two files are one locale, the host's value standing where both hold a key; a code the host names
+  no file for joins its locales unless the host keeps its own list (the module's `bundle.onlyLocales`).
+  - **From the host's pack,** the five keys every screen of the console shares: `common.action.cancel`,
+    `common.action.more`, `common.action.save`, `common.label.name` and `screens.label.remote`.
+  - **From the bundle's own pack,** the 78 keys under `remote`. The screen shows a refusal of the routes, or an
+    `error` of the terminal socket, by the key its code names, under `remote.error.` but for
+    `terminal_disconnected`, which is `remote.status.terminal_disconnected`; every code the service answers
+    has its key, `unauthorized` and `not_found` among them though the console in front lets neither reach the
+    screen.
   - `remote.title.desktop`, `remote.title.remote_desktop`, `remote.title.rename`, `remote.title.terminal_page`
   - `remote.label.extra_keys`, `remote.label.font_size`, `remote.label.input_mode`, `remote.label.menu`,
     `remote.label.open_sessions`, `remote.label.padding`, `remote.label.password`, `remote.label.quality`,
@@ -254,12 +263,12 @@ from the settings folder. An empty token lets no caller in.
     `remote.status.session_ended`, `remote.status.session_over`, `remote.status.terminal_disconnected`
   - `remote.message.disconnect_desktop`, `remote.message.end_many`, `remote.message.end_one`
   - `remote.error.access_denied`, `remote.error.attach_failed_because`, `remote.error.bad_terminal_id`,
-    `remote.error.connect_failed`, `remote.error.end_failed`, `remote.error.load_failed`,
+    `remote.error.connect_failed`, `remote.error.end_failed`, `remote.error.failed`, `remote.error.load_failed`,
     `remote.error.logon_failed`, `remote.error.negotiation_failed`, `remote.error.no_terminal_session`,
-    `remote.error.open_failed`, `remote.error.open_failed_because`, `remote.error.relay_refused`,
-    `remote.error.relay_unreachable`, `remote.error.rename_failed`, `remote.error.rename_text`,
-    `remote.error.terminal_name_text`, `remote.error.terminals_failed`, `remote.error.terminals_failed_because`,
-    `remote.error.wrong_password`
+    `remote.error.not_found`, `remote.error.open_failed`, `remote.error.open_failed_because`,
+    `remote.error.relay_refused`, `remote.error.relay_unreachable`, `remote.error.rename_failed`,
+    `remote.error.rename_text`, `remote.error.terminal_name_text`, `remote.error.terminals_failed`,
+    `remote.error.terminals_failed_because`, `remote.error.unauthorized`, `remote.error.wrong_password`
   - A key ending in `_because` takes the refusal's `reason` as `{reason}`.
 
 ## What the console does
@@ -276,7 +285,8 @@ These are bmo-web's to carry; this repository holds none of them.
   forwarded host behind the proxy, 403, before handing anything on (「Who checks what」).
 - **Extend the console plugin bundle** under `client/` in place of the `/remote` placeholder, and serve its
   pages at `/remote`, `/remote/desktop` and `/remote/terminal/<id>`.
-- **Hold the words:** the 75 `remote` keys above in its pack, beside the five shared ones it holds.
+- **Hold the shared words:** the five shared keys above in its own pack, with the bundle's pack merged in as a
+  layer's locale; its own pack holds none of the `remote` keys.
 - **Owe the host's parts** the bundle declares (「The console plugin bundle」).
 
 ## Missing in siblings
@@ -286,7 +296,10 @@ worker:
 
 - **bmo-web:** `REMOTE_ADDRESS` and `REMOTE_TOKEN` among its settings; the handing on of `/api/remote/`,
   websocket upgrades included, which its boundary states for no unit yet; the sign-in and `Origin` checks
-  on those upgrades; the bundle in place of the `/remote` placeholder; and the 75 `remote` keys in its pack.
+  on those upgrades; the bundle in place of the `/remote` placeholder; its `docs/language-pack.md` naming the
+  bundle's pack, merged as a layer's locale under the console's, where it says no other repository holds a
+  pack and the console's pack answers every key a bundle reads; and whether the bundle's `en` locale joins
+  the console's, which stays `ko` alone only with `bundle.onlyLocales` in its i18n options.
 - **bmo-cli:** name `node remote-desktop` and `remote-desktop` as served by `bmo-remote`, which declares them
   as nouns.
 

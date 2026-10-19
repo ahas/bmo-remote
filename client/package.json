@@ -8,6 +8,7 @@
     "nuxt.config.ts",
     "app",
     "shared",
+    "i18n",
     "vendor/iron-remote-desktop-rdp"
   ],
   "scripts": {

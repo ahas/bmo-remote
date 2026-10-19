@@ -1,0 +1,90 @@
+# Every word the remote screen shows, and nothing else; the words every screen of the console shares are the
+# host's. A key is `remote.<role>.<key>`, and a refusal's is `remote.error.<code>` by the code the service
+# answers (docs/api.md, "The console plugin bundle").
+
+remote:
+  title:
+    desktop: Desktop
+    remote_desktop: Remote · Desktop
+    rename: Rename
+    terminal_page: "Remote · {name}"
+  label:
+    extra_keys: Extra keys
+    font_size: Font size
+    input_mode: Input mode
+    menu: Remote menu
+    open_sessions: Open sessions
+    padding: Padding
+    password: Password
+    quality: Quality
+    quality_balanced: Balanced
+    quality_fast: Fast
+    quality_sharp: Sharp
+    resolution: Resolution
+    size_1280x720: 1,280 × 720
+    size_1600x900: 1,600 × 900
+    size_1920x1080: 1,920 × 1,080
+    size_2560x1440: 2,560 × 1,440
+    size_auto: Fit to window
+    touch_mode_pointer: Pointer
+    touch_mode_touch: Touch
+    user: User
+  action:
+    connect: Connect
+    disconnect: Disconnect
+    disconnect_desktop: Disconnect the desktop
+    end: End
+    end_session: End session
+    exit_fullscreen: Exit full screen
+    fullscreen: Full screen
+    keyboard_show: Show keyboard
+    new_terminal: New terminal
+    open_desktop: Open the desktop
+    open_here: Open here
+    open_window: Open in a new window
+    reconnect: Reconnect
+  aria:
+    desktop_input: Remote desktop input
+    key_backspace: Backspace
+    key_down: Down
+    key_enter: Enter
+    key_left: Left
+    key_right: Right
+    key_up: Up
+  status:
+    connecting: Connecting
+    connection_ended: The connection has ended
+    no_sessions: No open sessions
+    not_connected: Not connected
+    open_elsewhere: Open in another window
+    reconnecting: Reconnecting
+    session_ended: The session has ended
+    session_over: The session has ended.
+    terminal_disconnected: The terminal was disconnected.
+  message:
+    disconnect_desktop: The desktop will be disconnected.
+    end_many: "{n} terminal sessions and every program running in them will be ended."
+    end_one: "The session {name} and every program running in it will be ended."
+  error:
+    access_denied: Access was denied.
+    attach_failed_because: "Could not connect to the terminal: {reason}"
+    bad_terminal_id: The terminal session id is not valid.
+    connect_failed: Could not connect to the remote desktop.
+    end_failed: Could not end the session.
+    failed: The terminal session could not be changed.
+    load_failed: Could not load the remote desktop screen.
+    logon_failed: Could not sign in.
+    negotiation_failed: Could not agree on a connection method with the remote desktop.
+    no_terminal_session: The terminal session could not be found.
+    not_found: The remote service has no such address.
+    open_failed: Could not open a terminal.
+    open_failed_because: "Could not open a terminal: {reason}"
+    relay_refused: The remote desktop relay refused the connection.
+    relay_unreachable: Could not reach the remote desktop relay.
+    rename_failed: Could not rename.
+    rename_text: Enter the new name as text.
+    terminal_name_text: Enter the terminal name as text.
+    terminals_failed: Could not read the terminal list.
+    terminals_failed_because: "Could not read the terminal list: {reason}"
+    unauthorized: The remote service did not allow the request.
+    wrong_password: The password is not correct.

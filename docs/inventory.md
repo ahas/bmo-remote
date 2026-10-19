@@ -79,7 +79,7 @@ at the same path, behind this service's bearer token in place of the console's s
 |---|---|---|
 | `bot/bmo-server/src/verbs/remote_desktop.rs` | 61 | `src/command.rs`, the `node remote-desktop` command, writing this repository's own store |
 | `lang/bmo-lang/src/remote_desktop.rs` | 15 | not carried as a file: its four lines are the command's English lines in `src/command.rs` (`docs/api.md`, 「The command」) |
-| `lang/bmo-lang/lang/ko/remote-desktop.yaml` | 11 | not carried: the language pack is bmo-web's alone, and no screen shows these lines |
+| `lang/bmo-lang/lang/ko/remote-desktop.yaml` | 11 | not carried: no screen shows these lines, and the command prints English |
 
 ## The console screen: 26 files and 5 fonts
 
@@ -100,8 +100,11 @@ Carried into the console plugin bundle under `client/`, at the same paths below 
   `SettingsDialog` and `TabBar` are bmo-ui's too.
 - **What bmo-ui does not serve** is the host's, declared in `client/host/` (`docs/api.md`, 「The console
   plugin bundle」): `useKeptTabs`, `DeployMark`, `TodoOpenButton` and `UsageMeters`.
-- **The screen's words** are the host's language pack: the 75 keys under `remote` it reads, listed in
-  `docs/api.md`, and none is carried here.
+- **The screen's words** are the bundle's own language pack, `client/i18n/locales/ko.yaml`: the 75 keys under
+  `remote` of the old console's `client/i18n/locales/ko.yaml` (its lines 2037 to 2119), each value as it
+  stood, and one key for each of the three refusal codes the old screen had none for, `failed`, `not_found`
+  and `unauthorized`. `client/i18n/locales/en.yaml` holds the same keys in English. The five shared keys
+  the screen reads stay in the host's pack (`docs/api.md`, 「The console plugin bundle」).
 - **Where the screen showed the server's sentence** — a session not opened, renamed or ended, and the
   terminal socket's `error` — it shows the pack's words for the refusal's code (`docs/api.md`, 「The console
   plugin bundle」), through `client/app/domain/remote/refusals.ts`, since the service answers English and codes.
