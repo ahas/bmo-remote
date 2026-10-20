@@ -23,8 +23,8 @@
       "screen/desktop",
       "console/ironrdp-build"
     ],
-    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
-    "changed": 1792499560958,
+    "base": "85ac6b9f25b9f51ccf22d46e67fa5c7812b9ac6a",
+    "changed": 1792519083091,
     "boundary": {
       "side": "exposes"
     }
@@ -46,8 +46,8 @@
     "needs": [
       "service/openapi"
     ],
-    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
-    "changed": 1792499560955,
+    "base": "85ac6b9f25b9f51ccf22d46e67fa5c7812b9ac6a",
+    "changed": 1792519083101,
     "boundary": {
       "side": "exposes"
     }
@@ -73,8 +73,8 @@
       "service/settings",
       "service/store"
     ],
-    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
-    "changed": 1792499560953,
+    "base": "85ac6b9f25b9f51ccf22d46e67fa5c7812b9ac6a",
+    "changed": 1792519083112,
     "boundary": {
       "side": "exposes"
     }
@@ -112,8 +112,8 @@
       "terminal/socket",
       "desktop/sidecar"
     ],
-    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
-    "changed": 1792499560950,
+    "base": "85ac6b9f25b9f51ccf22d46e67fa5c7812b9ac6a",
+    "changed": 1792519083123,
     "boundary": {
       "side": "exposes"
     }

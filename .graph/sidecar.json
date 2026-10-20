@@ -20,8 +20,8 @@
       "sidecar/keys",
       "sidecar/settings"
     ],
-    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
-    "changed": 1792499560918
+    "base": "85ac6b9f25b9f51ccf22d46e67fa5c7812b9ac6a",
+    "changed": 1792519083349
   },
   {
     "id": "sidecar/focus",
@@ -40,8 +40,8 @@
     ],
     "aliases": [],
     "needs": [],
-    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
-    "changed": 1792499560928
+    "base": "85ac6b9f25b9f51ccf22d46e67fa5c7812b9ac6a",
+    "changed": 1792519083360
   },
   {
     "id": "sidecar/keys",
@@ -69,8 +69,8 @@
     "needs": [
       "sidecar/focus"
     ],
-    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
-    "changed": 1792499560925
+    "base": "85ac6b9f25b9f51ccf22d46e67fa5c7812b9ac6a",
+    "changed": 1792519083371
   },
   {
     "id": "sidecar/pointers",
@@ -87,8 +87,8 @@
     ],
     "aliases": [],
     "needs": [],
-    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
-    "changed": 1792499560930
+    "base": "85ac6b9f25b9f51ccf22d46e67fa5c7812b9ac6a",
+    "changed": 1792519083381
   },
   {
     "id": "sidecar/relay",
@@ -120,8 +120,8 @@
       "sidecar/pointers",
       "sidecar/settings"
     ],
-    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
-    "changed": 1792499560923
+    "base": "85ac6b9f25b9f51ccf22d46e67fa5c7812b9ac6a",
+    "changed": 1792519083391
   },
   {
     "id": "sidecar/settings",
@@ -143,7 +143,7 @@
     ],
     "aliases": [],
     "needs": [],
-    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
-    "changed": 1792499560920
+    "base": "85ac6b9f25b9f51ccf22d46e67fa5c7812b9ac6a",
+    "changed": 1792519083402
   }
 ]

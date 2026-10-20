@@ -13,8 +13,8 @@
     ],
     "aliases": [],
     "needs": [],
-    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
-    "changed": 1792499560892
+    "base": "85ac6b9f25b9f51ccf22d46e67fa5c7812b9ac6a",
+    "changed": 1792519083259
   },
   {
     "id": "service/command",
@@ -35,8 +35,8 @@
       "service/settings",
       "service/store"
     ],
-    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
-    "changed": 1792499560899
+    "base": "85ac6b9f25b9f51ccf22d46e67fa5c7812b9ac6a",
+    "changed": 1792519083272
   },
   {
     "id": "service/health",
@@ -54,8 +54,8 @@
     "needs": [
       "api/client"
     ],
-    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
-    "changed": 1792499560894
+    "base": "85ac6b9f25b9f51ccf22d46e67fa5c7812b9ac6a",
+    "changed": 1792519083285
   },
   {
     "id": "service/http",
@@ -81,8 +81,8 @@
       "desktop/sidecar",
       "terminal/sessions"
     ],
-    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
-    "changed": 1792499560885
+    "base": "85ac6b9f25b9f51ccf22d46e67fa5c7812b9ac6a",
+    "changed": 1792519083296
   },
   {
     "id": "service/lifecycle",
@@ -104,8 +104,8 @@
       "service/account",
       "desktop/sidecar"
     ],
-    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
-    "changed": 1792499607853
+    "base": "85ac6b9f25b9f51ccf22d46e67fa5c7812b9ac6a",
+    "changed": 1792519083306
   },
   {
     "id": "service/openapi",
@@ -122,8 +122,8 @@
     ],
     "aliases": [],
     "needs": [],
-    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
-    "changed": 1792499560897
+    "base": "85ac6b9f25b9f51ccf22d46e67fa5c7812b9ac6a",
+    "changed": 1792519083316
   },
   {
     "id": "service/settings",
@@ -141,8 +141,8 @@
     ],
     "aliases": [],
     "needs": [],
-    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
-    "changed": 1792499560888
+    "base": "85ac6b9f25b9f51ccf22d46e67fa5c7812b9ac6a",
+    "changed": 1792519083326
   },
   {
     "id": "service/store",
@@ -159,7 +159,7 @@
     ],
     "aliases": [],
     "needs": [],
-    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
-    "changed": 1792499560890
+    "base": "85ac6b9f25b9f51ccf22d46e67fa5c7812b9ac6a",
+    "changed": 1792519083338
   }
 ]
