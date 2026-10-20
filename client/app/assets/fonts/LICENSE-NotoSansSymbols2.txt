@@ -16,9 +16,9 @@ License: OFL-1.1
 Files:
  debian/*
 Copyright:
-  2013-2020, Jonas Smedegaard <>
+  2013-2020, Jonas Smedegaard
   2020, Purism, SPC
-  2013, Vasudev Kamath <>
+  2013, Vasudev Kamath
 License-Grant:
  This program is free software;
  you can redistribute it and/or modify it
