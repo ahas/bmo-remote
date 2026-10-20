@@ -6,8 +6,8 @@ import type { Nuxt } from "@nuxt/schema";
 // The remote screen as a layer a console extends (docs/api.md, "The console plugin bundle"). It extends the
 // bmo-ui layer and adds the screen's pages, components, domain modules, language pack and the terminal's own
 // faces; the host brings its i18n module and the words every screen shares, the console's title-bar
-// components and the kept tabs the screen asks of it, and hands the screen's routes and sockets on to the
-// service.
+// components and the kept tabs the screen asks of it, and relays the service's own paths to it. The bundle
+// declares itself in console-bundle.json, as bmo-ui's console plugin contract asks.
 const here = dirname(fileURLToPath(import.meta.url));
 
 export default defineNuxtConfig({
@@ -33,13 +33,14 @@ export default defineNuxtConfig({
       }
     }
   ],
-  // The screen's own words, one file to a language under i18n/locales/, registered as the host registers its
-  // own locales; the host's i18n module reads them as part of its locale of the same code, its own pack
-  // standing where both hold a key.
+  // The screen's own words, one JSON file to a language under i18n/, the folder console-bundle.json names,
+  // registered as the host registers its own locales; the host's i18n module reads them as part of its
+  // locale of the same code, its own pack standing where both hold a key.
   i18n: {
+    langDir: ".",
     locales: [
-      { code: "ko", language: "ko-KR", file: "ko.yaml" },
-      { code: "en", language: "en-US", file: "en.yaml" }
+      { code: "ko", language: "ko-KR", file: "ko.json" },
+      { code: "en", language: "en-US", file: "en.json" }
     ]
   },
   compatibilityDate: "2025-09-01",

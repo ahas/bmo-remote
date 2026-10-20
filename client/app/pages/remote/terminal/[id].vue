@@ -6,16 +6,20 @@
     <RemoteTerminalPanel v-if="valid" :key="id" :id="id" class="min-h-0 flex-1" @ended="endedHere = true" />
 
     <div v-if="!valid || endedHere" class="flex flex-1 flex-col items-center justify-center gap-4 p-4 text-sm text-white/70">
-      <p>{{ endedHere ? $t("remote.status.session_over") : $t("remote.error.no_terminal_session") }}</p>
+      <p>{{ endedHere ? $t("remote.status.session_over") : $t("remote.error.no-terminal-session") }}</p>
     </div>
   </ScreenFrame>
 </template>
 
 <script setup lang="ts">
 import { isRemoteTab, isTerminalTab } from "../../../domain/remote/sessions";
+import { remotePath } from "../../../domain/remote/service";
 import { sessionName } from "../../../domain/remote/terminal-hub";
 
+import type { components } from "../../../../shared/openapi";
 import type { RemoteTerminalInfo } from "../../../../shared/remote";
+
+type Wire = components["schemas"];
 
 const { t } = useI18n();
 definePageMeta({ layout: false });
@@ -31,9 +35,7 @@ useHead({ title: () => t("remote.title.terminal_page", { name: label.value }) })
 
 async function load(): Promise<void> {
   try {
-    const { terminals } = await $fetch<{ terminals: RemoteTerminalInfo[] }>("/api/remote/terminals");
-
-    session.value = terminals.find((one) => one.id === id.value) ?? null;
+    session.value = await $fetch<Wire["Terminal"]>(remotePath(`/terminals/${encodeURIComponent(id.value)}`));
   } catch {
     session.value = null;
   }

@@ -3,7 +3,7 @@
 [package]
 name = "bmo-remote"
 description = "The console's terminal sessions on this machine and its desktop reached over RDP."
-version = "0.2.0"
+version = "0.1.0-rev.2"
 edition = "2024"
 publish = false
 
@@ -38,10 +38,12 @@ nix = { version = "0.30.1", features = ["user"] }
 portable-pty = "0.9.0"
 # A new terminal session's id.
 rand = "0.9.2"
-# The health command asking the service, over plain HTTP on the loopback address.
-reqwest = { version = "0.13.5", default-features = false, features = ["json"] }
+# The client asking the service, over plain HTTP on the loopback address.
+reqwest = { version = "0.13.5", default-features = false, features = ["json", "query"] }
 # fcitx5's configuration files, for its trigger keys and its Hangul layout.
 rust-ini = "0.21.3"
+# The JSON Schemas of the wire types, for the OpenAPI document.
+schemars = "1.2.3"
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"
 # The store, one SQLite file.

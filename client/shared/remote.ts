@@ -9,11 +9,11 @@ export function isRemoteDesktopQuality(value: unknown): value is RemoteDesktopQu
   return typeof value === "string" && (REMOTE_DESKTOP_QUALITIES as readonly string[]).includes(value);
 }
 
-// One terminal session of the remote screen, as tmux holds it (docs/remote.md).
+// One terminal session of the remote screen, as the service answers it.
 export interface RemoteTerminalInfo {
   id: string;
-  label: string;
+  title: string;
+  state: string;
   // Milliseconds since the epoch.
   createdAt: number;
-  attached: number;
 }

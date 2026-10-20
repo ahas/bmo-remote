@@ -130,7 +130,7 @@ pub struct DesktopSocket;
 
 impl Route for DesktopSocket {
   const METHOD: Method = Method::GET;
-  const PATH: &'static str = "/api/remote/desktop/socket";
+  const PATH: &'static str = "/desktop/socket";
 
   async fn answer(&self, call: Call) -> Result<Response, Refused> {
     hand_on(call).await
@@ -144,7 +144,7 @@ pub struct PointerSocket;
 
 impl Route for PointerSocket {
   const METHOD: Method = Method::GET;
-  const PATH: &'static str = "/api/remote/desktop/pointer";
+  const PATH: &'static str = "/desktop/pointer";
 
   async fn answer(&self, call: Call) -> Result<Response, Refused> {
     hand_on(call).await
@@ -158,7 +158,7 @@ pub struct KeysSocket;
 
 impl Route for KeysSocket {
   const METHOD: Method = Method::GET;
-  const PATH: &'static str = "/api/remote/desktop/keys";
+  const PATH: &'static str = "/desktop/keys";
 
   async fn answer(&self, call: Call) -> Result<Response, Refused> {
     hand_on(call).await

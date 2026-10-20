@@ -6,13 +6,12 @@ use std::path::{Path, PathBuf};
 use std::process::Stdio;
 use std::time::Duration;
 
-use serde::Serialize;
 use tokio::process::Command;
 use tokio::sync::Mutex;
 use tokio::time::{Instant, sleep, timeout};
 
-/// A label's most characters, counted as the screen counts them, in UTF-16 units.
-pub const LABEL_MAX: usize = 80;
+/// A title's most characters, counted as the screen counts them, in UTF-16 units.
+pub const TITLE_MAX: usize = 80;
 
 // tmux answers from a local socket at once; a call standing longer than this is stuck.
 const CALL_TIMEOUT: Duration = Duration::from_secs(5);
@@ -20,10 +19,10 @@ const CALL_TIMEOUT: Duration = Duration::from_secs(5);
 const START_WAIT: Duration = Duration::from_secs(5);
 const START_POLL: Duration = Duration::from_millis(50);
 
-// A tab: tmux prints it as it is (other control characters come out escaped), and a label never holds
+// A tab: tmux prints it as it is (other control characters come out escaped), and a title never holds
 // one.
 const FIELD: char = '\t';
-const LIST_FORMAT: &str = "#{session_name}\t#{@label}\t#{session_created}\t#{session_attached}";
+const LIST_FORMAT: &str = "#{session_name}\t#{@title}\t#{session_created}";
 
 // The variables of the service's own environment a tmux client is handed, beside `PATH` and `LANG`.
 const HANDED_ON: [&str; 5] = ["HOME", "USER", "LOGNAME", "XDG_RUNTIME_DIR", "TMUX_TMPDIR"];
@@ -31,14 +30,12 @@ const FALLBACK_PATH: &str = "/usr/bin:/bin";
 const FALLBACK_LOCALE: &str = "C.UTF-8";
 
 /// One terminal session, as tmux holds it (`docs/api.md`, 「Terminal sessions」).
-#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "camelCase")]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct RemoteTerminal {
   pub id: String,
-  pub label: String,
+  pub title: String,
   /// Milliseconds since the epoch.
   pub created_at: i64,
-  pub attached: u32,
 }
 
 /// Why tmux could not do what it was asked.
@@ -59,10 +56,10 @@ fn usable_socket(socket: &str) -> bool {
     && socket.bytes().all(|byte| byte.is_ascii_alphanumeric() || byte == b'_' || byte == b'-')
 }
 
-/// A label as one line of plain text, at most [`LABEL_MAX`] long: control characters would reach tmux's own
+/// A title as one line of plain text, at most [`TITLE_MAX`] long: control characters would reach tmux's own
 /// formats, so each becomes a space, and the ends are trimmed.
-pub fn tidy_label(label: &str) -> String {
-  let plain: String = label.chars().map(|one| if one.is_ascii_control() { ' ' } else { one }).collect();
+pub fn tidy_title(title: &str) -> String {
+  let plain: String = title.chars().map(|one| if one.is_ascii_control() { ' ' } else { one }).collect();
   let mut units = 0;
 
   plain
@@ -70,7 +67,7 @@ pub fn tidy_label(label: &str) -> String {
     .chars()
     .take_while(|one| {
       units += one.len_utf16();
-      units <= LABEL_MAX
+      units <= TITLE_MAX
     })
     .collect()
 }
@@ -290,8 +287,8 @@ impl Tmux {
     Ok(self.list().await?.into_iter().find(|one| one.id == id))
   }
 
-  /// A new session running the account's login shell in its home, named by `label` where one is given.
-  pub async fn create(&self, label: Option<&str>) -> Result<RemoteTerminal, TmuxError> {
+  /// A new session running the account's login shell in its home, named by `title` where one is given.
+  pub async fn create(&self, title: Option<&str>) -> Result<RemoteTerminal, TmuxError> {
     self.ready().await?;
 
     let id = format!(
@@ -304,10 +301,10 @@ impl Tmux {
       .must(&["new-session", "-d", "-s", &id, "-c", &home, "-x", "80", "-y", "24"])
       .await?;
 
-    let tidy = tidy_label(label.unwrap_or_default());
+    let tidy = tidy_title(title.unwrap_or_default());
 
     if !tidy.is_empty() {
-      self.must(&["set-option", "-t", &format!("={id}:"), "@label", &tidy]).await?;
+      self.must(&["set-option", "-t", &format!("={id}:"), "@title", &tidy]).await?;
     }
 
     self
@@ -316,19 +313,19 @@ impl Tmux {
       .ok_or_else(|| TmuxError(format!("tmux session {id} did not stand")))
   }
 
-  /// The session renamed, where it stands; an empty label takes the label away.
-  pub async fn rename(&self, id: &str, label: &str) -> Result<Option<RemoteTerminal>, TmuxError> {
+  /// The session renamed, where it stands; an empty title takes the title away.
+  pub async fn rename(&self, id: &str, title: &str) -> Result<Option<RemoteTerminal>, TmuxError> {
     if self.find(id).await?.is_none() {
       return Ok(None);
     }
 
-    let tidy = tidy_label(label);
+    let tidy = tidy_title(title);
     let target = format!("={id}:");
 
     if tidy.is_empty() {
-      self.must(&["set-option", "-u", "-t", &target, "@label"]).await?;
+      self.must(&["set-option", "-u", "-t", &target, "@title"]).await?;
     } else {
-      self.must(&["set-option", "-t", &target, "@label", &tidy]).await?;
+      self.must(&["set-option", "-t", &target, "@title", &tidy]).await?;
     }
 
     self.find(id).await
@@ -358,9 +355,8 @@ pub fn parse_sessions(stdout: &str) -> Vec<RemoteTerminal> {
 
       Some(RemoteTerminal {
         id: id.to_owned(),
-        label: fields.next().unwrap_or_default().to_owned(),
+        title: fields.next().unwrap_or_default().to_owned(),
         created_at: fields.next().and_then(|created| created.parse::<i64>().ok()).unwrap_or(0) * 1000,
-        attached: fields.next().and_then(|attached| attached.parse().ok()).unwrap_or(0),
       })
     })
     .collect();

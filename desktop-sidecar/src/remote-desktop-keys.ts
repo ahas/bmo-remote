@@ -57,7 +57,7 @@ const keysSocket = createKeysSocket((channel, message) => desktopSocket().type(c
 
 // The keys socket as one of the console's websocket endpoints.
 export const desktopKeysEndpoint: SocketEndpoint = {
-  claims: (path) => path === "/api/remote/desktop/keys",
+  claims: (path) => path === "/desktop/keys",
   open: (peer) => keysSocket.open(peer),
   message: (peer, message) => keysSocket.message(peer, message),
   close: (peer) => keysSocket.close(peer)

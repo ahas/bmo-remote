@@ -4,9 +4,9 @@
 use axum::http::{Method, StatusCode};
 use axum::response::Response;
 use nix::unistd::{Uid, User};
-use serde_json::json;
 
 use crate::http::{Call, Refused, Route, answer};
+use crate::wire::Account as AccountAnswer;
 
 /// The shell a session runs where the passwd database names none that is an absolute path.
 const FALLBACK_SHELL: &str = "/bin/sh";
@@ -41,17 +41,17 @@ pub struct AccountRoute;
 
 impl Route for AccountRoute {
   const METHOD: Method = Method::GET;
-  const PATH: &'static str = "/api/remote/account";
+  const PATH: &'static str = "/account";
 
   async fn answer(&self, call: Call) -> Result<Response, Refused> {
     let standing = call.standing();
 
     Ok(answer(
       StatusCode::OK,
-      json!({
-        "account": standing.account.name,
-        "keptPassword": standing.settings.desktop.kept_password().is_some(),
-      }),
+      AccountAnswer {
+        name: standing.account.name.clone(),
+        kept_password: standing.settings.desktop.kept_password().is_some(),
+      },
     ))
   }
 }

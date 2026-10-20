@@ -8,6 +8,7 @@ import { REMOTE_DESKTOP_QUALITIES } from "../../../shared/remote";
 import { TOUCH_QUERY } from "bmo-ui/app/domain/prompt";
 import { attachDesktopKeyboard, componentTyping, holdHoverFocus } from "./desktop-input";
 import { canvasRasterise, createPointerShapes, pointerChannelId, readPointerMessage } from "./desktop-pointer";
+import { remoteSocketUrl } from "./service";
 
 import type { RemoteDesktopQuality } from "../../../shared/remote";
 import type { Translate } from "bmo-ui/shared/wording";
@@ -131,7 +132,6 @@ export interface ConnectOptions {
   // The console's words, for what the connection says when it fails.
   t: Translate;
   username: string;
-  baseURL: string;
   // The console keeps the password, and the relay authenticates with it.
   keptPassword: boolean;
 }
@@ -274,24 +274,17 @@ async function start(t: Translate): Promise<UserInteraction> {
   return interaction;
 }
 
-function socketBase(baseURL: string): string {
-  const scheme = location.protocol === "https:" ? "wss:" : "ws:";
-  const base = baseURL.endsWith("/") ? baseURL : `${baseURL}/`;
-
-  return `${scheme}//${location.host}${base}api/remote/desktop/`;
-}
-
-export function proxyAddress(baseURL: string, quality: RemoteDesktopQuality, pointer: string): string {
-  return `${socketBase(baseURL)}socket?quality=${quality}&pointer=${pointer}`;
+export function proxyAddress(quality: RemoteDesktopQuality, pointer: string): string {
+  return remoteSocketUrl("/desktop/socket", { quality, pointer });
 }
 
 // Opens the pointer socket for one connection and shows each shape it brings on the desktop's
 // canvas. Resolves once it is open, or failed, or has stood too long: the desktop works without it,
 // with the browser's arrow.
-function openPointer(baseURL: string, id: string): Promise<WebSocket> {
+function openPointer(id: string): Promise<WebSocket> {
   closePointer();
 
-  const socket = new WebSocket(`${socketBase(baseURL)}pointer?pointer=${id}`);
+  const socket = new WebSocket(remoteSocketUrl("/desktop/pointer", { pointer: id }));
   const shapes = createPointerShapes(canvasRasterise);
   const text = new TextDecoder();
 
@@ -350,10 +343,10 @@ function follow(): void {
 
 // Opens the keys socket for one connection, naming the connection's channel: what the on-screen
 // keyboard types goes there once the relay says it is ready, and through the component until then.
-function openKeys(baseURL: string, channel: string): WebSocket {
+function openKeys(channel: string): WebSocket {
   closeKeys();
 
-  const socket = new WebSocket(`${socketBase(baseURL)}keys?pointer=${channel}`);
+  const socket = new WebSocket(remoteSocketUrl("/desktop/keys", { pointer: channel }));
   const text = new TextDecoder();
 
   keysSocket = socket;
@@ -542,7 +535,7 @@ async function connect(options: ConnectOptions): Promise<void> {
   status.value = "connecting";
 
   const pointer = pointerChannelId();
-  const pointerOf = await openPointer(options.baseURL, pointer);
+  const pointerOf = await openPointer(pointer);
 
   if (mine !== attempt) {
     closePointer(pointerOf);
@@ -550,7 +543,7 @@ async function connect(options: ConnectOptions): Promise<void> {
     return;
   }
 
-  const keysOf = openKeys(options.baseURL, pointer);
+  const keysOf = openKeys(pointer);
   const size = currentSize();
 
   askedSize = size;
@@ -558,7 +551,7 @@ async function connect(options: ConnectOptions): Promise<void> {
   const config = interaction
     .configBuilder()
     .withDestination(DESTINATION)
-    .withProxyAddress(proxyAddress(options.baseURL, settings.value.quality, pointer))
+    .withProxyAddress(proxyAddress(settings.value.quality, pointer))
     .withAuthToken(AUTH_TOKEN)
     .withUsername(options.username)
     .withPassword(options.keptPassword ? KEPT_PASSWORD_PLACEHOLDER : password.value)

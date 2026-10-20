@@ -3,13 +3,16 @@
 //! (`docs/remote.md`, `docs/api.md`).
 
 pub mod account;
+pub mod client;
 pub mod command;
 pub mod desktop;
 pub mod health;
 pub mod http;
+pub mod openapi;
 pub mod settings;
 pub mod store;
 pub mod terminal;
+pub mod wire;
 
 use std::io;
 

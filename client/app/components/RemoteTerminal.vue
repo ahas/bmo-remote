@@ -21,14 +21,13 @@ const props = withDefaults(defineProps<Props>(), { active: true });
 
 const hostRef = useTemplateRef<HTMLElement>("hostRef");
 const session = shallowRef<RemoteTerminalSession | null>(null);
-const baseURL = useRuntimeConfig().app.baseURL;
 const { t } = useI18n();
 
 // The terminal is a thing of the browser; the server draws only the empty place. The place is
 // claimed before the terminal is made, so a terminal that opens here opens as the shown one.
 onMounted(() => {
   showingTerminal(props.id, props.active);
-  session.value = useRemoteTerminal(props.id, { baseURL, t });
+  session.value = useRemoteTerminal(props.id, { t });
   session.value.mount(hostRef.value!);
 });
 

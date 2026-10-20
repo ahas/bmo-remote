@@ -11,6 +11,8 @@ use axum::extract::{FromRequestParts, Query, RawPathParams, Request, State};
 use axum::http::{Method, StatusCode, header};
 use axum::response::{IntoResponse, Json, Response};
 use axum::routing::{MethodFilter, MethodRouter};
+use serde::Serialize;
+use serde::de::DeserializeOwned;
 use serde_json::{Map, Value, json};
 
 use crate::account::Account;
@@ -24,10 +26,8 @@ pub use inventory;
 /// One route the service answers, registered beside its answer with `bmo_remote::route!`.
 pub trait Route: Send + Sync + 'static {
   const METHOD: Method;
-  /// The path, in the router's own syntax: `/api/remote/terminals/{id}`.
+  /// The path, in the router's own syntax: `/terminals/{terminalId}`.
   const PATH: &'static str;
-  /// Whether the route is answered without the bearer token; only the health is.
-  const OPEN: bool = false;
 
   fn answer(&self, call: Call) -> impl Future<Output = Result<Response, Refused>> + Send;
 }
@@ -38,7 +38,6 @@ type Answering<'a> = Pin<Box<dyn Future<Output = Result<Response, Refused>> + Se
 pub trait Answers: Send + Sync {
   fn method(&self) -> Method;
   fn path(&self) -> &'static str;
-  fn open(&self) -> bool;
   fn answer(&self, call: Call) -> Answering<'_>;
 }
 
@@ -49,10 +48,6 @@ impl<R: Route> Answers for R {
 
   fn path(&self) -> &'static str {
     R::PATH
-  }
-
-  fn open(&self) -> bool {
-    R::OPEN
   }
 
   fn answer(&self, call: Call) -> Answering<'_> {
@@ -100,14 +95,14 @@ pub const FAILED: &str = "failed";
 /// The code of a missing or wrong token.
 pub const UNAUTHORIZED: &str = "unauthorized";
 /// The code of a path no route or socket claims.
-pub const NOT_FOUND: &str = "not_found";
+pub const NO_ROUTE: &str = "no-route";
 
-/// A refusal: a status, and a body carrying an English sentence under `error` and a snake_case code under
-/// `code`, with `reason` where the code names a cause (`docs/api.md`, 「Refusals」).
+/// A refusal: a status, and a body carrying a kebab-case code under `code` and an English sentence under
+/// `error` (`docs/api.md`, 「Refusals」).
 #[derive(Debug, PartialEq, Eq)]
 pub struct Refused {
   pub status: StatusCode,
-  /// The snake_case code a caller matches on and a screen words.
+  /// The kebab-case code a caller matches on and a screen words.
   pub code: &'static str,
   /// The English sentence, for a log.
   pub error: String,
@@ -126,13 +121,23 @@ impl Refused {
     }
   }
 
-  /// What a route answers for a failure it did not expect: 500, with the failure's own words.
+  /// A body or a query not of the route's shape: 400 `bad-request`, the sentence naming what is wrong.
+  pub fn bad_request(error: impl Into<String>) -> Self {
+    Self::new(StatusCode::BAD_REQUEST, "bad-request", error)
+  }
+
+  /// Nothing at the key the path names: 404 `not-found`.
+  pub fn not_found(error: impl Into<String>) -> Self {
+    Self::new(StatusCode::NOT_FOUND, "not-found", error)
+  }
+
+  /// What a route answers for a failure it did not expect: 500 `failed`, with the failure's own words.
   pub fn failed(error: impl std::fmt::Display) -> Self {
     Self::new(StatusCode::INTERNAL_SERVER_ERROR, FAILED, error.to_string())
   }
 
   /// The refusal with one more field in its body; `error` and `code` stay its own.
-  pub fn with(mut self, name: impl Into<String>, value: impl serde::Serialize) -> Self {
+  pub fn with(mut self, name: impl Into<String>, value: impl Serialize) -> Self {
     self.more.insert(name.into(), json!(value));
     self
   }
@@ -142,8 +147,8 @@ impl IntoResponse for Refused {
   fn into_response(self) -> Response {
     let mut body = self.more;
 
-    body.insert("error".into(), json!(self.error));
     body.insert("code".into(), json!(self.code));
+    body.insert("error".into(), json!(self.error));
 
     (self.status, Json(Value::Object(body))).into_response()
   }
@@ -208,25 +213,39 @@ impl Call {
     Ok(params.iter().map(|(name, value)| (name.to_owned(), value.to_owned())).collect())
   }
 
+  /// One parameter the route's path names, empty where it names none.
+  pub async fn path_param(&mut self, name: &str) -> Result<String, Refused> {
+    Ok(self.path_params().await?.remove(name).unwrap_or_default())
+  }
+
   /// One query parameter, the first where it is given more than once.
-  pub fn query(&self, name: &str) -> Option<String> {
+  pub fn query_value(&self, name: &str) -> Option<String> {
     let Query(pairs) = Query::<Vec<(String, String)>>::try_from_uri(self.request.uri()).ok()?;
 
     pairs.into_iter().find(|(key, _)| key == name).map(|(_, value)| value)
   }
 
-  /// The body read as JSON; a body that is not JSON, or none, is read as no body (`docs/api.md`,
-  /// 「Terminal sessions」). A route reads it once.
-  pub async fn body(&mut self) -> Option<Value> {
-    let body = std::mem::take(self.request.body_mut());
-    let bytes = axum::body::to_bytes(body, BODY_LIMIT).await.ok()?;
+  /// The query read as the route's shape; any parameter the shape does not name is passed over.
+  pub fn query<T: DeserializeOwned>(&self) -> Result<T, Refused> {
+    Query::<T>::try_from_uri(self.request.uri())
+      .map(|Query(query)| query)
+      .map_err(|why| Refused::bad_request(format!("the query is not the route's: {}", why.body_text())))
+  }
 
-    serde_json::from_slice(&bytes).ok()
+  /// The body read as JSON of the route's shape. A route reads it once.
+  pub async fn body<T: DeserializeOwned>(&mut self) -> Result<T, Refused> {
+    let body = std::mem::take(self.request.body_mut());
+    let bytes = axum::body::to_bytes(body, BODY_LIMIT)
+      .await
+      .map_err(|why| Refused::bad_request(why.to_string()))?;
+
+    serde_json::from_slice(&bytes)
+      .map_err(|why| Refused::bad_request(format!("the body is not the route's: {why}")))
   }
 }
 
 /// An answer: a JSON body under a status.
-pub fn answer(status: StatusCode, body: Value) -> Response {
+pub fn answer(status: StatusCode, body: impl Serialize) -> Response {
   (status, Json(body)).into_response()
 }
 
@@ -243,11 +262,11 @@ fn authorized(standing: &Standing, request: &Request) -> bool {
 }
 
 /// What a request to a path no route or socket claims is answered, before anything else is asked of it.
-async fn not_found(request: Request) -> Response {
+async fn no_route(request: Request) -> Response {
   Refused::new(
     StatusCode::NOT_FOUND,
-    NOT_FOUND,
-    format!("nothing answers {}", route_name(request.method(), request.uri().path())),
+    NO_ROUTE,
+    format!("no route answers {}", route_name(request.method(), request.uri().path())),
   )
   .into_response()
 }
@@ -270,7 +289,7 @@ pub fn router(standing: Standing) -> Result<Router, Vec<String>> {
       continue;
     };
     let handler = move |State(standing): State<Arc<Standing>>, request: Request| async move {
-      if !route.open() && !authorized(&standing, &request) {
+      if !authorized(&standing, &request) {
         return Refused::new(StatusCode::UNAUTHORIZED, UNAUTHORIZED, "a missing or wrong token")
           .into_response();
       }
@@ -292,7 +311,7 @@ pub fn router(standing: Standing) -> Result<Router, Vec<String>> {
   let router = by_path
     .into_iter()
     .fold(Router::new(), |router, (path, methods)| router.route(path, methods))
-    .fallback(not_found);
+    .fallback(no_route);
 
   Ok(router.with_state(Arc::new(standing)))
 }

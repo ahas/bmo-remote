@@ -7,6 +7,7 @@ import { type ITheme, Terminal } from "@xterm/xterm";
 
 import { TOUCH_QUERY } from "bmo-ui/app/domain/prompt";
 import { refusalText } from "./refusals";
+import { remoteSocketUrl } from "./service";
 import { attachTerminalClipboard } from "./terminal-clipboard";
 import { attachTerminalIme } from "./terminal-ime";
 import { attachTerminalTouchScroll } from "./terminal-touch-scroll";
@@ -47,7 +48,6 @@ export interface RemoteTerminalSession {
 
 export interface TerminalEntry {
   id: string;
-  baseURL: string;
   // The console's words, for what the terminal says of its own session.
   t: Translate;
   // The element the terminal is drawn in, kept apart from the document between views.
@@ -351,14 +351,14 @@ export function claimTerminalKeyboard(id: string | null = shownId): boolean {
 }
 
 // The terminal of one session, made the first time a view asks for it and kept until released.
-export function useRemoteTerminal(id: string, options: { baseURL: string; t: Translate }): RemoteTerminalSession {
+export function useRemoteTerminal(id: string, options: { t: Translate }): RemoteTerminalSession {
   restoreChoices();
   watchPage();
 
   let entry = entries.get(id);
 
   if (!entry) {
-    entry = createEntry(id, options.baseURL, options.t);
+    entry = createEntry(id, options.t);
     entries.set(id, entry);
   }
 
@@ -409,7 +409,7 @@ export function remoteTerminalIds(): string[] {
   return [...entries.keys()];
 }
 
-function createEntry(id: string, baseURL: string, t: Translate): TerminalEntry {
+function createEntry(id: string, t: Translate): TerminalEntry {
   const element = document.createElement("div");
 
   element.className = "terminal-host";
@@ -428,7 +428,6 @@ function createEntry(id: string, baseURL: string, t: Translate): TerminalEntry {
 
   const entry: TerminalEntry = {
     id,
-    baseURL,
     t,
     element,
     term,
@@ -570,11 +569,8 @@ function watchPage(): void {
   });
 }
 
-export function socketUrl(entry: Pick<TerminalEntry, "id" | "baseURL">, cols: number, rows: number): string {
-  const scheme = location.protocol === "https:" ? "wss:" : "ws:";
-  const base = entry.baseURL.endsWith("/") ? entry.baseURL : `${entry.baseURL}/`;
-
-  return `${scheme}//${location.host}${base}api/remote/terminals/${encodeURIComponent(entry.id)}/socket?cols=${cols}&rows=${rows}`;
+export function socketUrl(entry: Pick<TerminalEntry, "id">, cols: number, rows: number): string {
+  return remoteSocketUrl(`/terminals/${encodeURIComponent(entry.id)}/socket`, { cols, rows });
 }
 
 export function inputFrame(data: string | Uint8Array): Uint8Array {
@@ -628,7 +624,7 @@ function connect(entry: TerminalEntry): void {
 
     if (event.code === CLOSE_NOT_FOUND) {
       entry.status.value = "error";
-      entry.lastError.value ??= entry.t("remote.error.no_terminal_session");
+      entry.lastError.value ??= entry.t("remote.error.no-terminal-session");
 
       return;
     }
@@ -797,7 +793,7 @@ export function proposeTerminalSize(term: Terminal, host: HTMLElement): { cols: 
   };
 }
 
-// The name a session is shown under: its label, or its id where it has none.
-export function sessionName(session: { id: string; label: string }): string {
-  return session.label || session.id;
+// The name a session is shown under: its title, or its id where it has none.
+export function sessionName(session: { id: string; title: string }): string {
+  return session.title || session.id;
 }

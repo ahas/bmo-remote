@@ -1,23 +1,30 @@
 # The remote service's boundary
 
-Every route and socket this service answers, its command, its store, its settings, the console plugin bundle
-it ships and what the console in front of it does. This document is the contract other units match: bmo-web,
-whose console hands the remote screen's requests on to these routes and extends the bundle; bmo-cli, which
-runs the command; and the switch-over, which points the console at this service. What the terminal and the
-desktop do is `docs/remote.md`, and the screen is `docs/screen.md`; this document says how they are asked. A
-change to anything here changes this document in the same commit and follows the version rule (「Versions」).
+Every route and socket this service answers, its client, its command, its store, its settings, the console
+plugin bundle it ships and what the console in front of it does. This document is the contract other units
+match: bmo-web, whose console hands the remote screen's requests on to these routes and extends the bundle;
+bmo-cli, which runs the command; and the switch-over, which points the console at this service. What the
+terminal and the desktop do is `docs/remote.md`, and the screen is `docs/screen.md`; this document says how
+they are asked. A change to anything here changes this document in the same commit and follows the version
+rule (「Versions」).
 
 ## Conventions
 
-- **Every route but `GET /health` needs `Authorization: Bearer <token>`,** the token of the settings, a
-  websocket upgrade included; a missing or wrong token is answered 401 `unauthorized`, and an upgrade is
-  refused so before it is taken. The console presents the token on every request it hands on.
-- **Bodies are JSON, both ways, with field names in camelCase.**
-- **Times are Unix milliseconds.**
-- **A refusal** is a non-2xx answer whose body carries an English sentence under `error` and a snake_case
-  code under `code` (「Refusals」). The sentence is for a log; a screen shows the code in its own language's
-  words. A refusal that names its cause carries it as an English sentence under `reason`.
-- **An upgrade to a path under `/api/remote/` that no socket claims** is refused 404 `not_found`.
+- **The service's paths carry no prefix.** A console or gateway that serves it to a browser mounts it under
+  its own base, `/api/remote/` for the console, and passes each path on unchanged. The routes below are the
+  service's own.
+- **Every route takes `Authorization: Bearer <token>`,** the token of the settings, a websocket upgrade
+  included; a missing or wrong token is answered 401 `unauthorized`, and an upgrade is refused so before it
+  is taken. The console presents the token on every request it hands on.
+- **Bodies are JSON, both ways, with field names in camelCase.** Times are epoch milliseconds, and an
+  identifier is a signed 64-bit integer where the service names one; a terminal session's id is the string
+  the service makes.
+- **A refusal** is a non-2xx answer whose body carries a kebab-case code under `code` and an English sentence
+  under `error` (「Refusals」). The sentence is for a log; the screen shows the code in its own language's
+  words. The body carries those two keys and no other.
+- **A member has one shape** wherever it is answered, alone or in a page. A page is `{"items": [...],
+  "more": false}`, `more` saying whether anything stands past its last item.
+- **A request to a path or socket no route claims** is answered 404 `no-route`.
 
 ## Who checks what
 
@@ -30,13 +37,14 @@ change to anything here changes this document in the same commit and follows the
 
 ## Health
 
-`GET /health` answers `pid`, `version` and `ready`: the store is open and migrated.
+`GET /health` answers `ready`, `reason` (null while it is ready) and `version`: the store is open and the
+service answers.
 
 ## The account
 
 | Method and path | Sends | Answers |
 |---|---|---|
-| `GET /api/remote/account` | | `account`: the name of the account the service runs as, which the terminal and the desktop are reached as; `keptPassword`: whether `desktop.password` is set and not empty |
+| `GET /account` | | `name`: the account the service runs as, which the terminal and the desktop are reached as; `keptPassword`: whether `desktop.password` is set and not empty |
 
 The password itself is never answered.
 
@@ -44,18 +52,23 @@ The password itself is never answered.
 
 | Method and path | Sends | Answers |
 |---|---|---|
-| `GET /api/remote/terminals` | | `terminals`: every session on the service's tmux socket, in the order they began |
-| `POST /api/remote/terminals` | `label?`, a string | `terminal`: the new session, the account's login shell |
-| `PATCH /api/remote/terminals/{id}` | `label`, a string; an empty one takes the label away | `terminal`: the session renamed |
-| `DELETE /api/remote/terminals/{id}` | | `ended`: true, the session and every program in it ended |
+| `GET /terminals` | `after?`, `limit?` | a page of `terminal`, in the order they began |
+| `POST /terminals` | `title?`, a string | 201, the new `terminal`: the account's login shell |
+| `GET /terminals/{terminalId}` | | the `terminal` |
+| `PATCH /terminals/{terminalId}` | `title`, a string; an empty one takes the name away | the renamed `terminal` |
+| `DELETE /terminals/{terminalId}` | | 204: the session and every program in it ended |
 
-- **A session** is `id` (`t-` and lower-case letters and digits), `label` (at most 80 characters, empty where
-  none), `createdAt` and `attached` (how many viewers are attached).
-- **A body that is not JSON** is read as no body.
+- **A terminal** is `id` (`t-` and lower-case letters and digits), `title` (at most 80 characters, empty
+  where it has none), `state` (`running`: the list holds the sessions that stand, and an ended session is
+  gone from it) and `createdAt`.
+- **A page of sessions** is taken by `after`, how many sessions were already read, and `limit`, how many to
+  read: 100 where none is given, at most 1000.
+- **An id that is not a session id's shape names no session,** so `GET`, `PATCH` and `DELETE` answer 404
+  `not-found` for it as for an id no session has.
 
 ## The terminal socket
 
-`/api/remote/terminals/{id}/socket`, a websocket: one tmux attach client for the session, for as long as the
+`/terminals/{terminalId}/socket`, a websocket: one tmux attach client for the session, for as long as the
 socket is open (`docs/remote.md`, 「The terminal socket」).
 
 - **The query:** `cols` and `rows`, the first size; 80 and 24 where either is missing or not a number.
@@ -74,9 +87,9 @@ socket is open (`docs/remote.md`, 「The terminal socket」).
 | Close code | When | The `error` sent before it |
 |---|---|---|
 | 1000 | the session ended, after `exit` | none |
-| 4404 | the id is not a session's | `no_terminal_session` |
-| 4500 | the attach client could not start | `attach_failed_because`, with `reason` |
-| 4500 | the attach client ended while the session stands | `terminal_disconnected` |
+| 4404 | the id is not a session's | `no-terminal-session` |
+| 4500 | the attach client could not start | `attach-failed-because`, with `reason` |
+| 4500 | the attach client ended while the session stands | `terminal-disconnected` |
 
 ## The desktop sockets
 
@@ -85,7 +98,7 @@ connection, `[a-z0-9]{8,40}`, sent in each socket's `pointer` query (`docs/remot
 「The pointer」, 「The on-screen keyboard」). The service takes each upgrade behind its token and hands the
 socket on to the desktop sidecar (「The desktop sidecar」), which answers it as this section says.
 
-### `/api/remote/desktop/socket`
+### `/desktop/socket`
 
 The RDCleanPath relay, binary frames both ways.
 
@@ -108,7 +121,7 @@ The RDCleanPath relay, binary frames both ways.
 - **It closes 1000** after an RDCleanPath error, when the desktop's side ends, and when the desktop redirects
   the connection, after telling the pointer channel.
 
-### `/api/remote/desktop/pointer`
+### `/desktop/pointer`
 
 Text frames from the service alone, each one JSON message for the channel its `pointer` query names. A missing
 or invalid channel closes the socket at once, 1008.
@@ -123,7 +136,7 @@ or invalid channel closes the socket at once, 1008.
 
 Each carries its kind under `type`.
 
-### `/api/remote/desktop/keys`
+### `/desktop/keys`
 
 JSON text frames both ways, for the channel its `pointer` query names. A missing or invalid channel closes the
 socket at once, 1008.
@@ -159,26 +172,36 @@ calls it.
 | `BMO_REMOTE_STORE_PATH` | `store.path`, the store it reads the kept port from on every connection |
 | `USER` | the account's name (「The account」), which the relay authenticates to the desktop as; bun answers the process's account from this variable rather than from the passwd database, so it is set whatever the service's own environment holds |
 
-- **What it answers:** an upgrade to `/api/remote/desktop/socket`, `/api/remote/desktop/pointer` or
-  `/api/remote/desktop/keys` with the query the browser sent, carrying `Authorization: Bearer` and its
-  token; a wrong or missing token is refused 401 and any other path 404.
+- **What it answers:** an upgrade to `/desktop/socket`, `/desktop/pointer` or `/desktop/keys` with the query
+  the browser sent, carrying `Authorization: Bearer` and its token; a wrong or missing token is refused 401
+  and any other path 404.
 - **What the service carries:** every frame both ways as it came, keeping its kind, binary or text, and the
   close code and reason either side ends with. Where the sidecar cannot be reached, the service closes the
   browser's socket 1011.
 
 ## Refusals
 
-| Status | Code | When | `reason` |
-|---|---|---|---|
-| 401 | `unauthorized` | the bearer token is missing or wrong | |
-| 400 | `terminal_name_text` | `POST /api/remote/terminals` sent a `label` that is not a string | |
-| 400 | `rename_text` | `PATCH /api/remote/terminals/{id}` sent no `label` string | |
-| 400 | `bad_terminal_id` | the id is not a session id's shape | |
-| 404 | `no_terminal_session` | no session has the id | |
-| 404 | `not_found` | an upgrade to a path no socket claims | |
-| 500 | `terminals_failed_because` | tmux could not be asked for its sessions | what tmux said |
-| 500 | `open_failed_because` | a session could not be started | what tmux said |
-| 500 | `failed` | tmux failed while a session was renamed or ended | |
+| Status | Code | When |
+|---|---|---|
+| 400 | `bad-request` | the body or the query is not the shape the route takes; the sentence names what is wrong |
+| 401 | `unauthorized` | the bearer token is missing or wrong |
+| 404 | `not-found` | no member stands at the key the path names |
+| 404 | `no-route` | no route or socket answers the method and path |
+| 500 | `failed` | tmux could not read, open, rename or end the sessions; the sentence is the failure |
+
+## The client
+
+`bmo-remote`'s crate is the service's client: one method for each HTTP route, sending and reading the types
+of `docs/openapi.json`, which the crate also generates. The command reaches the service through it, and any
+other Rust caller may. The console plugin bundle carries the TypeScript client generated from the same
+document, `client/shared/openapi.ts`, and calls through it; a socket is opened by the page itself, with the
+token the console adds when it relays the upgrade.
+
+## The OpenAPI document
+
+`docs/openapi.json` is the contract: every route, its parameters, its body, its answers, the codes it can
+refuse with, and the schemas of `docs/api.md`'s members. It is generated from the service's own types, and
+`bmo-remote openapi` prints it. Its version is the service's.
 
 ## The store
 
@@ -190,12 +213,13 @@ A SQLite file, the one `store.path` names, opened and migrated when the service 
 
 ## The command
 
-`bmo-remote` is one binary, the service and its command alike, read by bmo-cli as a unit command (bmo-cli's
-`docs/boundary.md`, 「Unit commands」).
+`bmo-remote` is one binary, the service, its client and its command alike, read by bmo-cli as a unit command
+(bmo-cli's `docs/boundary.md`, 「Unit commands」).
 
 - **`bmo-remote serve`** opens and migrates the store and answers the routes and sockets.
-- **`bmo-remote health`** asks the service the settings name, waiting at most five seconds, and ends 0 where
-  it answers ready.
+- **`bmo-remote health`** asks the service the settings name, with the settings' token and waiting at most
+  five seconds, and ends 0 where it answers ready.
+- **`bmo-remote openapi`** prints the OpenAPI document the code generates.
 - **`bmo-remote nouns`** prints the nouns it carries, one a line, each marked `home` after a tab, since the
   desktop is the machine the service stands on: `node remote-desktop` and `remote-desktop`.
 - **`bmo-remote node remote-desktop`**, also run as `bmo-remote remote-desktop`, and so `bmo node
@@ -254,34 +278,38 @@ from the settings folder. An empty token lets no caller in.
 `bmo-remote-client`, in `client/`: the remote screen as a Nuxt layer the console extends, mounted at
 `/remote`, with `/remote/desktop` and `/remote/terminal/<id>` below it (`docs/screen.md`).
 
-- **What its host serves it:** the bmo-ui layer, and the routes and sockets above under `/api/remote/`,
-  handed on to this service with its token behind the console's sign-in.
+- **It declares itself** in `client/console-bundle.json`, as bmo-ui's console plugin contract asks: the name
+  `remote`, the title key `remote.title.remote`, the icon `i-material-symbols-devices-outline`, the screen
+  path `/remote`, the service name `remote`, the language pack folder `i18n`, no event stream, a websocket,
+  and no notice kinds.
+- **What its host serves it:** the bmo-ui layer, and the routes and sockets above relayed under the console's
+  relay base with the service's name, `/api/remote/` for the console, handed on to this service with its
+  token behind the console's sign-in. A screen calls a route through bmo-ui's `relay` module and opens a
+  socket at the same address.
 - **How a host takes it:** the bundle is packed from `client/` with `bun pm pack` into
-  `bmo-remote-client-<version>.tgz`, carrying its manifest, its Nuxt configuration, `app/`, `shared/`, its
-  language pack under `i18n/` and the vendored RDP backend. A host keeps the packed bundle in its own tree
-  and depends on it by that file, depends on bmo-ui at the version the bundle's peer names, and names
-  `bmo-remote-client` in its Nuxt configuration's `extends`, which brings bmo-ui's layer with it.
-- **What its host owes it,** declared in `client/host/` for the bundle's own typecheck alone:
-  - the components `DeployMark`, `TodoOpenButton` and `UsageMeters` of the console's top bar, registered by
-    name and handed no props;
-  - `useKeptTabs(screen, { read, restore })`, made importable by name as Nuxt makes a project's own
-    composables, which keeps the screen's open tabs for the account under the screen's key `remote`;
-  - its i18n module, which merges the bundle's own pack into the host's locale of the same code, and a pack
-    answering the five shared keys below, as bmo-ui asks of every host.
-- **Wording:** the screen's own words are the bundle's language pack, one file to a language under
-  `client/i18n/locales/`: `ko.yaml`, and `en.yaml` holding the same keys. The bundle's Nuxt configuration
-  registers them as the host registers its own locales, by code (`ko`, `en`), language tag (`ko-KR`,
-  `en-US`) and file, and the host's i18n module reads a layer's locales as part of its own: where both name a
-  code, the two files are one locale, the host's value standing where both hold a key; a code the host names
-  no file for joins its locales unless the host keeps its own list (the module's `bundle.onlyLocales`).
-  - **From the host's pack,** the five keys every screen of the console shares: `common.action.cancel`,
-    `common.action.more`, `common.action.save`, `common.label.name` and `screens.label.remote`.
-  - **From the bundle's own pack,** the 78 keys under `remote`. The screen shows a refusal of the routes, or an
-    `error` of the terminal socket, by the key its code names, under `remote.error.` but for
-    `terminal_disconnected`, which is `remote.status.terminal_disconnected`; every code the service answers
-    has its key, `unauthorized` and `not_found` among them though the console in front lets neither reach the
-    screen.
-  - `remote.title.desktop`, `remote.title.remote_desktop`, `remote.title.rename`, `remote.title.terminal_page`
+  `bmo-remote-client-<version>.tgz`, carrying its manifest, its declaration, its Nuxt configuration, `app/`,
+  `shared/`, its language pack under `i18n/` and the vendored RDP backend. A host keeps the packed bundle in
+  its own tree and depends on it by that file, depends on bmo-ui at the version the bundle's peer names, and
+  names `bmo-remote-client` in its Nuxt configuration's `extends`, which brings bmo-ui's layer with it.
+- **What its host owes it,** declared in `client/host/` for the bundle's own typecheck alone: the components
+  `DeployMark`, `TodoOpenButton` and `UsageMeters` of the console's top bar, registered by name and handed no
+  props; `useKeptTabs(screen, { read, restore })`, made importable by name as Nuxt makes a project's own
+  composables, which keeps the screen's open tabs for the account under the screen's key `remote`; and its
+  i18n module, which merges the bundle's own pack into the host's locale of the same code.
+- **Wording:** the screen's own words are the bundle's language pack, one JSON file to a language under
+  `client/i18n/`: `ko.json`, and `en.json` holding the same keys. The bundle's Nuxt configuration registers
+  them as the host registers its own locales, by code (`ko`, `en`), language tag (`ko-KR`, `en-US`) and file,
+  and the host's i18n module reads a layer's locales as part of its own: where both name a code, the two
+  files are one locale, the host's value standing where both hold a key.
+  - **From the host's pack,** the keys every screen of the console shares, under `common.`: `action.cancel`,
+    `action.more`, `action.save` and `label.name`.
+  - **From the bundle's own pack,** the 76 keys under `remote`. The screen shows a refusal of the routes, or
+    an `error` of the terminal socket, by the key its code names, under `remote.error.` but for
+    `terminal-disconnected`, which is `remote.status.terminal-disconnected`; every code the service answers
+    has its key, `unauthorized`, `bad-request`, `not-found`, `no-route`, `failed` and `no-terminal-session`
+    among them. A local failure the service does not name has a key of its own in the same pack.
+  - `remote.title.remote`, `remote.title.desktop`, `remote.title.remote_desktop`, `remote.title.rename`,
+    `remote.title.terminal_page`
   - `remote.label.extra_keys`, `remote.label.font_size`, `remote.label.input_mode`, `remote.label.menu`,
     `remote.label.open_sessions`, `remote.label.padding`, `remote.label.password`, `remote.label.quality`,
     `remote.label.quality_balanced`, `remote.label.quality_fast`, `remote.label.quality_sharp`,
@@ -297,23 +325,25 @@ from the settings folder. An empty token lets no caller in.
     `remote.aria.key_left`, `remote.aria.key_right`, `remote.aria.key_up`
   - `remote.status.connecting`, `remote.status.connection_ended`, `remote.status.no_sessions`,
     `remote.status.not_connected`, `remote.status.open_elsewhere`, `remote.status.reconnecting`,
-    `remote.status.session_ended`, `remote.status.session_over`, `remote.status.terminal_disconnected`
+    `remote.status.session_ended`, `remote.status.session_over`, `remote.status.terminal-disconnected`
   - `remote.message.disconnect_desktop`, `remote.message.end_many`, `remote.message.end_one`
-  - `remote.error.access_denied`, `remote.error.attach_failed_because`, `remote.error.bad_terminal_id`,
-    `remote.error.connect_failed`, `remote.error.end_failed`, `remote.error.failed`, `remote.error.load_failed`,
-    `remote.error.logon_failed`, `remote.error.negotiation_failed`, `remote.error.no_terminal_session`,
-    `remote.error.not_found`, `remote.error.open_failed`, `remote.error.open_failed_because`,
-    `remote.error.relay_refused`, `remote.error.relay_unreachable`, `remote.error.rename_failed`,
-    `remote.error.rename_text`, `remote.error.terminal_name_text`, `remote.error.terminals_failed`,
-    `remote.error.terminals_failed_because`, `remote.error.unauthorized`, `remote.error.wrong_password`
-  - A key ending in `_because` takes the refusal's `reason` as `{reason}`.
+  - `remote.error.access_denied`, `remote.error.attach-failed-because`, `remote.error.bad-request`,
+    `remote.error.connect_failed`, `remote.error.end_failed`, `remote.error.failed`,
+    `remote.error.load_failed`, `remote.error.logon_failed`, `remote.error.negotiation_failed`,
+    `remote.error.no-route`, `remote.error.no-terminal-session`, `remote.error.not-found`,
+    `remote.error.open_failed`, `remote.error.relay_refused`, `remote.error.relay_unreachable`,
+    `remote.error.rename_failed`, `remote.error.terminals_failed`, `remote.error.unauthorized`,
+    `remote.error.wrong_password`
+  - A key ending in `-because` takes the socket's `reason` as `{reason}`.
 
 ## What the console does
 
 These are bmo-web's to carry; this repository holds none of them.
 
-- **Hand on** every request under `/api/remote/` whole — the method, the query, the body and the headers that
-  say what is asked — to the address `REMOTE_ADDRESS` names with the token `REMOTE_TOKEN` names, and hand the
+- **State its relay base** under `bmoUi.relayBase` in its app configuration: the path every service is
+  relayed under, `/api`.
+- **Hand on** every request for the service under `/api/remote/` whole — the method, the query, the body and
+  the headers that say what is asked — with the token, to the address `REMOTE_ADDRESS` names, and hand the
   answer back as it came, behind the console's sign-in.
 - **Hand on the websocket upgrades** under `/api/remote/` the same way: open the matching upgrade to this
   service with the token, then carry frames both ways as they come, unbuffered, keeping each frame's kind,
@@ -322,8 +352,8 @@ These are bmo-web's to carry; this repository holds none of them.
   forwarded host behind the proxy, 403, before handing anything on (「Who checks what」).
 - **Extend the console plugin bundle** under `client/` in place of the `/remote` placeholder, and serve its
   pages at `/remote`, `/remote/desktop` and `/remote/terminal/<id>`.
-- **Hold the shared words:** the five shared keys above in its own pack, with the bundle's pack merged in as a
-  layer's locale; its own pack holds none of the `remote` keys.
+- **Attach the bundle by its declaration** and merge its language pack; the console's own pack holds none of
+  the `remote` keys.
 - **Owe the host's parts** the bundle declares (「The console plugin bundle」).
 
 ## Missing in siblings
@@ -331,17 +361,17 @@ These are bmo-web's to carry; this repository holds none of them.
 What another repository's own boundary must gain for this one to stand on it, each for that repository's
 worker:
 
-- **bmo-web:** `REMOTE_ADDRESS` and `REMOTE_TOKEN` among its settings; the handing on of `/api/remote/`,
-  websocket upgrades included, which its boundary states for no unit yet; the sign-in and `Origin` checks
-  on those upgrades; the bundle in place of the `/remote` placeholder; its `docs/language-pack.md` naming the
-  bundle's pack, merged as a layer's locale under the console's, where it says no other repository holds a
-  pack and the console's pack answers every key a bundle reads; and whether the bundle's `en` locale joins
-  the console's, which stays `ko` alone only with `bundle.onlyLocales` in its i18n options.
+- **bmo-web:** `REMOTE_ADDRESS` and `REMOTE_TOKEN` among its settings; the relay base `/api`; the handing on
+  of `/api/remote/`, websocket upgrades included, which its boundary states for no unit yet; the sign-in and
+  `Origin` checks on those upgrades; and the bundle in place of the `/remote` placeholder, attached by its
+  declaration.
 - **bmo-cli:** name `node remote-desktop` and `remote-desktop` as served by `bmo-remote`, which declares them
   as nouns.
 
 ## Versions
 
-The repository's version is the crate's, in semver. The major moves on a change to this document's routes,
-sockets, messages, fields, codes, command or settings that a caller must follow; the minor on an addition to
-any of them; the patch on a change that leaves every statement here true.
+The repository's version is the crate's, shared by the console plugin bundle. Until the first release it is
+`0.1.0` plus a revision suffix: the first version, `0.1.0`, is the base and is no revision, and every later
+version bump is one revision, `0.1.0-rev.<n>`, with `n` counting the bumps since the base from 1. Major,
+minor and patch never move before the first release, whatever the change. This repository is
+`0.1.0-rev.2`.

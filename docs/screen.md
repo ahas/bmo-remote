@@ -9,7 +9,7 @@ pack, named here by key where a label matters.
 
 - **Two ways into the machine:** terminal sessions and the desktop, side by side as tabs on one screen.
 - **The tab bar is bmo-ui's tab bar, and every running terminal session stands on it.**
-  - A tab is a terminal session, named by its label or, without one, its id; or the one desktop, named by
+  - A tab is a terminal session, named by its title or, without one, its id; or the one desktop, named by
     `remote.title.desktop`. There is never more than one desktop tab.
   - The screen reads the session list when it stands and whenever the page is looked at again: a running
     session without a tab gets one at the end, in the order the sessions began, and a terminal tab whose

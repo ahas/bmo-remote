@@ -19,6 +19,8 @@ enum Word {
   Serve,
   /// Whether the service the settings name answers ready; ends 0 where it does.
   Health,
+  /// Prints the OpenAPI document the code generates.
+  Openapi,
   /// The nouns this command carries, one a line, as `bmo` asks a unit command.
   Nouns,
   /// The machine's words this command carries.
@@ -50,9 +52,16 @@ async fn main() -> ExitCode {
     }
   };
 
-  if let Word::Nouns = command.word {
-    NOUNS.iter().for_each(|noun| println!("{noun}"));
-    return ExitCode::SUCCESS;
+  match command.word {
+    Word::Nouns => {
+      NOUNS.iter().for_each(|noun| println!("{noun}"));
+      return ExitCode::SUCCESS;
+    }
+    Word::Openapi => {
+      print!("{}", bmo_remote::openapi::openapi_json());
+      return ExitCode::SUCCESS;
+    }
+    _ => {}
   }
 
   let settings = match Settings::load() {
@@ -65,7 +74,7 @@ async fn main() -> ExitCode {
   let done = match command.word {
     Word::Serve => bmo_remote::serve(settings).await,
     Word::Health => bmo_remote::health::ask(&settings).await,
-    Word::Nouns => Ok(()),
+    Word::Nouns | Word::Openapi => Ok(()),
     Word::Node {
       word: NodeWord::RemoteDesktop(asked),
     }

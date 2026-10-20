@@ -4,7 +4,7 @@
        reconnects a session. Closing a terminal tab ends its session, once confirmed. -->
   <UDashboardPanel id="remote" :ui="{ body: 'p-0 sm:p-0 gap-0 sm:gap-0 overflow-y-hidden [&>*]:max-w-none' }">
     <template #header>
-      <UDashboardNavbar :title="$t('screens.label.remote')" icon="i-material-symbols-devices-outline">
+      <UDashboardNavbar :title="$t('remote.title.remote')" icon="i-material-symbols-devices-outline">
         <template #right>
           <DeployMark />
           <TodoOpenButton />
@@ -58,7 +58,7 @@
         </div>
       </div>
 
-      <RemoteRenameModal v-if="renaming !== null" v-model:open="renameOpen" :id="renaming" :current="sessions.get(renaming)?.label ?? ''" @renamed="remember($event)" />
+      <RemoteRenameModal v-if="renaming !== null" v-model:open="renameOpen" :id="renaming" :current="sessions.get(renaming)?.title ?? ''" @renamed="remember($event)" />
 
       <SettingsDialog v-model:open="closeOpen" :title="closeTitle">
         <p>{{ closeText }}</p>
@@ -91,10 +91,14 @@ import {
 import { claimTerminalKeyboard, releaseRemoteTerminal, sessionName } from "../../domain/remote/terminal-hub";
 import { useBackClose } from "bmo-ui/app/domain/layers";
 import { failureText } from "../../domain/remote/refusals";
+import { remotePath } from "../../domain/remote/service";
 
+import type { components } from "../../../shared/openapi";
 import type { RemoteTerminalInfo } from "../../../shared/remote";
 import type { BarAction, BarMenuItem, BarTab } from "bmo-ui/app/domain/tabs";
 import type { RemoteTabs } from "../../domain/remote/sessions";
+
+type Wire = components["schemas"];
 
 const { t } = useI18n();
 const route = useRoute();
@@ -245,7 +249,7 @@ async function confirmClose(): Promise<void> {
   try {
     for (const id of closeIds.value) {
       if (isTerminalTab(id)) {
-        await $fetch(`/api/remote/terminals/${encodeURIComponent(id)}`, { method: "DELETE" });
+        await $fetch(remotePath(`/terminals/${encodeURIComponent(id)}`), { method: "DELETE" });
         releaseRemoteTerminal(id);
         forget(id);
       } else {
@@ -282,8 +286,8 @@ function forget(id: string): void {
 
 async function loadSessions(): Promise<void> {
   try {
-    const { terminals } = await $fetch<{ terminals: RemoteTerminalInfo[] }>("/api/remote/terminals");
-    const ordered = [...terminals].sort((one, other) => one.createdAt - other.createdAt);
+    const page = await $fetch<Wire["TerminalPage"]>(remotePath("/terminals"), { query: { limit: "1000" } });
+    const ordered = [...page.items].sort((one, other) => one.createdAt - other.createdAt);
 
     sessions.value = new Map(ordered.map((session) => [session.id, session]));
     sessionsRead.value = true;
@@ -305,7 +309,7 @@ async function createTerminal(): Promise<void> {
   creating.value = true;
 
   try {
-    const { terminal } = await $fetch<{ terminal: RemoteTerminalInfo }>("/api/remote/terminals", { method: "POST", body: {} });
+    const terminal = await $fetch<Wire["Terminal"]>(remotePath("/terminals"), { method: "POST", body: {} });
 
     remember(terminal);
     update(openTab(state.value, terminal.id));

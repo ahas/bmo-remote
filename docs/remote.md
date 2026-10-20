@@ -74,10 +74,10 @@
 
 - **An id** is the tmux session name, `t-` followed by lower-case letters and digits. The service makes
   it; nothing else is accepted as an id.
-- **A label** is the tmux user option `@label` on that session, at most 80 characters. Renaming sets it,
-  and an empty label takes it away.
-- **Nothing is kept in the store.** The list of sessions, their labels, their creation time and how many
-  clients are attached are read from tmux each time.
+- **A title** is the tmux user option `@title` on that session, at most 80 characters. Renaming sets it,
+  and an empty title takes it away.
+- **Nothing is kept in the store.** The list of sessions, their titles and their creation time are read from
+  tmux each time.
 - **A call to tmux** that stands longer than five seconds is taken as failed, and a server just started
   gets five seconds to open its socket.
 
@@ -117,7 +117,7 @@
 
 ### Managing sessions
 
-- **Plain HTTP routes** list, create (with an optional label), rename and end sessions.
+- **Plain HTTP routes** list, read, create (with an optional title), rename and end sessions.
 - **An id** is checked against its pattern and against tmux's own list before anything is done with it;
   one that does not match is refused.
 - **Ending a session** kills the tmux session and every program in it. The remote screen ends one when its
@@ -559,8 +559,7 @@ there, redirects it to the account's wayland session.
   with the same query on the desktop sidecar, and carries frames both ways until either side closes
   (`docs/api.md`, 「The desktop sidecar」). In the sidecar each socket says which path is its own, and a
   path none claims is refused.
-- **An upgrade to a path under `/api/remote/` that no socket claims** is refused with 404 before anything
-  else.
+- **An upgrade to a path no socket claims** is refused with 404 before anything else.
 - **A development instance** is the same binary on settings of its own, answering the same routes; there is
   no development server in front of it.
 
@@ -571,8 +570,8 @@ there, redirects it to the account's wayland session.
   `Origin` is not the host it was sent to — or the forwarded host behind the proxy — so another site cannot
   open a shell with a signed-in user's cookie. The console then hands the request on to this service, the
   upgrade included (`docs/api.md`, 「What the console does」).
-- **This service answers the console alone.** It listens on a loopback address and takes every route but its
-  health with the bearer token of its settings.
+- **This service answers the console alone.** It listens on a loopback address and takes every route,
+  health included, with the bearer token of its settings.
 - **One kind of user.** The console has one kind of user, and every signed-in account reaches these routes.
   Were accounts to gain roles, these routes are the ones that must require the administrator.
 - **Nothing to aim.** No route takes a host, a port, a command or a socket name. The terminal target is the

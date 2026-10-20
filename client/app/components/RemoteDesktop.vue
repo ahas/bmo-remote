@@ -44,8 +44,12 @@
 <script setup lang="ts">
 import { holdHistoryButtons, attachDesktopTouch, createDesktopView } from "../domain/remote/desktop-input";
 import { useRemoteDesktop } from "../domain/remote/desktop-hub";
+import { remotePath } from "../domain/remote/service";
 
+import type { components } from "../../shared/openapi";
 import type { DesktopView } from "../domain/remote/desktop-input";
+
+type Wire = components["schemas"];
 
 interface Props {
   // Whether the panel holding the desktop is the one shown.
@@ -57,8 +61,6 @@ const props = withDefaults(defineProps<Props>(), { active: true });
 const { t } = useI18n();
 const desktop = useRemoteDesktop();
 const { status, lastError, password, settings, keyboardOpen } = desktop;
-const baseURL = useRuntimeConfig().app.baseURL;
-
 const hostRef = useTemplateRef<HTMLElement>("hostRef");
 const username = ref("");
 const keptPassword = ref(false);
@@ -97,7 +99,7 @@ let observer: ResizeObserver | null = null;
 async function connect(): Promise<void> {
   if (!username.value) return;
 
-  await desktop.connect({ t, username: username.value, baseURL, keptPassword: keptPassword.value });
+  await desktop.connect({ t, username: username.value, keptPassword: keptPassword.value });
 }
 
 onMounted(async () => {
@@ -114,9 +116,9 @@ onMounted(async () => {
   observer.observe(host);
 
   try {
-    const account = await $fetch<{ account: string; keptPassword: boolean }>("/api/remote/account");
+    const account = await $fetch<Wire["Account"]>(remotePath("/account"));
 
-    username.value = account.account;
+    username.value = account.name;
     keptPassword.value = account.keptPassword;
   } catch {
     // The login form stays disabled without a user; the route answers only a signed-in console.

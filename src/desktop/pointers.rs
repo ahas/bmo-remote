@@ -18,8 +18,7 @@ const LARGEST_SIDE: u16 = 384;
 // The colour depth of a colour pointer update, which names none.
 const COLOR_POINTER_BPP: u16 = 24;
 
-/// One pointer shape, as the page's pointer socket carries it (`docs/api.md`,
-/// 「`/api/remote/desktop/pointer`」).
+/// One pointer shape, as the page's pointer socket carries it (`docs/api.md`, 「`/desktop/pointer`」).
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 #[serde(tag = "type", rename_all = "lowercase")]
 pub enum PointerShape {

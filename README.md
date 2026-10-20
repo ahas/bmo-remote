@@ -31,16 +31,17 @@ deployment gives.
 
 `client/` holds the console's remote screen as a Nuxt layer on top of bmo-ui, packed as `bmo-remote-client`,
 with the IronRDP web client's RDP backend vendored under `client/vendor/` and the script that builds it under
-`client/scripts/`. A host console extends it as it extends bmo-ui, and owes it:
+`client/scripts/`. It declares itself in `client/console-bundle.json`, as bmo-ui's console plugin contract
+asks, and carries the TypeScript client generated from `docs/openapi.json` in `client/shared/openapi.ts`. A
+host console extends it as it extends bmo-ui, and owes it:
 
 - bmo-ui itself, at the version the bundle's peer names; for the bundle's own install and typecheck a packed
   copy stands in `client/vendor/`;
-- its i18n module, which merges the bundle's own language pack under `client/i18n/locales/` into the host's,
-  and a pack answering the few keys every screen shares (`docs/api.md`, 「The console plugin bundle」);
+- its i18n module, which merges the bundle's own language pack under `client/i18n/` into the host's;
 - the title-bar pieces `DeployMark`, `TodoOpenButton` and `UsageMeters`, and `useKeptTabs`, declared in
   `client/host/`;
-- the routes and sockets under `/api/remote/` handed on to this service (`docs/api.md`, 「What the console
-  does」).
+- a relay base under `bmoUi.relayBase`, with the service's own routes and sockets relayed under it
+  (`docs/api.md`, 「What the console does」).
 
 The screen says a refusal by its code in the pack's words. The bundle's check is `bun run check` inside
 `client/`, which installs its locked packages and typechecks it; the testbed runs it as the check of a project
@@ -57,5 +58,5 @@ of its own.
 
 ## Version
 
-`VERSION` holds the repository's version in semver, the crate's own. `docs/api.md`, 「Versions」, says which
-change moves which part.
+`VERSION` holds the repository's version, shared by the crate and the console plugin bundle. Until the first
+release it is `0.1.0` plus a revision suffix; `docs/api.md`, 「Versions」, states the rule.

@@ -1,6 +1,6 @@
 {
   "name": "bmo-remote-desktop-sidecar",
-  "version": "0.1.0",
+  "version": "0.1.0-rev.2",
   "private": true,
   "type": "module",
   "description": "The remote desktop's relay, pointer, keys and focus watcher, answering the service's desktop sockets on the loopback address.",

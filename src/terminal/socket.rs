@@ -13,7 +13,6 @@ use serde_json::{Map, Number, Value, json};
 
 use crate::http::{Call, Refused, Route, Standing};
 use crate::terminal::pty::{self, Attach, Event};
-use crate::terminal::routes::NO_TERMINAL_SESSION;
 use crate::terminal::tmux::is_terminal_id;
 
 /// The first byte of a frame from the browser.
@@ -25,10 +24,12 @@ const CLOSE_NOT_FOUND: u16 = 4404;
 const CLOSE_FAILED: u16 = 4500;
 const CLOSE_NORMAL: u16 = 1000;
 
+/// The code of an id no session has.
+const NO_TERMINAL_SESSION: &str = "no-terminal-session";
 /// The code of an attach client that could not start.
-const ATTACH_FAILED_BECAUSE: &str = "attach_failed_because";
+const ATTACH_FAILED_BECAUSE: &str = "attach-failed-because";
 /// The code of an attach client that ended while its session stands.
-const TERMINAL_DISCONNECTED: &str = "terminal_disconnected";
+const TERMINAL_DISCONNECTED: &str = "terminal-disconnected";
 
 /// The size the browser asks for first, where its query names none.
 const DEFAULT_COLS: f64 = 80.0;
@@ -70,12 +71,12 @@ pub struct TerminalSocket;
 
 impl Route for TerminalSocket {
   const METHOD: Method = Method::GET;
-  const PATH: &'static str = "/api/remote/terminals/{id}/socket";
+  const PATH: &'static str = "/terminals/{terminalId}/socket";
 
   async fn answer(&self, mut call: Call) -> Result<Response, Refused> {
-    let id = call.path_params().await?.remove("id").unwrap_or_default();
-    let cols = query_size(call.query("cols"), DEFAULT_COLS);
-    let rows = query_size(call.query("rows"), DEFAULT_ROWS);
+    let id = call.path_param("terminalId").await?;
+    let cols = query_size(call.query_value("cols"), DEFAULT_COLS);
+    let rows = query_size(call.query_value("rows"), DEFAULT_ROWS);
     let standing = Arc::new(call.standing().clone());
     let (mut parts, _body) = call.request.into_parts();
     let upgrade = match WebSocketUpgrade::from_request_parts(&mut parts, &()).await {

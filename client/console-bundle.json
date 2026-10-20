@@ -1,0 +1,11 @@
+{
+  "name": "remote",
+  "title": "remote.title.remote",
+  "icon": "i-material-symbols-devices-outline",
+  "screenPath": "/remote",
+  "serviceName": "remote",
+  "languagePack": "i18n",
+  "events": false,
+  "websocket": true,
+  "pushKinds": []
+}

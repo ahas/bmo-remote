@@ -1,11 +1,11 @@
 import type { Translate } from "bmo-ui/shared/wording";
 
-// The service answers a refusal with a snake_case code and an English sentence, and names its cause under
-// `reason` where the code says one (docs/api.md, 「Refusals」 and 「The terminal socket」). The screen says it
-// in the host's language pack: under `remote.error.` by its code, but for the terminal client letting go
-// while its session stands, which is a status rather than an error.
+// The service answers a refusal with a kebab-case code and an English sentence, and a terminal socket's
+// error message names its cause under `reason` where the code says one (docs/api.md, 「Refusals」 and 「The
+// terminal socket」). The screen says it in the bundle's language pack: under `remote.error.` by its code,
+// but for the terminal client letting go while its session stands, which is a status rather than an error.
 
-const STATUS_CODES: ReadonlySet<string> = new Set(["terminal_disconnected"]);
+const STATUS_CODES: ReadonlySet<string> = new Set(["terminal-disconnected"]);
 
 interface Refusal {
   code?: unknown;

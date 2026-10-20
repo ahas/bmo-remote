@@ -726,7 +726,7 @@ const pointerSocket = createPointerSocket(() => desktopSocket().pointers);
 
 // The pointer socket as one of the console's websocket endpoints.
 export const desktopPointerEndpoint: SocketEndpoint = {
-  claims: (path) => path === "/api/remote/desktop/pointer",
+  claims: (path) => path === "/desktop/pointer",
   open: (peer) => pointerSocket.open(peer),
   message: () => undefined,
   close: (peer) => pointerSocket.close(peer)
@@ -734,7 +734,7 @@ export const desktopPointerEndpoint: SocketEndpoint = {
 
 // The desktop socket as one of the console's websocket endpoints.
 export const desktopEndpoint: SocketEndpoint = {
-  claims: (path) => path === "/api/remote/desktop/socket",
+  claims: (path) => path === "/desktop/socket",
   open: (peer) => desktopSocket().open(peer),
   message: (peer, message) => desktopSocket().message(peer, message),
   close: (peer) => desktopSocket().close(peer)
