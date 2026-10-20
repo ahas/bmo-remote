@@ -1,0 +1,107 @@
+[
+  {
+    "id": "screen/desktop",
+    "title": "Desktop tab",
+    "what": "The desktop tab: the IronRDP client behind the relay, sign-in and kept password, size and quality choices, touch and pointer input, the pointer cursor and the on-screen keyboard.",
+    "files": [
+      "client/app/pages/remote/desktop.vue",
+      "client/app/components/RemoteDesktop.vue",
+      "client/app/components/RemoteDesktopLogin.vue",
+      "client/app/domain/remote/desktop-hub.ts",
+      "client/app/domain/remote/desktop-input.ts",
+      "client/app/domain/remote/desktop-pointer.ts",
+      "docs/screen.md",
+      "docs/remote.md"
+    ],
+    "symbols": [
+      "createDesktopView",
+      "attachDesktopTouch",
+      "readPointerMessage",
+      "createPointerShapes",
+      "tidyDesktopSettings",
+      "DESKTOP_SIZE_CHOICES"
+    ],
+    "aliases": [],
+    "needs": [
+      "console/relay",
+      "calls/ui"
+    ],
+    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
+    "changed": 1792499560940
+  },
+  {
+    "id": "screen/tabs",
+    "title": "Remote screen tabs",
+    "what": "The remote screen's tabs: the desktop and terminal tabs kept for the account, their order and pins, the window bar, the view menu and the rename dialog, in pages/remote/index.vue and its components.",
+    "files": [
+      "client/app/pages/remote/index.vue",
+      "client/app/components/RemoteWindowBar.vue",
+      "client/app/components/RemoteViewMenu.vue",
+      "client/app/components/RemoteRenameModal.vue",
+      "client/app/domain/remote/sessions.ts",
+      "docs/screen.md"
+    ],
+    "symbols": [
+      "openTab",
+      "closeTabs",
+      "moveTabs",
+      "matchLiveSessions",
+      "NO_TABS"
+    ],
+    "aliases": [],
+    "needs": [
+      "console/relay",
+      "calls/ui"
+    ],
+    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
+    "changed": 1792499560932
+  },
+  {
+    "id": "screen/terminal",
+    "title": "Terminal tab",
+    "what": "The terminal tab: its xterm view and websocket, fonts and padding, extra keys and modifiers, two-cell characters, the IME, OSC 52 clipboard and touch scrolling, under client/app.",
+    "files": [
+      "client/app/components/RemoteTerminal.vue",
+      "client/app/components/RemoteTerminalPanel.vue",
+      "client/app/components/RemoteExtraKeys.vue",
+      "client/app/domain/remote/terminal-hub.ts",
+      "client/app/domain/remote/terminal-ime.ts",
+      "client/app/domain/remote/terminal-clipboard.ts",
+      "client/app/domain/remote/terminal-touch-scroll.ts",
+      "client/app/assets/css/terminal-fonts.css",
+      "docs/screen.md",
+      "docs/remote.md"
+    ],
+    "symbols": [
+      "setTerminalHubSeams",
+      "attachTerminalIme",
+      "decodeOsc52",
+      "attachTerminalClipboard",
+      "attachTerminalTouchScroll"
+    ],
+    "aliases": [],
+    "needs": [
+      "console/relay",
+      "calls/ui"
+    ],
+    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
+    "changed": 1792499560935
+  },
+  {
+    "id": "screen/terminal-page",
+    "title": "Standalone terminal page",
+    "what": "The page at /remote/terminal/<id> that opens one terminal session on its own, with its reconnect and ended states, in pages/remote/terminal/[id].vue.",
+    "files": [
+      "client/app/pages/remote/terminal/[id].vue",
+      "docs/screen.md"
+    ],
+    "symbols": [],
+    "aliases": [],
+    "needs": [
+      "screen/terminal",
+      "console/relay"
+    ],
+    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
+    "changed": 1792499560937
+  }
+]

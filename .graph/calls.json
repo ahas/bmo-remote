@@ -1,0 +1,31 @@
+[
+  {
+    "id": "calls/ui",
+    "title": "bmo-ui layer",
+    "what": "The bmo-ui modules the bundle stands on: its layer and console plugin contract, and its screen, tabs, prompt, layers, relay and wording modules the screen imports, at the pinned peer version.",
+    "files": [
+      "client/package.json",
+      "client/nuxt.config.ts",
+      "client/app/domain/remote/desktop-hub.ts",
+      "client/app/domain/remote/refusals.ts",
+      "client/app/domain/remote/service.ts",
+      "client/app/domain/remote/sessions.ts",
+      "client/app/domain/remote/terminal-hub.ts",
+      "client/app/pages/remote/index.vue",
+      "client/app/components/RemoteTerminalPanel.vue",
+      "client/app/components/RemoteViewMenu.vue",
+      "client/app/components/RemoteWindowBar.vue",
+      "docs/api.md"
+    ],
+    "symbols": [],
+    "aliases": [],
+    "needs": [],
+    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
+    "changed": 1792499607856,
+    "boundary": {
+      "side": "calls",
+      "repository": "bmo-ui",
+      "api": "api/layer"
+    }
+  }
+]

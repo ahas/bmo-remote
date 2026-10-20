@@ -1,0 +1,121 @@
+[
+  {
+    "id": "api/bundle",
+    "title": "Console plugin bundle API",
+    "what": "The bmo-remote-client bundle a host console extends at /remote, by bmo-ui's console plugin contract: its declaration, its language pack and the screen's pages, components and domain modules.",
+    "files": [
+      "docs/api.md",
+      "client/console-bundle.json",
+      "client/package.json",
+      "client/nuxt.config.ts",
+      "client/i18n/ko.json",
+      "client/i18n/en.json",
+      "client/host/host.d.ts"
+    ],
+    "symbols": [],
+    "aliases": [],
+    "needs": [
+      "console/bundle",
+      "console/relay",
+      "screen/tabs",
+      "screen/terminal",
+      "screen/terminal-page",
+      "screen/desktop",
+      "console/ironrdp-build"
+    ],
+    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
+    "changed": 1792499560958,
+    "boundary": {
+      "side": "exposes"
+    }
+  },
+  {
+    "id": "api/client",
+    "title": "Rust client API",
+    "what": "The service's own Rust client: one method for each HTTP route over the wire types, with a failure read back as its status, code and sentence, in src/client.rs.",
+    "files": [
+      "docs/api.md",
+      "src/client.rs",
+      "src/wire.rs"
+    ],
+    "symbols": [
+      "RemoteClient",
+      "ClientFailure"
+    ],
+    "aliases": [],
+    "needs": [
+      "service/openapi"
+    ],
+    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
+    "changed": 1792499560955,
+    "boundary": {
+      "side": "exposes"
+    }
+  },
+  {
+    "id": "api/command",
+    "title": "Remote command API",
+    "what": "The binary's command as bmo-cli reads it: serve, health, openapi, nouns naming node remote-desktop and remote-desktop, and node remote-desktop telling and setting the port, as docs/api.md states it.",
+    "files": [
+      "docs/api.md",
+      "src/main.rs",
+      "src/command.rs",
+      "src/settings.rs",
+      "src/store.rs"
+    ],
+    "symbols": [
+      "NOUNS",
+      "remote_desktop"
+    ],
+    "aliases": [],
+    "needs": [
+      "service/command",
+      "service/settings",
+      "service/store"
+    ],
+    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
+    "changed": 1792499560953,
+    "boundary": {
+      "side": "exposes"
+    }
+  },
+  {
+    "id": "api/http",
+    "title": "Remote HTTP and websocket API",
+    "what": "Every route and socket this service answers behind its bearer token: health, the account, terminal sessions and their socket, the desktop's three sockets, their bodies and refusals, as docs/api.md states them.",
+    "files": [
+      "docs/api.md",
+      "docs/openapi.json",
+      "src/http.rs",
+      "src/wire.rs",
+      "src/openapi.rs",
+      "src/account.rs",
+      "src/health.rs",
+      "src/terminal/routes.rs",
+      "src/terminal/socket.rs",
+      "src/desktop/sidecar.rs"
+    ],
+    "symbols": [
+      "openapi",
+      "openapi_json",
+      "Refused",
+      "Route",
+      "Standing"
+    ],
+    "aliases": [],
+    "needs": [
+      "service/http",
+      "service/openapi",
+      "service/account",
+      "service/health",
+      "terminal/routes",
+      "terminal/socket",
+      "desktop/sidecar"
+    ],
+    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
+    "changed": 1792499560950,
+    "boundary": {
+      "side": "exposes"
+    }
+  }
+]

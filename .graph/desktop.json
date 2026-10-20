@@ -1,0 +1,97 @@
+[
+  {
+    "id": "desktop/input-method",
+    "title": "Desktop input method port",
+    "what": "The Rust port reading fcitx5's trigger keys, Hangul layout and state from its configuration files and the session bus, in src/desktop/input_method.rs, carried beside the sidecar.",
+    "files": [
+      "src/desktop/input_method.rs",
+      "docs/remote.md",
+      "docs/inventory.md"
+    ],
+    "symbols": [
+      "InputMethodState",
+      "KeyChord",
+      "InputMethod",
+      "read_trigger",
+      "state_of",
+      "read_input_method"
+    ],
+    "aliases": [],
+    "needs": [],
+    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
+    "changed": 1792499560916
+  },
+  {
+    "id": "desktop/pointers",
+    "title": "Desktop pointer decoding port",
+    "what": "The Rust port that turns RDP pointer updates into cursor shapes and messages with RGBA pixels for the page, in src/desktop/pointers.rs, carried beside the sidecar.",
+    "files": [
+      "src/desktop/pointers.rs",
+      "docs/remote.md",
+      "docs/inventory.md"
+    ],
+    "symbols": [
+      "PointerShape",
+      "pointer_pixels",
+      "read_pointer_update",
+      "pointer_message"
+    ],
+    "aliases": [],
+    "needs": [],
+    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
+    "changed": 1792499560913
+  },
+  {
+    "id": "desktop/relay",
+    "title": "Desktop relay protocol port",
+    "what": "The Rust port of the relay's RDP protocol reading: RDCleanPath, negotiation, CredSSP with NTLM, framing, redirection, the logon packet and quality flags, in the protocol modules of src/desktop/, carried beside the sidecar the service runs instead.",
+    "files": [
+      "src/desktop/rdcleanpath.rs",
+      "src/desktop/negotiation.rs",
+      "src/desktop/nla.rs",
+      "src/desktop/framing.rs",
+      "src/desktop/redirection.rs",
+      "src/desktop/client_info.rs",
+      "src/desktop/quality.rs",
+      "docs/remote.md",
+      "docs/inventory.md"
+    ],
+    "symbols": [
+      "rewrite_client_info",
+      "read_connection_request",
+      "NlaClient",
+      "decode_request",
+      "encode_response",
+      "read_redirection",
+      "Quality"
+    ],
+    "aliases": [],
+    "needs": [],
+    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
+    "changed": 1792499607851
+  },
+  {
+    "id": "desktop/sidecar",
+    "title": "Desktop sidecar process",
+    "what": "The service's start and restart of the bun desktop sidecar, the environment it hands it, and the three browser sockets carried to it frame for frame, in src/desktop/sidecar.rs.",
+    "files": [
+      "src/desktop/sidecar.rs",
+      "docs/api.md",
+      "docs/remote.md"
+    ],
+    "symbols": [
+      "Sidecar",
+      "DesktopSocket",
+      "PointerSocket",
+      "KeysSocket"
+    ],
+    "aliases": [],
+    "needs": [
+      "service/account",
+      "service/http",
+      "service/settings"
+    ],
+    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
+    "changed": 1792499560908
+  }
+]

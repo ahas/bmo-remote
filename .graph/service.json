@@ -1,0 +1,165 @@
+[
+  {
+    "id": "service/account",
+    "title": "Service account",
+    "what": "The account the service runs as, read from the passwd database and answered with whether a desktop password is kept, in src/account.rs.",
+    "files": [
+      "src/account.rs",
+      "docs/api.md"
+    ],
+    "symbols": [
+      "Account",
+      "AccountRoute"
+    ],
+    "aliases": [],
+    "needs": [],
+    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
+    "changed": 1792499560892
+  },
+  {
+    "id": "service/command",
+    "title": "Service command",
+    "what": "The binary's words: serve, health, openapi, nouns, and node remote-desktop with --port and --default, which read and write the store, in src/main.rs and src/command.rs.",
+    "files": [
+      "src/main.rs",
+      "src/command.rs",
+      "docs/api.md"
+    ],
+    "symbols": [
+      "NOUNS",
+      "DesktopArgs",
+      "remote_desktop"
+    ],
+    "aliases": [],
+    "needs": [
+      "service/settings",
+      "service/store"
+    ],
+    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
+    "changed": 1792499560899
+  },
+  {
+    "id": "service/health",
+    "title": "Health route",
+    "what": "The health route answering whether the store is open and the service answers, and the command that asks another instance through the client, in src/health.rs.",
+    "files": [
+      "src/health.rs",
+      "docs/api.md"
+    ],
+    "symbols": [
+      "Health",
+      "ask"
+    ],
+    "aliases": [],
+    "needs": [
+      "api/client"
+    ],
+    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
+    "changed": 1792499560894
+  },
+  {
+    "id": "service/http",
+    "title": "HTTP plumbing",
+    "what": "The router every route registers itself with, the bearer token check, the refusal shape, the route names the OpenAPI document lists and the 404 answer, in src/http.rs.",
+    "files": [
+      "src/http.rs",
+      "docs/api.md"
+    ],
+    "symbols": [
+      "Route",
+      "Refused",
+      "Standing",
+      "Call",
+      "routes",
+      "route_name"
+    ],
+    "aliases": [],
+    "needs": [
+      "service/account",
+      "service/store",
+      "service/settings",
+      "desktop/sidecar",
+      "terminal/sessions"
+    ],
+    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
+    "changed": 1792499560885
+  },
+  {
+    "id": "service/lifecycle",
+    "title": "Service lifecycle",
+    "what": "The one run of the service: it opens the store, reads the account, starts the desktop sidecar, binds the settings' address and answers until an interrupt or terminate, in src/lib.rs and deploy/bmo-remote.service.",
+    "files": [
+      "src/lib.rs",
+      "deploy/bmo-remote.service",
+      "testbed.toml"
+    ],
+    "symbols": [
+      "serve"
+    ],
+    "aliases": [],
+    "needs": [
+      "service/http",
+      "service/settings",
+      "service/store",
+      "service/account",
+      "desktop/sidecar"
+    ],
+    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
+    "changed": 1792499607853
+  },
+  {
+    "id": "service/openapi",
+    "title": "OpenAPI document",
+    "what": "The OpenAPI document generated from the wire types and the route list, printed by the openapi command and kept in docs/openapi.json, in src/openapi.rs and src/wire.rs.",
+    "files": [
+      "src/openapi.rs",
+      "src/wire.rs",
+      "docs/openapi.json"
+    ],
+    "symbols": [
+      "openapi",
+      "openapi_json"
+    ],
+    "aliases": [],
+    "needs": [],
+    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
+    "changed": 1792499560897
+  },
+  {
+    "id": "service/settings",
+    "title": "Service settings",
+    "what": "The layered settings read at start from the built-in defaults, settings.toml, settings.local.toml and BMO_REMOTE_ environment keys, with the server, desktop, sidecar, terminal and store tables, in src/settings.rs.",
+    "files": [
+      "src/settings.rs",
+      "settings.toml",
+      "settings.local.toml.example",
+      "docs/api.md"
+    ],
+    "symbols": [
+      "Settings",
+      "SettingsError"
+    ],
+    "aliases": [],
+    "needs": [],
+    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
+    "changed": 1792499560888
+  },
+  {
+    "id": "service/store",
+    "title": "Service store",
+    "what": "The SQLite store opened and migrated when the service starts, holding the port the desktop relay dials, in src/store.rs and migrations/.",
+    "files": [
+      "src/store.rs",
+      "migrations/0001_kept_values.sql",
+      "docs/api.md"
+    ],
+    "symbols": [
+      "Store",
+      "StoreError"
+    ],
+    "aliases": [],
+    "needs": [],
+    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
+    "changed": 1792499560890
+  }
+]

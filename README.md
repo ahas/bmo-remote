@@ -22,6 +22,7 @@ minimal services stand on the new repositories; until then the only check is the
 | `desktop-sidecar/` | The desktop sidecar: the bun package the service starts to answer the desktop's sockets, a project of its own |
 | `deploy/` | The service's user unit and the tmux configuration its sessions' server runs with |
 | `docs/` | The canonical statements of what the service does |
+| `.graph/` | The code graph: one node per feature, the files it is made of, and the APIs it exposes and calls |
 
 At the root stand the Cargo manifest, `VERSION`, `testbed.toml`, `rustfmt.toml`, `CLAUDE.md`,
 `korean-ledger.json`, `settings.toml` and `settings.local.toml.example`, the example of the local settings a

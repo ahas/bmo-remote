@@ -1,0 +1,149 @@
+[
+  {
+    "id": "sidecar/entry",
+    "title": "Desktop sidecar server",
+    "what": "The bun server the service starts: it checks the sidecar token, takes upgrades to the three desktop sockets and hands each to its endpoint, in desktop-sidecar/src/main.ts, guard.ts and remote-sockets.ts.",
+    "files": [
+      "desktop-sidecar/src/main.ts",
+      "desktop-sidecar/src/guard.ts",
+      "desktop-sidecar/src/remote-sockets.ts",
+      "docs/api.md"
+    ],
+    "symbols": [
+      "createSocketHooks",
+      "socketPath",
+      "guardUpgrade"
+    ],
+    "aliases": [],
+    "needs": [
+      "sidecar/relay",
+      "sidecar/keys",
+      "sidecar/settings"
+    ],
+    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
+    "changed": 1792499560918
+  },
+  {
+    "id": "sidecar/focus",
+    "title": "Desktop text field focus watcher",
+    "what": "The focus watcher the sidecar starts, which reads the desktop's AT-SPI focus through python3 and tells the keys socket whether a text field is editable, in remote-desktop-focus.ts and remote/desktop-focus.py.",
+    "files": [
+      "desktop-sidecar/src/remote-desktop-focus.ts",
+      "desktop-sidecar/remote/desktop-focus.py",
+      "docs/remote.md"
+    ],
+    "symbols": [
+      "focusWatcherPath",
+      "readFocusLine",
+      "startFocusWatcher",
+      "createFocusSource"
+    ],
+    "aliases": [],
+    "needs": [],
+    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
+    "changed": 1792499560928
+  },
+  {
+    "id": "sidecar/keys",
+    "title": "Desktop on-screen keyboard",
+    "what": "The keys socket that types text and key chords into the desktop, with the 두벌식 mapping a Hangul character is typed as and the input method's trigger handling, in remote-desktop-keys.ts, rdp-input.ts, rdp-typist.ts and rdp-hangul.ts.",
+    "files": [
+      "desktop-sidecar/src/remote-desktop-keys.ts",
+      "desktop-sidecar/src/rdp-input.ts",
+      "desktop-sidecar/src/rdp-hangul.ts",
+      "desktop-sidecar/src/rdp-typist.ts",
+      "desktop-sidecar/src/remote-input-method.ts",
+      "docs/remote.md"
+    ],
+    "symbols": [
+      "readKeysMessage",
+      "textStrokes",
+      "keyStrokes",
+      "createDesktopTypist",
+      "hangulKeys",
+      "fastPathInput",
+      "readTrigger",
+      "readInputMethod"
+    ],
+    "aliases": [],
+    "needs": [
+      "sidecar/focus"
+    ],
+    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
+    "changed": 1792499560925
+  },
+  {
+    "id": "sidecar/pointers",
+    "title": "Desktop pointer messages",
+    "what": "The sidecar's reading of RDP pointer updates and its messages of hidden, default, cached and image cursors, the images as RGBA pixels in base64, in rdp-pointers.ts.",
+    "files": [
+      "desktop-sidecar/src/rdp-pointers.ts",
+      "docs/remote.md"
+    ],
+    "symbols": [
+      "pointerPixels",
+      "readPointerUpdate",
+      "pointerMessage"
+    ],
+    "aliases": [],
+    "needs": [],
+    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
+    "changed": 1792499560930
+  },
+  {
+    "id": "sidecar/relay",
+    "title": "Desktop relay",
+    "what": "The sidecar's RDCleanPath relay to the desktop: negotiation, CredSSP with NTLM, framing, the logon packet and quality rewrite, redirection and the kept port, in remote-desktop-socket.ts and the rdp- modules.",
+    "files": [
+      "desktop-sidecar/src/remote-desktop-socket.ts",
+      "desktop-sidecar/src/rdcleanpath.ts",
+      "desktop-sidecar/src/rdp-negotiation.ts",
+      "desktop-sidecar/src/rdp-nla.ts",
+      "desktop-sidecar/src/rdp-framing.ts",
+      "desktop-sidecar/src/rdp-client-info.ts",
+      "desktop-sidecar/src/rdp-redirection.ts",
+      "desktop-sidecar/src/quality.ts",
+      "docs/remote.md"
+    ],
+    "symbols": [
+      "dialRdp",
+      "encodeResponse",
+      "createPointerChannels",
+      "clientInfoChange",
+      "isRemoteDesktopQuality",
+      "desktopPort"
+    ],
+    "aliases": [],
+    "needs": [
+      "sidecar/keys",
+      "sidecar/focus",
+      "sidecar/pointers",
+      "sidecar/settings"
+    ],
+    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
+    "changed": 1792499560923
+  },
+  {
+    "id": "sidecar/settings",
+    "title": "Desktop sidecar settings and store",
+    "what": "The environment the service gives the sidecar for its addresses, token, desktop target and store path, and the kept desktop port read from the store on every connection, in settings.ts and store.ts.",
+    "files": [
+      "desktop-sidecar/src/settings.ts",
+      "desktop-sidecar/src/store.ts",
+      "docs/api.md"
+    ],
+    "symbols": [
+      "sidecarHost",
+      "sidecarPort",
+      "sidecarToken",
+      "desktopHostSetting",
+      "desktopPortSetting",
+      "storePath",
+      "useStoreSql"
+    ],
+    "aliases": [],
+    "needs": [],
+    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
+    "changed": 1792499560920
+  }
+]

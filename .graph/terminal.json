@@ -1,0 +1,68 @@
+[
+  {
+    "id": "terminal/routes",
+    "title": "Terminal routes",
+    "what": "The HTTP routes listing, opening, reading, renaming and ending terminal sessions, their pages and the session-id shape's refusal, in src/terminal/routes.rs.",
+    "files": [
+      "src/terminal/routes.rs",
+      "docs/api.md"
+    ],
+    "symbols": [
+      "ListTerminals",
+      "CreateTerminal",
+      "ReadTerminal",
+      "RenameTerminal",
+      "EndTerminal"
+    ],
+    "aliases": [],
+    "needs": [
+      "terminal/sessions",
+      "service/http"
+    ],
+    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
+    "changed": 1792499560904
+  },
+  {
+    "id": "terminal/sessions",
+    "title": "Terminal sessions",
+    "what": "The tmux server of the service's own that holds the terminal sessions, their ids and titles, their login environments, and starting, renaming and ending them, in src/terminal/tmux.rs.",
+    "files": [
+      "src/terminal/tmux.rs",
+      "deploy/tmux.conf",
+      "docs/remote.md"
+    ],
+    "symbols": [
+      "Tmux",
+      "RemoteTerminal",
+      "TmuxError",
+      "is_terminal_id",
+      "tidy_title",
+      "parse_sessions"
+    ],
+    "aliases": [],
+    "needs": [],
+    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
+    "changed": 1792499560901
+  },
+  {
+    "id": "terminal/socket",
+    "title": "Terminal socket",
+    "what": "The websocket attaching one viewer's pseudo-terminal to a tmux session, carrying output in gathered binary frames and typed bytes and resize control messages, in src/terminal/socket.rs and src/terminal/pty.rs.",
+    "files": [
+      "src/terminal/socket.rs",
+      "src/terminal/pty.rs",
+      "docs/remote.md",
+      "docs/api.md"
+    ],
+    "symbols": [
+      "TerminalSocket"
+    ],
+    "aliases": [],
+    "needs": [
+      "terminal/sessions",
+      "service/http"
+    ],
+    "base": "2896a1d43864c7308be7ea1901417248794dfe05",
+    "changed": 1792499560906
+  }
+]
