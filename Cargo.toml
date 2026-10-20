@@ -60,6 +60,10 @@ x509-cert = { version = "0.2.5", default-features = false }
 # fcitx5's state, asked on the account's session bus.
 zbus = { version = "5.19.0", default-features = false, features = ["tokio"] }
 
+[dev-dependencies]
+# The patterns the repository-wide personal-data check reads every tracked file with (tests/personal_data.rs).
+regex = "1.13.1"
+
 # Build output kept small: line tables alone for a backtrace, split out, and no incremental cache.
 [profile.dev]
 debug = "line-tables-only"

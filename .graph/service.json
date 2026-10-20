@@ -126,6 +126,22 @@
     "changed": 1792519083316
   },
   {
+    "id": "service/repository-checks",
+    "title": "Personal-data check",
+    "what": "The repository-wide check over every tracked file: no mail address outside the reserved example domains and the two values the repository allows, no home path of a person, no telephone number, token or private network address, as PERSONAL-DATA.md states it.",
+    "files": [
+      "tests/personal_data.rs",
+      "PERSONAL-DATA.md"
+    ],
+    "symbols": [],
+    "aliases": [
+      "개인정보"
+    ],
+    "needs": [],
+    "base": "a96775e3751abef80164f412f98abe8673982849",
+    "changed": 1792525669733
+  },
+  {
     "id": "service/settings",
     "title": "Service settings",
     "what": "The layered settings read at start from the built-in defaults, settings.toml, settings.local.toml and BMO_REMOTE_ environment keys, with the server, desktop, sidecar, terminal and store tables, in src/settings.rs.",

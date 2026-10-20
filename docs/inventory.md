@@ -5,9 +5,10 @@ with where each came from, how many, and what becomes of it here. Every set belo
 repository at its commit `3e4c032`, with `git ls-tree`, `git show` and `git grep` against that commit;
 the command that lists a set stands beside it. Nothing here was copied with its history.
 
-The tests are deferred: none is carried, written or run in this phase. They are written and run here once
-the minimal services stand on the new repositories. The deferred tests are listed below so that work knows
-what the old behaviour was held to.
+The behaviour tests are deferred: none is carried, written or run in this phase. They are written and run
+here once the minimal services stand on the new repositories. The deferred tests are listed below so that
+work knows what the old behaviour was held to. The repository carries one test of its own, the
+repository-wide personal-data check (`PERSONAL-DATA.md`).
 
 ## How the set was listed
 

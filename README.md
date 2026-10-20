@@ -6,11 +6,14 @@ by a relay the browser's IronRDP client speaks RDCleanPath to. Its own command, 
 remote-desktop`, tells and sets which port the relay dials. It calls no other unit; the console in front of it
 hands the remote screen's requests on, as `docs/api.md` states.
 
-## Tests are deferred
+## Tests
 
-No test is carried, written or run in this repository yet. The tests are written and run here once the
-minimal services stand on the new repositories; until then the only check is the build check, `cargo check
---all-targets`, and the typechecks of the bundle and the desktop sidecar. `docs/inventory.md` lists the tests the old behaviour was held to.
+The repository carries one test, the repository-wide personal-data check in `tests/personal_data.rs`
+(`PERSONAL-DATA.md`), which reads every tracked file for a mail address, a home path, a telephone number, a
+token and a private network address. It runs with `cargo test --test personal_data`. The behaviour tests are
+deferred: they are written and run here once the minimal services stand on the new repositories, and until
+then the build check, `cargo check --all-targets`, and the typechecks of the bundle and the desktop sidecar
+stand beside it. `docs/inventory.md` lists the tests the old behaviour was held to.
 
 ## Layout
 
@@ -21,12 +24,13 @@ minimal services stand on the new repositories; until then the only check is the
 | `client/` | The console plugin bundle: the remote screen, a project of its own |
 | `desktop-sidecar/` | The desktop sidecar: the bun package the service starts to answer the desktop's sockets, a project of its own |
 | `deploy/` | The service's user unit and the tmux configuration its sessions' server runs with |
+| `tests/` | The repository-wide personal-data check |
 | `docs/` | The canonical statements of what the service does |
 | `.graph/` | The code graph: one node per feature, the files it is made of, and the APIs it exposes and calls |
 
 At the root stand the Cargo manifest, `VERSION`, `testbed.toml`, `rustfmt.toml`, `CLAUDE.md`,
-`korean-ledger.json`, `settings.toml` and `settings.local.toml.example`, the example of the local settings a
-deployment gives.
+`PERSONAL-DATA.md`, `korean-ledger.json`, `settings.toml` and `settings.local.toml.example`, the example of
+the local settings a deployment gives.
 
 ## The console plugin bundle
 
@@ -56,6 +60,7 @@ of its own.
 | `docs/screen.md` | The console's remote screen: its tabs, its views and its menu |
 | `docs/api.md` | The routes, the sockets, their messages and refusals, the command, the store, the settings, the console plugin bundle and what the console does |
 | `docs/inventory.md` | What this repository takes from the old repository, with each set's count and source |
+| `PERSONAL-DATA.md` | What may never stand in this repository: a person's name, address, path, device or network details, a room member's, a company's, or a line of an actual conversation, and the check that holds it |
 
 ## Version
 
