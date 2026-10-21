@@ -8,6 +8,7 @@ pub mod command;
 pub mod desktop;
 pub mod health;
 pub mod http;
+pub mod import;
 pub mod openapi;
 pub mod settings;
 pub mod store;

@@ -1,5 +1,6 @@
 //! `bmo-remote`: the service and its command in one binary (`docs/api.md`, 「The command」).
 
+use std::path::PathBuf;
 use std::process::ExitCode;
 
 use bmo_remote::command::{self, DesktopArgs, NOUNS};
@@ -23,6 +24,18 @@ enum Word {
   Openapi,
   /// The nouns this command carries, one a line, as `bmo` asks a unit command.
   Nouns,
+  /// Moves the old archive's kept values from the item's export into this service's store (TODO #1923).
+  Import {
+    /// The export directory the item's export hand wrote.
+    #[arg(long)]
+    export: PathBuf,
+    /// The store's SQLite file; made and migrated where it does not stand.
+    #[arg(long)]
+    database: PathBuf,
+    /// Reads the export and reports what it would write, writing nothing.
+    #[arg(long)]
+    dry_run: bool,
+  },
   /// The machine's words this command carries.
   Node {
     #[command(subcommand)]
@@ -61,6 +74,23 @@ async fn main() -> ExitCode {
       print!("{}", bmo_remote::openapi::openapi_json());
       return ExitCode::SUCCESS;
     }
+    // The import reads its own arguments and never the deployment's settings.
+    Word::Import {
+      export,
+      database,
+      dry_run,
+    } => {
+      return match bmo_remote::import::run(&database, &export, dry_run).await {
+        Ok(report) => {
+          report.lines().iter().for_each(|line| println!("{line}"));
+          if report.sample.failures.is_empty() { ExitCode::SUCCESS } else { ExitCode::FAILURE }
+        }
+        Err(why) => {
+          eprintln!("bmo-remote: {why}");
+          ExitCode::FAILURE
+        }
+      };
+    }
     _ => {}
   }
 
@@ -75,6 +105,7 @@ async fn main() -> ExitCode {
     Word::Serve => bmo_remote::serve(settings).await,
     Word::Health => bmo_remote::health::ask(&settings).await,
     Word::Nouns | Word::Openapi => Ok(()),
+    Word::Import { .. } => unreachable!("the import is answered before the settings are read"),
     Word::Node {
       word: NodeWord::RemoteDesktop(asked),
     }

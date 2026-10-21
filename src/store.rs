@@ -41,6 +41,11 @@ impl Store {
     Ok(Self { pool })
   }
 
+  /// The connection pool the store is read and written through.
+  pub fn pool(&self) -> &SqlitePool {
+    &self.pool
+  }
+
   /// The desktop port as it is kept, read as it stands: it may not be a port at all.
   pub async fn desktop_port(&self) -> Result<Option<String>, sqlx::Error> {
     sqlx::query_scalar("SELECT value FROM kept_values WHERE key = ?")
