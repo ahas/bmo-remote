@@ -30,7 +30,9 @@ structure (archive document #301, 「원칙」).
 - **`.graph/` is this repository's own code graph:** one node per feature, the files it is made of, the
   symbols worth knowing, the APIs it exposes and the APIs of other repositories it calls.
 - **It is written only with `bmo graph`,** run in this checkout — `create`, `update`, `alias`, `rename` and
-  `delete`. A change that moves a feature's files, symbols or boundary updates its node in the same commit.
+  `delete`. A change that moves a feature's files, symbols or boundary updates its node in the checkout. Its area
+  files are generated and untracked, so a fresh checkout builds them again, while `settings.toml` is the
+  repository's configuration and stays tracked.
 
 ## Boundaries
 
