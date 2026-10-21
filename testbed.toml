@@ -5,13 +5,15 @@ testbed = 0
 name = "bmo-remote"
 
 [test]
-# Cargo runs the repository-wide personal-data check in tests/.
-languages = ["cargo"]
+# Cargo runs the repository-wide personal-data check in tests/, and Bun runs the two projects' check scripts.
+languages = ["cargo", "bun"]
+# A fresh tree gets each project's locked packages through the same frozen install its check script runs.
+setup = ["cd client && bun install --frozen-lockfile", "cd desktop-sidecar && bun install --frozen-lockfile"]
 
 [projects]
 # The console plugin bundle under client/ is a project of its own, the vendored RDP backend's manifest inside
 # it, and so is the desktop sidecar under desktop-sidecar/: each one's check script installs its locked
-# packages and typechecks it.
+# packages and typechecks it, and Bun is the declared language that runs that script in the suite.
 paths = ["client", "desktop-sidecar"]
 
 [check]
