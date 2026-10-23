@@ -284,8 +284,10 @@ from the settings folder. An empty token lets no caller in.
   and no notice kinds.
 - **What its host serves it:** the bmo-ui layer, and the routes and sockets above relayed under the console's
   relay base with the service's name, `/api/remote/` for the console, handed on to this service with its
-  token behind the console's sign-in. A screen calls a route through bmo-ui's `relay` module and opens a
-  socket at the same address.
+  token behind the console's sign-in. A screen calls a route through bmo-ui's `relay` module, which the
+  host's `$fetch` resolves under the app's base path, and opens a socket at the same address: the relay
+  address under the app's base path, unless it already stands there, so a console served under a path of
+  its own takes the socket where it takes the route.
 - **How a host takes it:** the bundle is packed from `client/` with `bun pm pack` into
   `bmo-remote-client-<version>.tgz`, carrying its manifest, its declaration, its Nuxt configuration, `app/`,
   `shared/`, its language pack under `i18n/` and the vendored RDP backend. A host keeps the packed bundle in
@@ -374,4 +376,4 @@ The repository's version is the crate's, shared by the console plugin bundle. Un
 `0.1.0` plus a revision suffix: the first version, `0.1.0`, is the base and is no revision, and every later
 version bump is one revision, `0.1.0-rev.<n>`, with `n` counting the bumps since the base from 1. Major,
 minor and patch never move before the first release, whatever the change. This repository is
-`0.1.0-rev.2`.
+`0.1.0-rev.3`.

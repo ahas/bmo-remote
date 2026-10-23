@@ -163,7 +163,7 @@
   "info": {
     "description": "The console's remote access: terminal sessions on this machine (tmux) and the desktop through RDP, relayed to a browser screen. A downstream that calls nothing. The paths carry no prefix; the console relays them under its own base behind its sign-in.",
     "title": "bmo-remote",
-    "version": "0.1.0-rev.2"
+    "version": "0.1.0-rev.3"
   },
   "openapi": "3.1.0",
   "paths": {
