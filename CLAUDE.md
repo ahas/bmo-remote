@@ -2,7 +2,7 @@
 
 ## The three standing principles
 
-These hold every bmo-next repository, and every change here:
+These hold every bmo repository, and every change here:
 
 (a) each service runs on its own, with no context bleeding in from other repositories: it builds, tests and
 runs from its own repository, data and settings, and never reads another repository's code, files, data
