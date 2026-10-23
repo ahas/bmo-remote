@@ -13,6 +13,9 @@ token = ""
 host = "127.0.0.1"
 # The RDP server's port where the store holds none.
 port = 3389
+# The window, in whole seconds from the first try, in which the screen tries a desktop that does not answer
+# again (docs/remote.md, 「A desktop that does not answer」); 0 tries nothing again.
+wake_seconds = 90
 # The password the relay answers the desktop's authentication with (docs/remote.md, 「Credentials」) has no
 # default: a deployment sets `password` in its local settings or its environment, and none is kept here.
 

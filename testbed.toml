@@ -15,8 +15,8 @@ setup = ["cd client && bun install --frozen-lockfile", "cd desktop-sidecar && bu
 [projects]
 # The console plugin bundle under client/ is a project of its own, the vendored RDP backend's manifest inside
 # it, and so is the desktop sidecar under desktop-sidecar/: each one's check script installs its locked
-# packages and typechecks it, the bundle's building its served module too, and Bun is the declared language
-# that runs that script in the suite.
+# packages and typechecks it, the bundle's running its tests and building its served module too, and Bun is
+# the declared language that runs that script in the suite.
 paths = ["client", "desktop-sidecar"]
 
 [check]

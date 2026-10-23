@@ -47,6 +47,9 @@ pub struct Desktop {
   pub host: String,
   /// Its port where the store holds none.
   pub port: u16,
+  /// The window, in whole seconds from the first try, in which the screen tries a desktop that does not
+  /// answer again (`docs/remote.md`, 「A desktop that does not answer」).
+  pub wake_seconds: u32,
   /// The password the relay answers the desktop's authentication with; none, or an empty one, is no
   /// password kept (`docs/remote.md`, 「Credentials」).
   #[serde(default)]

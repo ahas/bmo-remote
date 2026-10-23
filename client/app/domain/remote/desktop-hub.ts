@@ -9,14 +9,17 @@ import { TOUCH_QUERY } from "bmo-ui/app/domain/prompt";
 import { attachDesktopKeyboard, componentTyping, holdHoverFocus } from "./desktop-input";
 import { canvasRasterise, createPointerShapes, pointerChannelId, readPointerMessage } from "./desktop-pointer";
 import { remoteSocketUrl } from "./service";
+import { keepTrying, retryable, wakePolicy } from "./desktop-wake";
 
 import type { RemoteDesktopQuality } from "../../../shared/remote";
 import type { Translate } from "bmo-ui/shared/wording";
 import type { IronError, NewSessionInfo, UserInteraction } from "@devolutions/iron-remote-desktop";
 import type { DesktopKeyboard, DesktopTouchMode, DesktopTyping } from "./desktop-input";
+import type { WakeProgress } from "./desktop-wake";
 
-// "away" is a connection given up because another window of the console took the desktop.
-export type RemoteDesktopStatus = "idle" | "loading" | "connecting" | "connected" | "ended" | "error" | "away";
+// "away" is a connection given up because another window of the console took the desktop; "waking" is a
+// desktop that did not answer being tried again (docs/remote.md, 「A desktop that does not answer」).
+export type RemoteDesktopStatus = "idle" | "loading" | "connecting" | "waking" | "connected" | "ended" | "error" | "away";
 
 // The one desktop is taken by whichever window connected last: the remote login hands the session to
 // the newest connection, so the others let theirs go and say where it went.
@@ -116,6 +119,12 @@ const ERROR_KINDS: Record<number, string> = {
 
 const status = ref<RemoteDesktopStatus>("idle");
 const lastError = ref<string | null>(null);
+// The try a desktop that does not answer is on, and the seconds passed of its window, while it is tried again.
+const waking = ref<WakeProgress | null>(null);
+let wakeTimer: ReturnType<typeof setTimeout> | undefined;
+let wakeTicker: ReturnType<typeof setInterval> | undefined;
+// Ends the wait in hand, saying whether the next try goes ahead.
+let wakeRelease: ((go: boolean) => void) | null = null;
 const desktopSize = shallowRef<{ width: number; height: number } | null>(null);
 // Typed for this visit only; never written anywhere.
 const password = ref("");
@@ -134,6 +143,8 @@ export interface ConnectOptions {
   username: string;
   // The console keeps the password, and the relay authenticates with it.
   keptPassword: boolean;
+  // How long, from the first try, a desktop that does not answer is tried again (s).
+  wakeSeconds: number;
 }
 
 let element: HTMLElement | null = null;
@@ -165,7 +176,7 @@ function listen(): void {
     const message = event.data as { type?: string; from?: string } | null;
 
     if (message?.type !== "taken" || message.from === WINDOW_ID) return;
-    if (status.value !== "connected" && status.value !== "connecting") return;
+    if (status.value !== "connected" && status.value !== "connecting" && status.value !== "waking") return;
 
     disconnect();
     status.value = "away";
@@ -185,6 +196,7 @@ export function useRemoteDesktop() {
     placeResized,
     status: readonly(status),
     lastError: readonly(lastError),
+    waking: readonly(waking),
     desktopSize: readonly(desktopSize),
     password,
     keyboardOpen: readonly(keyboardOpen),
@@ -467,7 +479,7 @@ function setSettings(next: Partial<DesktopSettings>): void {
 // connection: the client keeps drawing into a picture of the size it connected at and panics on the
 // first frame beyond it (docs/remote.md, 「Connection settings」).
 function reconnect(): void {
-  if (lastOptions === null || (status.value !== "connected" && status.value !== "connecting")) return;
+  if (lastOptions === null || (status.value !== "connected" && status.value !== "connecting" && status.value !== "waking")) return;
 
   const options = lastOptions;
 
@@ -506,14 +518,20 @@ export function describeError(t: Translate, error: unknown): string {
   return t("remote.error.connect_failed");
 }
 
+// A dial overtaken by a newer connection or a disconnect; its end settles nothing.
+const OVERTAKEN = new Error("the connection was overtaken");
+
+// One connection begun: the client loaded, then dialled until the desktop answers, refuses or the window is
+// spent (docs/remote.md, 「A desktop that does not answer」).
 async function connect(options: ConnectOptions): Promise<void> {
-  if (status.value === "connecting" || status.value === "connected" || status.value === "loading") return;
+  if (status.value === "connecting" || status.value === "connected" || status.value === "loading" || status.value === "waking") return;
 
   lastOptions = options;
 
   const mine = ++attempt;
 
   lastError.value = null;
+  endWaking();
   status.value = "loading";
 
   let interaction: UserInteraction;
@@ -532,52 +550,33 @@ async function connect(options: ConnectOptions): Promise<void> {
     return;
   }
 
+  if (mine !== attempt) return;
+
   status.value = "connecting";
 
-  const pointer = pointerChannelId();
-  const pointerOf = await openPointer(pointer);
+  const policy = wakePolicy(options.wakeSeconds);
+  const outcome = await keepTrying(() => dial(interaction, options, mine), policy, {
+    now: Date.now,
+    wait: (ms, progress) => pause(ms, progress, mine)
+  });
 
-  if (mine !== attempt) {
-    closePointer(pointerOf);
+  // A connection let go of while its try was out settles nothing.
+  if (mine !== attempt || outcome.kind === "dropped" || (status.value !== "connecting" && status.value !== "waking")) return;
 
-    return;
-  }
+  endWaking();
 
-  const keysOf = openKeys(pointer);
-  const size = currentSize();
-
-  askedSize = size;
-
-  const config = interaction
-    .configBuilder()
-    .withDestination(DESTINATION)
-    .withProxyAddress(proxyAddress(settings.value.quality, pointer))
-    .withAuthToken(AUTH_TOKEN)
-    .withUsername(options.username)
-    .withPassword(options.keptPassword ? KEPT_PASSWORD_PLACEHOLDER : password.value)
-    .withDesktopSize(size)
-    // Where the console keeps the password the relay runs NLA with it; a password typed here is
-    // the browser's to authenticate with.
-    .withExtension(backend!.enableCredssp(!options.keptPassword))
-    .build();
-
-  let session: NewSessionInfo;
-
-  try {
-    session = await interaction.connect(config);
-  } catch (error) {
-    closePointer(pointerOf);
-    closeKeys(keysOf);
-
-    if (mine !== attempt) return;
+  if (outcome.kind === "failed") {
+    const reason = describeError(options.t, outcome.error);
 
     status.value = "error";
-    lastError.value = describeError(options.t, error);
+    // A desktop that never answered within the window says so; one that refused says only why.
+    lastError.value =
+      outcome.tries > 0 && retryable(outcome.error) ? options.t("remote.error.no_answer", { window: policy.windowMs / 1000, reason }) : reason;
 
     return;
   }
 
-  if (mine !== attempt) return;
+  const { session, pointerOf, keysOf } = outcome.value;
 
   status.value = "connected";
   channel?.postMessage({ type: "taken", from: WINDOW_ID });
@@ -604,10 +603,85 @@ async function connect(options: ConnectOptions): Promise<void> {
   );
 }
 
+// One try: the connection's pointer and keys sockets, then the RDP connection through the relay.
+async function dial(
+  interaction: UserInteraction,
+  options: ConnectOptions,
+  mine: number
+): Promise<{ session: NewSessionInfo; pointerOf: WebSocket; keysOf: WebSocket }> {
+  const pointer = pointerChannelId();
+  const pointerOf = await openPointer(pointer);
+
+  if (mine !== attempt) {
+    closePointer(pointerOf);
+
+    throw OVERTAKEN;
+  }
+
+  const keysOf = openKeys(pointer);
+  const size = currentSize();
+
+  askedSize = size;
+
+  const config = interaction
+    .configBuilder()
+    .withDestination(DESTINATION)
+    .withProxyAddress(proxyAddress(settings.value.quality, pointer))
+    .withAuthToken(AUTH_TOKEN)
+    .withUsername(options.username)
+    .withPassword(options.keptPassword ? KEPT_PASSWORD_PLACEHOLDER : password.value)
+    .withDesktopSize(size)
+    // Where the console keeps the password the relay runs NLA with it; a password typed here is
+    // the browser's to authenticate with.
+    .withExtension(backend!.enableCredssp(!options.keptPassword))
+    .build();
+
+  try {
+    return { session: await interaction.connect(config), pointerOf, keysOf };
+  } catch (error) {
+    closePointer(pointerOf);
+    closeKeys(keysOf);
+
+    throw error;
+  }
+}
+
+// Waits before the next try, saying meanwhile that the desktop is being woken; false where the connection
+// was overtaken or let go during the wait.
+function pause(ms: number, progress: WakeProgress, mine: number): Promise<boolean> {
+  if (mine !== attempt || (status.value !== "connecting" && status.value !== "waking")) return Promise.resolve(false);
+
+  status.value = "waking";
+  waking.value = progress;
+  clearInterval(wakeTicker);
+  wakeTicker = setInterval(() => {
+    const now = waking.value;
+
+    if (now) waking.value = { ...now, seconds: Math.min(now.seconds + 1, now.window) };
+  }, 1000);
+
+  return new Promise((resolve) => {
+    wakeRelease = (go) => {
+      wakeRelease = null;
+      clearTimeout(wakeTimer);
+      resolve(go);
+    };
+    wakeTimer = setTimeout(() => wakeRelease?.(mine === attempt && status.value === "waking"), ms);
+  });
+}
+
+// Ends the waking: the wait in hand lets its connection go, and the line stops counting.
+function endWaking(): void {
+  wakeRelease?.(false);
+  clearInterval(wakeTicker);
+  waking.value = null;
+}
+
 function disconnect(): void {
-  if (status.value !== "connected" && status.value !== "connecting") return;
+  if (status.value !== "connected" && status.value !== "connecting" && status.value !== "waking") return;
 
   status.value = "idle";
+  endWaking();
   closePointer();
   closeKeys();
   ui?.shutdown();

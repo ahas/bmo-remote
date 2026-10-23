@@ -30,6 +30,8 @@
       :description="props.error"
     />
 
+    <p v-if="props.progress" role="status" class="text-sm text-muted">{{ props.progress }}</p>
+
     <div class="flex justify-end">
       <UButton
         type="submit"
@@ -47,11 +49,13 @@ interface Props {
   username: string;
   busy: boolean;
   error: string | null;
+  // What the screen says while a desktop that does not answer is tried again.
+  progress?: string | null;
   // A connection was open before and has ended.
   ended?: boolean;
 }
 
-const props = withDefaults(defineProps<Props>(), { ended: false });
+const props = withDefaults(defineProps<Props>(), { ended: false, progress: null });
 const emit = defineEmits<{ connect: [] }>();
 const password = defineModel<string>("password", { default: "" });
 </script>

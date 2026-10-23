@@ -33,6 +33,7 @@
           :username="username"
           :busy="busy"
           :error="lastError"
+          :progress="wakingText"
           :ended="status === 'ended' || status === 'away'"
           @connect="connect()"
         />
@@ -60,14 +61,19 @@ const props = withDefaults(defineProps<Props>(), { active: true });
 
 const { t } = useI18n();
 const desktop = useRemoteDesktop();
-const { status, lastError, password, settings, keyboardOpen } = desktop;
+const { status, lastError, waking, password, settings, keyboardOpen } = desktop;
 const hostRef = useTemplateRef<HTMLElement>("hostRef");
 const username = ref("");
 const keptPassword = ref(false);
+const wakeSeconds = ref(0);
 const accountRead = ref(false);
 
 const connected = computed(() => status.value === "connected");
-const busy = computed(() => status.value === "loading" || status.value === "connecting");
+const busy = computed(() => status.value === "loading" || status.value === "connecting" || status.value === "waking");
+
+// What the line says while a desktop that does not answer is tried again (docs/remote.md, 「A desktop that does
+// not answer」).
+const wakingText = computed(() => (status.value === "waking" && waking.value ? t("remote.status.waking", { ...waking.value }) : null));
 
 // The password is asked for only where the console does not keep one, once it is known which.
 const asking = computed(() => accountRead.value && !keptPassword.value && !connected.value);
@@ -79,6 +85,8 @@ const notice = computed<{ text: string; icon: string; retry?: string } | null>((
     case "loading":
     case "connecting":
       return { text: t("remote.status.connecting"), icon: "i-material-symbols-progress-activity" };
+    case "waking":
+      return { text: wakingText.value ?? t("remote.status.connecting"), icon: "i-material-symbols-progress-activity" };
     case "ended":
       return { text: t("remote.status.connection_ended"), icon: "i-material-symbols-stop-circle-outline", retry: t("remote.action.reconnect") };
     case "away":
@@ -99,7 +107,7 @@ let observer: ResizeObserver | null = null;
 async function connect(): Promise<void> {
   if (!username.value) return;
 
-  await desktop.connect({ t, username: username.value, keptPassword: keptPassword.value });
+  await desktop.connect({ t, username: username.value, keptPassword: keptPassword.value, wakeSeconds: wakeSeconds.value });
 }
 
 onMounted(async () => {
@@ -120,6 +128,7 @@ onMounted(async () => {
 
     username.value = account.name;
     keptPassword.value = account.keptPassword;
+    wakeSeconds.value = account.wakeSeconds;
   } catch {
     // The login form stays disabled without a user; the route answers only a signed-in console.
   }

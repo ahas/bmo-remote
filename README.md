@@ -14,7 +14,10 @@ token and a private network address; the old archive's kept desktop port taken i
 `tests/import.rs`; and the console bundle's routes, `tests/console.rs`: the manifest read through bmo-ui's
 `consoleManifest` and held to `client/console-bundle.json`, the token and the role refused 401 and 403, and
 the module's path following its bytes. They run with `cargo test`; the manifest's reading runs bun in
-`client/`, whose packages the testbed's setup installs. The other behaviour tests are deferred: they are
+`client/`, whose packages the testbed's setup installs. The bundle's own tests stand in `client/tests/`: a
+desktop that does not answer, tried again within its window against a stand-in desktop and a stand-in clock
+(`docs/remote.md`, 「A desktop that does not answer」), run by `bun run test` inside `client/` as part of the
+bundle's check. The other behaviour tests are deferred: they are
 written and run here once the minimal services stand on the new repositories, and until then the build check,
 `cargo check --all-targets`, and the checks of the bundle and the desktop sidecar stand beside them.
 `docs/inventory.md` lists the tests the old behaviour was held to.
@@ -55,8 +58,8 @@ reaches a console in two forms (`docs/api.md`, 「The console plugin bundle」):
   with the service's own routes and sockets relayed under it (`docs/api.md`, 「What the console does」).
 
 The screen says a refusal by its code in the pack's words. The bundle's check is `bun run check` inside
-`client/`, which installs its locked packages, typechecks it and builds the module; the testbed runs it as the
-check of a project of its own.
+`client/`, which installs its locked packages, typechecks it, runs its tests and builds the module; the testbed
+runs it as the check of a project of its own.
 
 ## Documents
 

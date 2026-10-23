@@ -52,7 +52,7 @@ service answers. It takes the token alone.
 
 | Method and path | Sends | Answers |
 |---|---|---|
-| `GET /account` | | `name`: the account the service runs as, which the terminal and the desktop are reached as; `keptPassword`: whether `desktop.password` is set and not empty |
+| `GET /account` | | `name`: the account the service runs as, which the terminal and the desktop are reached as; `keptPassword`: whether `desktop.password` is set and not empty; `wakeSeconds`: `desktop.wake_seconds`, the window in which the screen tries a desktop that does not answer again (`docs/remote.md`, 「A desktop that does not answer」) |
 
 The password itself is never answered.
 
@@ -317,6 +317,7 @@ from the settings folder. An empty token lets no caller in.
 | `server` | `token` | the bearer token every caller presents | none |
 | `desktop` | `host` | the RDP server's address | `127.0.0.1` |
 | `desktop` | `port` | the RDP server's port where the store holds none | `3389` |
+| `desktop` | `wake_seconds` | the window, in whole seconds from the first try, in which the screen tries a desktop that does not answer again (`docs/remote.md`, 「A desktop that does not answer」); 0 tries nothing again | `90` |
 | `desktop` | `password` | the password the relay answers the desktop's authentication with (`docs/remote.md`, 「Credentials」), kept in the local settings or the environment | none |
 | `sidecar` | `listen` | where the desktop sidecar answers, a loopback `host:port` (「The desktop sidecar」) | `127.0.0.1:3321` |
 | `sidecar` | `bun` | the program that runs it, a path or a name found on the `PATH` | `bun` |
@@ -381,7 +382,7 @@ time takes.
   files are one locale, the host's value standing where both hold a key.
   - **From the host's pack,** the keys every screen of the console shares, under `common.`: `action.cancel`,
     `action.more`, `action.save` and `label.name`.
-  - **From the bundle's own pack,** the 77 keys under `remote`. The screen shows a refusal of the routes, or
+  - **From the bundle's own pack,** the 79 keys under `remote`. The screen shows a refusal of the routes, or
     an `error` of the terminal socket, by the key its code names, under `remote.error.` but for
     `terminal-disconnected`, which is `remote.status.terminal-disconnected`; every code the service answers
     has its key, `unauthorized`, `forbidden`, `bad-request`, `not-found`, `no-route`, `failed` and
@@ -404,16 +405,20 @@ time takes.
     `remote.aria.key_left`, `remote.aria.key_right`, `remote.aria.key_up`
   - `remote.status.connecting`, `remote.status.connection_ended`, `remote.status.no_sessions`,
     `remote.status.not_connected`, `remote.status.open_elsewhere`, `remote.status.reconnecting`,
-    `remote.status.session_ended`, `remote.status.session_over`, `remote.status.terminal-disconnected`
+    `remote.status.session_ended`, `remote.status.session_over`, `remote.status.terminal-disconnected`,
+    `remote.status.waking`
   - `remote.message.disconnect_desktop`, `remote.message.end_many`, `remote.message.end_one`
   - `remote.error.access_denied`, `remote.error.attach-failed-because`, `remote.error.bad-request`,
     `remote.error.connect_failed`, `remote.error.end_failed`, `remote.error.failed`, `remote.error.forbidden`,
     `remote.error.load_failed`, `remote.error.logon_failed`, `remote.error.negotiation_failed`,
-    `remote.error.no-route`, `remote.error.no-terminal-session`, `remote.error.not-found`,
+    `remote.error.no_answer`, `remote.error.no-route`, `remote.error.no-terminal-session`, `remote.error.not-found`,
     `remote.error.open_failed`, `remote.error.relay_refused`, `remote.error.relay_unreachable`,
     `remote.error.rename_failed`, `remote.error.terminals_failed`, `remote.error.unauthorized`,
     `remote.error.wrong_password`
   - A key ending in `-because` takes the socket's `reason` as `{reason}`.
+  - `remote.status.waking` takes `{tries}`, the try the screen is on, `{seconds}`, the seconds passed, and
+    `{window}`, the window's seconds; `remote.error.no_answer` takes `{window}` and `{reason}`, the last try's
+    failure in the pack's words.
 
 ## What the console does
 
@@ -458,4 +463,4 @@ The repository's version is the crate's, shared by the console plugin bundle. Un
 `0.1.0` plus a revision suffix: the first version, `0.1.0`, is the base and is no revision, and every later
 version bump is one revision, `0.1.0-rev.<n>`, with `n` counting the bumps since the base from 1. Major,
 minor and patch never move before the first release, whatever the change. This repository is
-`0.1.0-rev.4`.
+`0.1.0-rev.5`.

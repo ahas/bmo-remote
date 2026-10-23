@@ -74,6 +74,12 @@ pack, named here by key where a label matters.
 - The desktop is drawn scaled to the panel, with no border and no focus ring of its own. What the connection
   is doing stands in a thin line like a terminal's, laid over the top of the desktop so the panel keeps its
   size, with `remote.action.reconnect` where it has ended.
+- **A desktop that does not answer is never a second press.** While the screen tries it again by itself,
+  the line says the desktop is being woken (`remote.status.waking`), with the try it is on and the seconds
+  passed of the window, counted each second; only once the window is spent does it show the failure
+  (`remote.error.no_answer`, with the last try's reason) and `remote.action.reconnect` (`docs/remote.md`,
+  「A desktop that does not answer」). Where the password is typed, the login form shows the same sentence
+  above its busy button while it waits.
 - **Its settings in the view's menu** are, on a touch screen, the touch mode — `touch`, where a finger presses
   where it touches, or `pointer`, where it moves a pointer as on a touchpad (`docs/remote.md`, 「One
   desktop」) — and on every screen the resolution (`auto` or a fixed size) and the quality (`fast`,

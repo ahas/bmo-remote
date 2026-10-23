@@ -1,6 +1,6 @@
 {
   "name": "bmo-remote-client",
-  "version": "0.1.0-rev.4",
+  "version": "0.1.0-rev.5",
   "private": true,
   "license": "MIT",
   "type": "module",
@@ -18,7 +18,8 @@
     "api": "openapi-typescript ../docs/openapi.json -o shared/openapi.ts",
     "bundle": "vite build --config module.config.ts",
     "typecheck": "nuxi prepare && vue-tsc --noEmit -p .nuxt/tsconfig.app.json && vue-tsc --noEmit -p .nuxt/tsconfig.node.json",
-    "check": "bun install --frozen-lockfile && bun run typecheck && bun run bundle",
+    "test": "bun test tests",
+    "check": "bun install --frozen-lockfile && bun run typecheck && bun run test && bun run bundle",
     "ironrdp": "bun scripts/build-ironrdp.ts"
   },
   "dependencies": {

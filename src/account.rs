@@ -36,7 +36,8 @@ impl Account {
   }
 }
 
-/// The account's name and whether the desktop password is kept; the password itself is never answered.
+/// The account's name, whether the desktop password is kept and the window a desktop that does not answer is
+/// tried in; the password itself is never answered.
 pub struct AccountRoute;
 
 impl Route for AccountRoute {
@@ -51,6 +52,7 @@ impl Route for AccountRoute {
       AccountAnswer {
         name: standing.account.name.clone(),
         kept_password: standing.settings.desktop.kept_password().is_some(),
+        wake_seconds: standing.settings.desktop.wake_seconds,
       },
     ))
   }

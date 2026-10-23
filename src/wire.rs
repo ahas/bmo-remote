@@ -27,7 +27,8 @@ pub struct WireError {
   pub error: String,
 }
 
-/// The account the service runs as, and whether the desktop's password is kept.
+/// The account the service runs as, whether the desktop's password is kept, and how long the screen tries a
+/// desktop that does not answer.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Account {
@@ -35,6 +36,9 @@ pub struct Account {
   pub name: String,
   /// Whether `desktop.password` is set and not empty.
   pub kept_password: bool,
+  /// `desktop.wake_seconds`: the window, in whole seconds from the first try, in which the screen tries a
+  /// desktop that does not answer again; 0 tries nothing again.
+  pub wake_seconds: u32,
 }
 
 /// Where a terminal session stands in its life. The list holds the sessions that stand, so every member it

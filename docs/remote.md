@@ -499,6 +499,11 @@ redirection, so the relay does.
 - **It tells the page to connect again** over the pointer channel, and closes the connection it was on.
 - **The page connects again at once** with the settings it last used. A connection begun before another
   cannot settle the newer one's state, so the older one's failure never shows as the newer one's.
+- **The word and the end travel apart.** The redirection is told over the pointer socket and the connection
+  is closed over the desktop socket, two sockets the console carries each on its own, so the page may see
+  the connection end before the word arrives. That connection then fails as one the desktop did not answer,
+  and the page's next try, a moment later, carries the token the relay still holds (「A desktop that does
+  not answer」).
 
 ### The login screen
 
@@ -514,6 +519,38 @@ there, redirects it to the account's wayland session.
   on-screen keyboard types (「The on-screen keyboard」).
 - **Logging on there moves the page to the session**: the login screen redirects the connection, and the page
   follows it (「Redirection」).
+
+### A desktop that does not answer
+
+A connection the desktop does not answer is tried again by the page itself, so one press, or the desktop tab
+being shown, is all it takes to reach the desktop, whatever state its daemons are in.
+
+- **What wakes it is the next connection.** The desktop is this machine, so whenever the service answers, the
+  machine is awake: no Wake-on-LAN is sent and no other unit is asked. What does not answer is the desktop's
+  own side — gnome-remote-desktop's system daemon handing a connection to a login screen GDM has just
+  started, a handover still in progress, a redirection whose word did not reach the page
+  (「Redirection」). Each try is a connection of its own: the system daemon starts a login screen for it
+  afresh, and it carries the routing token the relay still holds.
+- **What is tried again:** a connection that fails before it stands for any reason but the two below — the
+  relay's step standing longer than eight seconds, the desktop not accepting the connection, a failed
+  negotiation or TLS handshake, the relay's socket not opening, the connection ending before it stood.
+- **What is not tried again,** and shows at once: the desktop refusing the credentials (a wrong password, a
+  refused logon, access denied, the relay's HTTP status 401), a request the relay cannot read (HTTP status
+  400), and the screen's RDP client failing to load.
+- **How often.** The first try again comes one second after the failure, and each wait after it is twice the
+  one before, at most eight seconds.
+- **For how long.** The window is the setting `desktop.wake_seconds`, 90 by default, counted from the first
+  try; `GET /account` tells it to the page (`docs/api.md`, 「The account」). No try is begun whose wait would
+  end past the window, so the failure shows once the window is spent, at most one try's length after it. A
+  window of 0 tries nothing again.
+- **What the page shows meanwhile:** that the desktop is being woken, with the try it is on and the seconds
+  passed of the window, counted each second (`docs/screen.md`, 「The desktop tab」).
+- **When the window is spent** the failure shows with the last try's reason and the reconnect action, which
+  begins a new window.
+- **What a window belongs to.** One connection begun, by a press, by the tab being shown, by a new size or
+  quality, or by a redirection followed, begins its own window. A connection that stood and then ended is
+  not tried again; it shows as ended, with the reconnect action. Disconnecting, closing the tab or another
+  window taking the desktop ends the waiting.
 
 ### Connection settings
 

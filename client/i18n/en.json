@@ -62,7 +62,8 @@
       "reconnecting": "Reconnecting",
       "session_ended": "The session has ended",
       "session_over": "The session has ended.",
-      "terminal-disconnected": "The terminal was disconnected."
+      "terminal-disconnected": "The terminal was disconnected.",
+      "waking": "Waking the desktop · try {tries} again, {seconds} of {window} seconds"
     },
     "message": {
       "disconnect_desktop": "The desktop will be disconnected.",
@@ -82,6 +83,7 @@
       "negotiation_failed": "Could not agree on a connection method with the remote desktop.",
       "no-route": "The remote service has no such address.",
       "no-terminal-session": "The terminal session could not be found.",
+      "no_answer": "The desktop did not answer for {window} seconds: {reason}",
       "not-found": "The remote service has no such member.",
       "open_failed": "Could not open a terminal.",
       "relay_refused": "The remote desktop relay refused the connection.",

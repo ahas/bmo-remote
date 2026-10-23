@@ -198,12 +198,21 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** @description The account the service runs as, and whether the desktop's password is kept. */
+        /**
+         * @description The account the service runs as, whether the desktop's password is kept, and how long the screen tries a
+         *     desktop that does not answer.
+         */
         Account: {
             /** @description Whether `desktop.password` is set and not empty. */
             keptPassword: boolean;
             /** @description The account's name, which the terminal and the desktop are reached as. */
             name: string;
+            /**
+             * Format: uint32
+             * @description `desktop.wake_seconds`: the window, in whole seconds from the first try, in which the screen tries a
+             *     desktop that does not answer again; 0 tries nothing again.
+             */
+            wakeSeconds: number;
         };
         /**
          * @description The console manifest (bmo-ui's `docs/console-bundles.md`, 「The manifest」): what a console attaches the
