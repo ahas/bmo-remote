@@ -7,7 +7,8 @@ import type { Nuxt } from "@nuxt/schema";
 // bmo-ui layer and adds the screen's pages, components, domain modules, language pack and the terminal's own
 // faces; the host brings its i18n module and the words every screen shares, the console's title-bar
 // components and the kept tabs the screen asks of it, and relays the service's own paths to it. The bundle
-// declares itself in console-bundle.json, as bmo-ui's console plugin contract asks.
+// declares itself to such a host in console-bundle.json; the same pages built as the served module are
+// module.config.ts's.
 const here = dirname(fileURLToPath(import.meta.url));
 
 export default defineNuxtConfig({
@@ -23,12 +24,14 @@ export default defineNuxtConfig({
     },
     "@nuxtjs/i18n",
     // What the host owes is declared under host/ for the bundle's own typecheck alone: where the bundle is
-    // the project being prepared, those declarations are read with the screen; a host extending the bundle
-    // reads none of them and keeps its own components' and functions' types.
+    // the project being prepared, those declarations are read with the screen, and so is the served module's
+    // entry under module/ with its build; a host extending the bundle reads none of them and keeps its own
+    // components' and functions' types.
     (_options: unknown, nuxt: Nuxt) => {
       if (nuxt.options.rootDir === here) {
-        nuxt.hook("prepare:types", ({ tsConfig }) => {
-          tsConfig.include = [...(tsConfig.include ?? []), "../host/**/*.d.ts"];
+        nuxt.hook("prepare:types", ({ tsConfig, nodeTsConfig }) => {
+          tsConfig.include = [...(tsConfig.include ?? []), "../host/**/*.d.ts", "../module/**/*"];
+          nodeTsConfig.include = [...(nodeTsConfig.include ?? []), "../module.config.ts"];
         });
       }
     }

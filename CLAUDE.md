@@ -72,7 +72,7 @@ structure (archive document #301, 「원칙」).
   named after its parent.
 - The console plugin bundle stands in `client/`, a project of its own.
 - Tests live in `tests/`; no test module stands in `src/`. The repository-wide personal-data check stands
-  there; the behaviour tests are deferred for now (README.md).
+  there beside the behaviour tests that stand; the rest are deferred for now (README.md).
 
 ## The stages of a change
 
@@ -80,4 +80,4 @@ structure (archive document #301, 「원칙」).
 2. **Review:** read the whole diff against the document governing it, then `cargo fmt --all --check` and
    `cargo clippy --all-targets -- -D warnings`.
 3. **Verification:** the tests touched, then the whole suite once, output written to a file and the file
-   read. The suite is `cargo test --test personal_data` until the deferred behaviour tests stand.
+   read. The suite is `cargo test` and the bundle's `bun run check` (README.md, 「Tests」).

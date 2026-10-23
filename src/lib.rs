@@ -5,6 +5,7 @@
 pub mod account;
 pub mod client;
 pub mod command;
+pub mod console;
 pub mod desktop;
 pub mod health;
 pub mod http;
@@ -20,20 +21,28 @@ use std::io;
 use tokio::net::TcpListener;
 
 use crate::account::Account;
+use crate::console::ConsoleBundle;
 use crate::desktop::sidecar::Sidecar;
 use crate::http::Standing;
 use crate::settings::Settings;
 use crate::store::Store;
 
-/// Opens the store, reads the account and starts the desktop sidecar, then answers the routes on the
-/// settings' address until the process is told to stop.
+/// Opens the store, reads the account and the console bundle and starts the desktop sidecar, then answers the
+/// routes on the settings' address until the process is told to stop. A console bundle that cannot be read
+/// leaves the manifest refused and every other route answered.
 pub async fn serve(settings: Settings) -> Result<(), String> {
   let store = Store::open(&settings.store.path).await.map_err(|why| why.to_string())?;
   let account = Account::current()?;
   let listen = settings.server.listen;
+  let console = ConsoleBundle::load(&settings.console.folder);
+
+  if let Err(why) = &console {
+    eprintln!("bmo-remote: the console bundle is not answered: {why}");
+  }
+
   let sidecar = Sidecar::start(&settings, &account);
-  let router =
-    http::router(Standing::new(settings, store, account, sidecar)).map_err(|faults| faults.join("; "))?;
+  let router = http::router(Standing::new(settings, store, account, sidecar, console))
+    .map_err(|faults| faults.join("; "))?;
   let listener = TcpListener::bind(listen)
     .await
     .map_err(|why| format!("{listen} could not be listened on: {why}"))?;

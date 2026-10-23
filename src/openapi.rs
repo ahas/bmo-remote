@@ -6,8 +6,11 @@ use schemars::JsonSchema;
 use schemars::generate::{SchemaGenerator, SchemaSettings};
 use serde_json::{Map, Value, json};
 
+use crate::console::{ConsoleRole, FORBIDDEN, OWNER_ROLE_HEADER};
+use crate::http::Reader;
 use crate::wire::{
-  Account, Health, Terminal, TerminalPage, TerminalRename, TerminalRequest, TerminalsQuery, WireError,
+  Account, ConsoleManifest, Health, Terminal, TerminalPage, TerminalRename, TerminalRequest,
+  TerminalsQuery, WireError,
 };
 
 /// Where the schemas the routes refer to stand in the document.
@@ -33,8 +36,10 @@ struct Operation {
   body: Option<Body>,
   /// The success answers, each by its status: the content by media type, or none for no body.
   answers: Vec<(u16, Option<Value>)>,
-  /// Every code the route can answer.
+  /// Every code the route can answer beside the reader's refusal.
   codes: &'static [&'static str],
+  /// Whom it answers: a reader of the screen also sends `Owner-Role`, and may be refused `forbidden`.
+  reader: Reader,
 }
 
 impl Operation {
@@ -53,16 +58,24 @@ impl Operation {
 
     responses.insert("default".into(), json!({ "$ref": "#/components/responses/Error" }));
 
+    let mut codes = self.codes.to_vec();
+    let mut parameters = self.parameters;
+
+    if self.reader == Reader::Screen {
+      codes.insert(1, FORBIDDEN);
+      parameters.insert(0, owner_role());
+    }
+
     let mut operation = json!({
       "operationId": self.id,
       "tags": [self.tag],
       "summary": self.summary,
       "responses": responses,
-      "x-codes": self.codes,
+      "x-codes": codes,
     });
 
-    if !self.parameters.is_empty() {
-      operation["parameters"] = self.parameters.into();
+    if !parameters.is_empty() {
+      operation["parameters"] = parameters.into();
     }
 
     if let Some(Body::Json(schema)) = self.body {
@@ -92,6 +105,17 @@ fn path_parameter(name: &str, description: &str) -> Value {
     "required": true,
     "description": description,
     "schema": { "type": "string" },
+  })
+}
+
+/// The reader's role the console sets on every route the screen uses.
+fn owner_role() -> Value {
+  json!({
+    "name": OWNER_ROLE_HEADER,
+    "in": "header",
+    "required": true,
+    "description": "The reader's role, which must allow the screen's administrator.",
+    "schema": { "type": "string", "enum": [ConsoleRole::Administrator.name(), ConsoleRole::Member.name()] },
   })
 }
 
@@ -133,6 +157,52 @@ fn operations(generator: &mut SchemaGenerator) -> Vec<Operation> {
       body: None,
       answers: vec![(200, json_answer::<Health>(generator))],
       codes: &["unauthorized"],
+      reader: Reader::Caller,
+    },
+    Operation {
+      method: "get",
+      path: "/console-manifest",
+      id: "readConsoleManifest",
+      tag: "console",
+      summary: "The console manifest the remote screen is attached by.",
+      parameters: Vec::new(),
+      body: None,
+      answers: vec![(200, json_answer::<ConsoleManifest>(generator))],
+      codes: &["unauthorized", "failed"],
+      reader: Reader::Caller,
+    },
+    Operation {
+      method: "get",
+      path: "/console/words.json",
+      id: "readConsoleWords",
+      tag: "console",
+      summary: "The console bundle's words, each locale's tree under its code.",
+      parameters: Vec::new(),
+      body: None,
+      answers: vec![(200, Some(json!({ "application/json": { "schema": { "type": "object" } } })))],
+      codes: &["unauthorized", "not-found"],
+      reader: Reader::Caller,
+    },
+    Operation {
+      method: "get",
+      path: "/console/{file}",
+      id: "readConsoleFile",
+      tag: "console",
+      summary: "A file of the console bundle's module: the module, its stylesheet or a chunk it imports.",
+      parameters: vec![path_parameter(
+        "file",
+        "The file's path under `/console/`, as the manifest or the module names it, slashes included.",
+      )],
+      body: None,
+      answers: vec![(
+        200,
+        Some(json!({
+          "text/javascript": { "schema": { "type": "string" } },
+          "text/css": { "schema": { "type": "string" } },
+        })),
+      )],
+      codes: &["unauthorized", "not-found"],
+      reader: Reader::Screen,
     },
     Operation {
       method: "get",
@@ -144,6 +214,7 @@ fn operations(generator: &mut SchemaGenerator) -> Vec<Operation> {
       body: None,
       answers: vec![(200, json_answer::<Account>(generator))],
       codes: &["unauthorized"],
+      reader: Reader::Screen,
     },
     Operation {
       method: "get",
@@ -155,6 +226,7 @@ fn operations(generator: &mut SchemaGenerator) -> Vec<Operation> {
       body: None,
       answers: vec![(200, json_answer::<TerminalPage>(generator))],
       codes: &["unauthorized", "bad-request", "failed"],
+      reader: Reader::Screen,
     },
     Operation {
       method: "post",
@@ -166,6 +238,7 @@ fn operations(generator: &mut SchemaGenerator) -> Vec<Operation> {
       body: json_body::<TerminalRequest>(generator),
       answers: vec![(201, json_answer::<Terminal>(generator))],
       codes: &["unauthorized", "bad-request", "failed"],
+      reader: Reader::Screen,
     },
     Operation {
       method: "get",
@@ -177,6 +250,7 @@ fn operations(generator: &mut SchemaGenerator) -> Vec<Operation> {
       body: None,
       answers: vec![(200, json_answer::<Terminal>(generator))],
       codes: &["unauthorized", "not-found", "failed"],
+      reader: Reader::Screen,
     },
     Operation {
       method: "patch",
@@ -188,6 +262,7 @@ fn operations(generator: &mut SchemaGenerator) -> Vec<Operation> {
       body: json_body::<TerminalRename>(generator),
       answers: vec![(200, json_answer::<Terminal>(generator))],
       codes: &["unauthorized", "bad-request", "not-found", "failed"],
+      reader: Reader::Screen,
     },
     Operation {
       method: "delete",
@@ -199,6 +274,7 @@ fn operations(generator: &mut SchemaGenerator) -> Vec<Operation> {
       body: None,
       answers: vec![(204, None)],
       codes: &["unauthorized", "not-found", "failed"],
+      reader: Reader::Screen,
     },
     Operation {
       method: "get",
@@ -210,6 +286,7 @@ fn operations(generator: &mut SchemaGenerator) -> Vec<Operation> {
       body: None,
       answers: vec![(101, None)],
       codes: &["unauthorized", "not-found", "failed"],
+      reader: Reader::Screen,
     },
     Operation {
       method: "get",
@@ -221,6 +298,7 @@ fn operations(generator: &mut SchemaGenerator) -> Vec<Operation> {
       body: None,
       answers: vec![(101, None)],
       codes: &["unauthorized"],
+      reader: Reader::Screen,
     },
     Operation {
       method: "get",
@@ -232,6 +310,7 @@ fn operations(generator: &mut SchemaGenerator) -> Vec<Operation> {
       body: None,
       answers: vec![(101, None)],
       codes: &["unauthorized"],
+      reader: Reader::Screen,
     },
     Operation {
       method: "get",
@@ -243,6 +322,7 @@ fn operations(generator: &mut SchemaGenerator) -> Vec<Operation> {
       body: None,
       answers: vec![(101, None)],
       codes: &["unauthorized"],
+      reader: Reader::Screen,
     },
   ]
 }

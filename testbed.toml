@@ -1,11 +1,13 @@
 # How the testbed checks, builds and deploys this repository, in the testbed's declaration format. The suite
-# runs the repository-wide personal-data check (PERSONAL-DATA.md); the behaviour tests are deferred (README.md).
+# runs the repository-wide personal-data check (PERSONAL-DATA.md) and the behaviour tests that stand
+# (README.md).
 
 testbed = 0
 name = "bmo-remote"
 
 [test]
-# Cargo runs the repository-wide personal-data check in tests/, and Bun runs the two projects' check scripts.
+# Cargo runs the tests in tests/, the console test running bun in client/, and Bun runs the two projects'
+# check scripts.
 languages = ["cargo", "bun"]
 # A fresh tree gets each project's locked packages through the same frozen install its check script runs.
 setup = ["cd client && bun install --frozen-lockfile", "cd desktop-sidecar && bun install --frozen-lockfile"]
@@ -13,7 +15,8 @@ setup = ["cd client && bun install --frozen-lockfile", "cd desktop-sidecar && bu
 [projects]
 # The console plugin bundle under client/ is a project of its own, the vendored RDP backend's manifest inside
 # it, and so is the desktop sidecar under desktop-sidecar/: each one's check script installs its locked
-# packages and typechecks it, and Bun is the declared language that runs that script in the suite.
+# packages and typechecks it, the bundle's building its served module too, and Bun is the declared language
+# that runs that script in the suite.
 paths = ["client", "desktop-sidecar"]
 
 [check]
@@ -54,3 +57,10 @@ env_links = [{ link = "settings.local.toml", target = "env/remote.toml" }]
 units = ["deploy/*.service"]
 # Answers 0 once the service the deployed settings name answers ready (docs/api.md, 「Health」).
 health = "~/.local/share/bmo-remote/deploy/bin/bmo-remote health"
+
+# The console bundle's module, built in the release from its own sources before the release is put live, into
+# the folder the service answers it from (docs/api.md, 「The console plugin bundle」).
+[[deploy.step]]
+id = "console-bundle"
+command = "cd client && bun run bundle"
+phase = "before-flip"

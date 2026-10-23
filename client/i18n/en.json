@@ -76,6 +76,7 @@
       "connect_failed": "Could not connect to the remote desktop.",
       "end_failed": "Could not end the session.",
       "failed": "The terminal session could not be changed.",
+      "forbidden": "Your role may not open the remote screen.",
       "load_failed": "Could not load the remote desktop screen.",
       "logon_failed": "Could not sign in.",
       "negotiation_failed": "Could not agree on a connection method with the remote desktop.",

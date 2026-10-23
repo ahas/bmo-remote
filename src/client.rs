@@ -1,5 +1,6 @@
-//! The service's own client (`docs/api.md`, 「The client」): one method for each route, sending and reading the
-//! types of `wire`. The command reaches the service through it, and so may any other Rust caller.
+//! The service's own client (`docs/api.md`, 「The client」): one method for each route that answers JSON,
+//! sending and reading the types of `wire`, with the reader's role where it is given one. The command reaches
+//! the service through it, and so may any other Rust caller.
 
 use std::time::Duration;
 
@@ -7,9 +8,11 @@ use reqwest::{Method, RequestBuilder, Response};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 
+use crate::console::{ConsoleRole, OWNER_ROLE_HEADER};
 use crate::settings::Settings;
 use crate::wire::{
-  Account, Health, Terminal, TerminalPage, TerminalRename, TerminalRequest, TerminalsQuery, WireError,
+  Account, ConsoleManifest, Health, Terminal, TerminalPage, TerminalRename, TerminalRequest,
+  TerminalsQuery, WireError,
 };
 
 /// Why a call reached no answer of the route's shape.
@@ -50,6 +53,8 @@ pub struct RemoteClient {
   token: String,
   http: reqwest::Client,
   timeout: Option<Duration>,
+  /// The role sent as `Owner-Role`, which every route the screen uses asks for.
+  role: Option<ConsoleRole>,
 }
 
 impl RemoteClient {
@@ -60,6 +65,7 @@ impl RemoteClient {
       token: token.into(),
       http: reqwest::Client::new(),
       timeout: None,
+      role: None,
     }
   }
 
@@ -74,8 +80,18 @@ impl RemoteClient {
     self
   }
 
+  /// The client asking for a reader holding `role`, as the console hands a reader's calls on.
+  pub fn with_role(mut self, role: ConsoleRole) -> Self {
+    self.role = Some(role);
+    self
+  }
+
   fn request(&self, method: Method, path: &str) -> RequestBuilder {
     let request = self.http.request(method, format!("{}{path}", self.address)).bearer_auth(&self.token);
+    let request = match self.role {
+      Some(role) => request.header(OWNER_ROLE_HEADER, role.name()),
+      None => request,
+    };
 
     match self.timeout {
       Some(timeout) => request.timeout(timeout),
@@ -117,6 +133,16 @@ impl RemoteClient {
   /// `GET /health`.
   pub async fn health(&self) -> Result<Health, ClientFailure> {
     Self::read(self.request(Method::GET, "/health")).await
+  }
+
+  /// `GET /console-manifest`.
+  pub async fn console_manifest(&self) -> Result<ConsoleManifest, ClientFailure> {
+    Self::read(self.request(Method::GET, "/console-manifest")).await
+  }
+
+  /// `GET /console/words.json`: each locale's tree under its code.
+  pub async fn console_words(&self) -> Result<serde_json::Map<String, serde_json::Value>, ClientFailure> {
+    Self::read(self.request(Method::GET, "/console/words.json")).await
   }
 
   /// `GET /account`.

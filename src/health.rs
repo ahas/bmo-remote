@@ -6,17 +6,18 @@ use axum::http::{Method, StatusCode};
 use axum::response::Response;
 
 use crate::client::RemoteClient;
-use crate::http::{Call, Refused, Route, answer};
+use crate::http::{Call, Reader, Refused, Route, answer};
 use crate::settings::Settings;
 use crate::wire::Health as HealthAnswer;
 
-/// Whether the store is open and the service answers. A service that answers has its store: it opens it
-/// before it answers anything.
+/// Whether the store is open and the service answers, to any caller with the token. A service that answers
+/// has its store: it opens it before it answers anything.
 pub struct Health;
 
 impl Route for Health {
   const METHOD: Method = Method::GET;
   const PATH: &'static str = "/health";
+  const READER: Reader = Reader::Caller;
 
   async fn answer(&self, _call: Call) -> Result<Response, Refused> {
     Ok(answer(

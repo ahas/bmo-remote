@@ -21,6 +21,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/console-manifest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The console manifest the remote screen is attached by. */
+        get: operations["readConsoleManifest"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/console/words.json": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The console bundle's words, each locale's tree under its code. */
+        get: operations["readConsoleWords"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/console/{file}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A file of the console bundle's module: the module, its stylesheet or a chunk it imports. */
+        get: operations["readConsoleFile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/desktop/keys": {
         parameters: {
             query?: never;
@@ -154,6 +205,45 @@ export interface components {
             /** @description The account's name, which the terminal and the desktop are reached as. */
             name: string;
         };
+        /**
+         * @description The console manifest (bmo-ui's `docs/console-bundles.md`, 「The manifest」): what a console attaches the
+         *     remote screen by.
+         */
+        ConsoleManifest: {
+            /** @description The path every call the screens make stands under. */
+            apiPrefix: string;
+            /** @description The path the module is answered at. */
+            bundle: string;
+            /** @description Whether the screens read the service's event stream. */
+            events: boolean;
+            /** @description The icon drawn beside that name. */
+            icon: string;
+            /** @description The bundle's name, its words' namespace. */
+            name: string;
+            /** @description Whether every call the screens make needs the reader's owner key. */
+            ownerKey: boolean;
+            /** @description The event kinds a console may raise as a notice to a reader not on the screen. */
+            pushKinds: string[];
+            /** @description The least role a reader holds to open the screen. */
+            role: components["schemas"]["ConsoleRole"];
+            /** @description The path the screens stand under. */
+            screenPath: string;
+            /** @description The name a console relays the service under. */
+            serviceName: string;
+            /** @description The path the stylesheet is answered at. */
+            stylesheet?: string | null;
+            /** @description The key, in the bundle's words, of the name a console's menu gives the screen. */
+            title: string;
+            /** @description Whether the screens open a WebSocket to the service. */
+            websocket: boolean;
+            /** @description The path the words are answered at. */
+            words: string;
+        };
+        /**
+         * @description A role a reader holds, the one holding more first: an administrator holds every role a member holds.
+         * @enum {string}
+         */
+        ConsoleRole: "administrator" | "member";
         /** @description Whether the service is ready, why not where it is not, and its version. */
         Health: {
             /** @description The store is open and the service answers. */
@@ -225,7 +315,10 @@ export interface operations {
     readAccount: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                /** @description The reader's role, which must allow the screen's administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
             path?: never;
             cookie?: never;
         };
@@ -243,10 +336,83 @@ export interface operations {
             default: components["responses"]["Error"];
         };
     };
-    readDesktopKeys: {
+    readConsoleManifest: {
         parameters: {
             query?: never;
             header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The console manifest the remote screen is attached by. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConsoleManifest"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    readConsoleWords: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The console bundle's words, each locale's tree under its code. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    readConsoleFile: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The reader's role, which must allow the screen's administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                /** @description The file's path under `/console/`, as the manifest or the module names it, slashes included. */
+                file: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A file of the console bundle's module: the module, its stylesheet or a chunk it imports. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/css": string;
+                    "text/javascript": string;
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    readDesktopKeys: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The reader's role, which must allow the screen's administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
             path?: never;
             cookie?: never;
         };
@@ -265,7 +431,10 @@ export interface operations {
     readDesktopPointer: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                /** @description The reader's role, which must allow the screen's administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
             path?: never;
             cookie?: never;
         };
@@ -284,7 +453,10 @@ export interface operations {
     relayDesktop: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                /** @description The reader's role, which must allow the screen's administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
             path?: never;
             cookie?: never;
         };
@@ -329,7 +501,10 @@ export interface operations {
                 /** @description How many to read, 100 where none is given and at most 1000. */
                 limit?: number | null;
             };
-            header?: never;
+            header: {
+                /** @description The reader's role, which must allow the screen's administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
             path?: never;
             cookie?: never;
         };
@@ -350,7 +525,10 @@ export interface operations {
     createTerminal: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                /** @description The reader's role, which must allow the screen's administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
             path?: never;
             cookie?: never;
         };
@@ -375,7 +553,10 @@ export interface operations {
     readTerminal: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                /** @description The reader's role, which must allow the screen's administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
             path: {
                 /** @description The session's id: `t-` and lower-case letters and digits. */
                 terminalId: string;
@@ -399,7 +580,10 @@ export interface operations {
     endTerminal: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                /** @description The reader's role, which must allow the screen's administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
             path: {
                 /** @description The session's id: `t-` and lower-case letters and digits. */
                 terminalId: string;
@@ -421,7 +605,10 @@ export interface operations {
     renameTerminal: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                /** @description The reader's role, which must allow the screen's administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
             path: {
                 /** @description The session's id: `t-` and lower-case letters and digits. */
                 terminalId: string;
@@ -449,7 +636,10 @@ export interface operations {
     attachTerminal: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                /** @description The reader's role, which must allow the screen's administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
             path: {
                 /** @description The session's id: `t-` and lower-case letters and digits. */
                 terminalId: string;

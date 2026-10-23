@@ -2,11 +2,11 @@
 
 Every route and socket this service answers, its client, its command, its store, its settings, the console
 plugin bundle it ships and what the console in front of it does. This document is the contract other units
-match: bmo-web, whose console hands the remote screen's requests on to these routes and extends the bundle;
-bmo-cli, which runs the command; and the switch-over, which points the console at this service. What the
-terminal and the desktop do is `docs/remote.md`, and the screen is `docs/screen.md`; this document says how
-they are asked. A change to anything here changes this document in the same commit and follows the version
-rule (「Versions」).
+match: bmo-web, whose console reads the bundle's manifest, loads the bundle and hands the remote screen's
+requests on to these routes; bmo-cli, which runs the command; and the switch-over, which points the console at
+this service. What the terminal and the desktop do is `docs/remote.md`, and the screen is `docs/screen.md`;
+this document says how they are asked. A change to anything here changes this document in the same commit and
+follows the version rule (「Versions」).
 
 ## Conventions
 
@@ -16,6 +16,13 @@ rule (「Versions」).
 - **Every route takes `Authorization: Bearer <token>`,** the token of the settings, a websocket upgrade
   included; a missing or wrong token is answered 401 `unauthorized`, and an upgrade is refused so before it
   is taken. The console presents the token on every request it hands on.
+- **Every route the screen uses also takes `Owner-Role`,** the role of the reader the console hands the
+  request on for, set by the console in place of any the browser sent: the account, the terminal routes,
+  the sockets and the bundle's module, stylesheet and chunks. A missing role, or one that does not allow the
+  manifest's `administrator`, is answered 403 `forbidden` after the token is checked, and an upgrade is
+  refused so before it is taken. The health, the manifest and the bundle's words take the token alone,
+  since the console and the command read them for no reader. The service needs no `Owner-Key`: the
+  terminals and the desktop are the machine's, not a user's.
 - **Bodies are JSON, both ways, with field names in camelCase.** Times are epoch milliseconds, and an
   identifier is a signed 64-bit integer where the service names one; a terminal session's id is the string
   the service makes.
@@ -33,12 +40,13 @@ rule (「Versions」).
 | the console's sign-in, on every route and every upgrade | the console (「What the console does」) |
 | the `Origin` of a websocket upgrade against the host it was sent to, or the forwarded host behind the proxy, refused 403 | the console |
 | the bearer token | this service |
+| the reader's role, `Owner-Role`, against the manifest's `administrator` on every route the screen uses | this service |
 | reachable from this machine alone | this service's settings: `server.listen` is a loopback address |
 
 ## Health
 
 `GET /health` answers `ready`, `reason` (null while it is ready) and `version`: the store is open and the
-service answers.
+service answers. It takes the token alone.
 
 ## The account
 
@@ -179,23 +187,67 @@ calls it.
   close code and reason either side ends with. Where the sidecar cannot be reached, the service closes the
   browser's socket 1011.
 
+## The console bundle's routes
+
+What a console reads to attach the remote screen (bmo-ui's `docs/console-bundles.md`), answered from the
+bundle's folder, the one `console.folder` names, as the service read it when it started (「The console plugin
+bundle」).
+
+| Method and path | Takes | Answers |
+|---|---|---|
+| `GET /console-manifest` | the token | the manifest, below |
+| `GET /console/words.json` | the token | the bundle's words: each language file's tree under its locale's code, `ko` and `en` |
+| `GET /console/{file}` | the token and the role | a file of the module: `remote-<digest>.js`, the module; `remote-<digest>.css`, its stylesheet; `chunks/<name>-<hash>.js`, a chunk the module imports |
+
+- **The manifest** is the contract's JSON object, with these values:
+
+| Field | Value |
+|---|---|
+| `name` | `remote` |
+| `title` | `remote.title.remote` |
+| `icon` | `i-material-symbols-devices-outline` |
+| `screenPath` | `/remote` |
+| `serviceName` | `remote` |
+| `bundle` | `/console/remote-<digest>.js` |
+| `stylesheet` | `/console/remote-<digest>.css` |
+| `words` | `/console/words.json` |
+| `apiPrefix` | `/`: the screen calls every route and socket of this document, and the module's chunks stand under `/console/` |
+| `role` | `administrator`: the terminals and the desktop are the machine's own |
+| `ownerKey` | `false` |
+| `events` | `false`: the service has no event stream |
+| `websocket` | `true`: the terminal socket and the desktop sockets |
+| `pushKinds` | none |
+
+- **A path follows its bytes.** `<digest>` is the first 16 hexadecimal digits of the SHA-256 of the file's
+  bytes, so a rebuilt module or stylesheet is answered at a new path and the manifest names it; a chunk's
+  name carries a hash of its own bytes from the build.
+- **The module's files are kept:** each is answered with `Cache-Control: private, max-age=31536000,
+  immutable`; the manifest and the words with `no-cache`. The module and its chunks are
+  `text/javascript`, the stylesheet `text/css`, the words and the manifest `application/json`.
+- **Where the folder could not be read,** or holds no `remote.js` or no `words.json`, the service still
+  answers every other route; the manifest is answered 500 `failed`, its sentence saying what is missing, so
+  the console leaves the screen out, and the words and a file are answered 404 `not-found`. A file the folder
+  does not hold is 404 `not-found`.
+
 ## Refusals
 
 | Status | Code | When |
 |---|---|---|
 | 400 | `bad-request` | the body or the query is not the shape the route takes; the sentence names what is wrong |
 | 401 | `unauthorized` | the bearer token is missing or wrong |
+| 403 | `forbidden` | a route the screen uses is called with no `Owner-Role`, or with one that does not allow `administrator` |
 | 404 | `not-found` | no member stands at the key the path names |
 | 404 | `no-route` | no route or socket answers the method and path |
 | 500 | `failed` | tmux could not read, open, rename or end the sessions; the sentence is the failure |
 
 ## The client
 
-`bmo-remote`'s crate is the service's client: one method for each HTTP route, sending and reading the types
-of `docs/openapi.json`, which the crate also generates. The command reaches the service through it, and any
-other Rust caller may. The console plugin bundle carries the TypeScript client generated from the same
-document, `client/shared/openapi.ts`, and calls through it; a socket is opened by the page itself, with the
-token the console adds when it relays the upgrade.
+`bmo-remote`'s crate is the service's client: one method for each HTTP route that answers JSON, sending and
+reading the types of `docs/openapi.json`, which the crate also generates, and sending `Owner-Role` where it is
+given a role. The command reaches the service through it, and any other Rust caller may. The module's files
+are a console's to fetch, and the client has no method for them. The console plugin bundle carries the
+TypeScript client generated from the same document, `client/shared/openapi.ts`, and calls through it; a socket
+is opened by the page itself, with the token the console adds when it relays the upgrade.
 
 ## The OpenAPI document
 
@@ -272,44 +324,69 @@ from the settings folder. An empty token lets no caller in.
 | `terminal` | `socket` | the tmux socket's name, letters, digits, `_` and `-` | `bmo-remote` |
 | `terminal` | `config` | the tmux configuration file, the one a release carries | `deploy/tmux.conf` |
 | `store` | `path` | the SQLite file of 「The store」 | `remote.db` |
+| `console` | `folder` | the console bundle's folder, the one the bundle's build writes and a release carries (「The console bundle's routes」) | `client/dist` |
 
 ## The console plugin bundle
 
-`bmo-remote-client`, in `client/`: the remote screen as a Nuxt layer the console extends, mounted at
-`/remote`, with `/remote/desktop` and `/remote/terminal/<id>` below it (`docs/screen.md`).
+`bmo-remote-client`, in `client/`: the remote screen, mounted at `/remote`, with `/remote/desktop` and
+`/remote/terminal/<id>` below it (`docs/screen.md`), on bmo-ui's console plugin contract (bmo-ui's
+`docs/console-bundles.md`). The same pages reach a console in two forms: the module the service serves, which
+a console attaches by the manifest, and the layer pack, which a console still extending its bundles at build
+time takes.
 
-- **It declares itself** in `client/console-bundle.json`, as bmo-ui's console plugin contract asks: the name
-  `remote`, the title key `remote.title.remote`, the icon `i-material-symbols-devices-outline`, the screen
-  path `/remote`, the service name `remote`, the language pack folder `i18n`, no event stream, a websocket,
-  and no notice kinds.
-- **What its host serves it:** the bmo-ui layer, and the routes and sockets above relayed under the console's
-  relay base with the service's name, `/api/remote/` for the console, handed on to this service with its
-  token behind the console's sign-in. A screen calls a route through bmo-ui's `relay` module, which the
-  host's `$fetch` resolves under the app's base path, and opens a socket at the same address: the relay
-  address under the app's base path, unless it already stands there, so a console served under a path of
-  its own takes the socket where it takes the route.
-- **How a host takes it:** the bundle is packed from `client/` with `bun pm pack` into
-  `bmo-remote-client-<version>.tgz`, carrying its manifest, its declaration, its Nuxt configuration, `app/`,
-  `shared/`, its language pack under `i18n/` and the vendored RDP backend. A host keeps the packed bundle in
-  its own tree and depends on it by that file, depends on bmo-ui at the version the bundle's peer names, and
-  names `bmo-remote-client` in its Nuxt configuration's `extends`, which brings bmo-ui's layer with it.
-- **What its host owes it,** declared in `client/host/` for the bundle's own typecheck alone: the components
-  `DeployMark`, `TodoOpenButton` and `UsageMeters` of the console's top bar, registered by name and handed no
-  props; `useKeptTabs(screen, { read, restore })`, made importable by name as Nuxt makes a project's own
-  composables, which keeps the screen's open tabs for the account under the screen's key `remote`; and its
-  i18n module, which merges the bundle's own pack into the host's locale of the same code.
+- **The served module.** `bun run bundle` builds the pages into `client/dist/` with `client/module.config.ts`:
+  - `remote.js`, one ECMAScript module whose default export holds the three routes, the two windows of one
+    session standing on no layout of the console's, and the chunks it imports under `chunks/`, the RDP
+    backend among them;
+  - `remote.css`, its stylesheet: the utility classes its templates use, built on bmo-ui's tokens without
+    the tokens themselves, the styles its components scope to themselves, xterm's, and the terminal's faces
+    inlined;
+  - `words.json`, its words.
+  - Every import of `vue`, `vue-router`, `vue-i18n`, `nuxt/app`, `@nuxt/ui` and `bmo-ui` is left unbundled,
+    written as the package's own path: Nuxt UI's components as `@nuxt/ui/components/<Name>.vue`, bmo-ui's
+    as `bmo-ui/app/components/<Name>.vue`, and what Nuxt makes importable by name from `vue`, `vue-i18n`
+    and `nuxt/app`. A call goes through the console's own `$fetch`.
+  - A console loading the module registers nothing for it, so the module stands in what a Nuxt host gives
+    the pages, in `client/module/`: the console's title-bar pieces the screen draws stand empty, and the
+    open tabs are kept in the browser under the screen's key `remote`, put back when the screen stands.
+  - A deployment builds it in its release before the release is put live (`testbed.toml`), and the service
+    answers it (「The console bundle's routes」). The bundle's check builds it too.
+- **The layer pack.** `bun pm pack` packs `client/` into `bmo-remote-client-<version>.tgz`, carrying its
+  package manifest, its declaration, its Nuxt configuration, `app/`, `shared/`, its language pack under
+  `i18n/` and the vendored RDP backend. A host keeps the packed bundle in its own tree and depends on it by
+  that file, depends on bmo-ui at the version the bundle's peer names, and names `bmo-remote-client` in its
+  Nuxt configuration's `extends`, which brings bmo-ui's layer with it.
+  - `client/console-bundle.json` declares the bundle to such a host, as bmo-ui's build-time contract up to
+    `0.1.0-rev.6` reads it: the manifest's name, title key, icon, screen path, service name, stream, socket
+    and notice kinds, and the language pack folder `i18n`. The service's test holds those values to the
+    manifest's.
+  - The bundle's peer is bmo-ui `0.1.0-rev.6` or later before `0.2.0`, since the screen takes its socket
+    addresses from bmo-ui's `relay` module; its own install and typecheck stand on a packed
+    `0.1.0-rev.7` under `client/vendor/`.
+- **Where a screen calls the service:** a route at the address bmo-ui's `relay` module answers for the
+  service's name and the route's path, and a socket at the socket address the same module answers, its
+  query carried: both under the app's base path and the console's relay base, complete as given, so a
+  console served under a path of its own takes the socket where it takes the route.
+- **What a host extending the pack owes it,** declared in `client/host/` for the bundle's own typecheck
+  alone: the components `DeployMark`, `TodoOpenButton` and `UsageMeters` of the console's top bar,
+  registered by name and handed no props; `useKeptTabs(screen, { read, restore })`, made importable by name
+  as Nuxt makes a project's own composables, which keeps the screen's open tabs for the account under the
+  screen's key `remote`; and its i18n module, which merges the bundle's own pack into the host's locale of
+  the same code.
 - **Wording:** the screen's own words are the bundle's language pack, one JSON file to a language under
-  `client/i18n/`: `ko.json`, and `en.json` holding the same keys. The bundle's Nuxt configuration registers
+  `client/i18n/`: `ko.json`, and `en.json` holding the same keys. The module's build writes them into
+  `words.json` under each file's code. For the layer pack, the bundle's Nuxt configuration registers
   them as the host registers its own locales, by code (`ko`, `en`), language tag (`ko-KR`, `en-US`) and file,
   and the host's i18n module reads a layer's locales as part of its own: where both name a code, the two
   files are one locale, the host's value standing where both hold a key.
   - **From the host's pack,** the keys every screen of the console shares, under `common.`: `action.cancel`,
     `action.more`, `action.save` and `label.name`.
-  - **From the bundle's own pack,** the 76 keys under `remote`. The screen shows a refusal of the routes, or
+  - **From the bundle's own pack,** the 77 keys under `remote`. The screen shows a refusal of the routes, or
     an `error` of the terminal socket, by the key its code names, under `remote.error.` but for
     `terminal-disconnected`, which is `remote.status.terminal-disconnected`; every code the service answers
-    has its key, `unauthorized`, `bad-request`, `not-found`, `no-route`, `failed` and `no-terminal-session`
-    among them. A local failure the service does not name has a key of its own in the same pack.
+    has its key, `unauthorized`, `forbidden`, `bad-request`, `not-found`, `no-route`, `failed` and
+    `no-terminal-session` among them. A local failure the service does not name has a key of its own in the
+    same pack.
   - `remote.title.remote`, `remote.title.desktop`, `remote.title.remote_desktop`, `remote.title.rename`,
     `remote.title.terminal_page`
   - `remote.label.extra_keys`, `remote.label.font_size`, `remote.label.input_mode`, `remote.label.menu`,
@@ -330,7 +407,7 @@ from the settings folder. An empty token lets no caller in.
     `remote.status.session_ended`, `remote.status.session_over`, `remote.status.terminal-disconnected`
   - `remote.message.disconnect_desktop`, `remote.message.end_many`, `remote.message.end_one`
   - `remote.error.access_denied`, `remote.error.attach-failed-because`, `remote.error.bad-request`,
-    `remote.error.connect_failed`, `remote.error.end_failed`, `remote.error.failed`,
+    `remote.error.connect_failed`, `remote.error.end_failed`, `remote.error.failed`, `remote.error.forbidden`,
     `remote.error.load_failed`, `remote.error.logon_failed`, `remote.error.negotiation_failed`,
     `remote.error.no-route`, `remote.error.no-terminal-session`, `remote.error.not-found`,
     `remote.error.open_failed`, `remote.error.relay_refused`, `remote.error.relay_unreachable`,
@@ -344,19 +421,23 @@ These are bmo-web's to carry; this repository holds none of them.
 
 - **State its relay base** under `bmoUi.relayBase` in its app configuration: the path every service is
   relayed under, `/api`.
+- **Read the manifest** at `GET /console-manifest` with the token, and attach the screen by it alone, for an
+  administrator: the menu entry, the module from its relay address, its stylesheet and its words.
 - **Hand on** every request for the service under `/api/remote/` whole — the method, the query, the body and
   the headers that say what is asked — with the token, to the address `REMOTE_ADDRESS` names, and hand the
   answer back as it came, behind the console's sign-in.
+- **Set `Owner-Role`** on every request and upgrade it hands on, the signed-in reader's role, in place of any
+  the browser sent; and `Owner-Key` where the login has a user, which this service does not read.
 - **Hand on the websocket upgrades** under `/api/remote/` the same way: open the matching upgrade to this
   service with the token, then carry frames both ways as they come, unbuffered, keeping each frame's kind,
   binary or text, and hand back the close code either side ends with.
 - **Refuse an upgrade** with no sign-in, 401, and one whose `Origin` is not the host it was sent to, or the
   forwarded host behind the proxy, 403, before handing anything on (「Who checks what」).
-- **Extend the console plugin bundle** under `client/` in place of the `/remote` placeholder, and serve its
-  pages at `/remote`, `/remote/desktop` and `/remote/terminal/<id>`.
-- **Attach the bundle by its declaration** and merge its language pack; the console's own pack holds none of
-  the `remote` keys.
-- **Owe the host's parts** the bundle declares (「The console plugin bundle」).
+- **Serve the screen** at `/remote`, `/remote/desktop` and `/remote/terminal/<id>`, from the module; the
+  console's own pack holds none of the `remote` keys.
+- **Until it reads manifests,** extend the layer pack in place of the `/remote` placeholder, attach it by its
+  declaration, merge its language pack and owe the host's parts the bundle declares (「The console plugin
+  bundle」).
 
 ## Missing in siblings
 
@@ -365,8 +446,9 @@ worker:
 
 - **bmo-web:** `REMOTE_ADDRESS` and `REMOTE_TOKEN` among its settings; the relay base `/api`; the handing on
   of `/api/remote/`, websocket upgrades included, which its boundary states for no unit yet; the sign-in and
-  `Origin` checks on those upgrades; and the bundle in place of the `/remote` placeholder, attached by its
-  declaration.
+  `Origin` checks on those upgrades; `Owner-Role` set on everything it hands on; and the screen attached by
+  the manifest the service answers, the module loaded at run time in place of the layer pack it extends at
+  build time.
 - **bmo-cli:** name `node remote-desktop` and `remote-desktop` as served by `bmo-remote`, which declares them
   as nouns.
 
@@ -376,4 +458,4 @@ The repository's version is the crate's, shared by the console plugin bundle. Un
 `0.1.0` plus a revision suffix: the first version, `0.1.0`, is the base and is no revision, and every later
 version bump is one revision, `0.1.0-rev.<n>`, with `n` counting the bumps since the base from 1. Major,
 minor and patch never move before the first release, whatever the change. This repository is
-`0.1.0-rev.3`.
+`0.1.0-rev.4`.

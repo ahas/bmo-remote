@@ -3,5 +3,6 @@
 node_modules/
 client/.nuxt/
 client/.output/
+client/dist/
 .graph/*
 !.graph/settings.toml

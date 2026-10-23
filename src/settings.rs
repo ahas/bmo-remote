@@ -28,6 +28,7 @@ pub struct Settings {
   pub sidecar: Sidecar,
   pub terminal: Terminal,
   pub store: Store,
+  pub console: Console,
 }
 
 /// The HTTP and websocket server.
@@ -87,6 +88,13 @@ pub struct Store {
   pub path: PathBuf,
 }
 
+/// The console bundle the service answers (`docs/api.md`, 「The console bundle's routes」).
+#[derive(Clone, Debug, Deserialize)]
+pub struct Console {
+  /// The folder the bundle's build writes.
+  pub folder: PathBuf,
+}
+
 impl Settings {
   /// The settings of this process: its settings folder, then its environment.
   pub fn load() -> Result<Self, SettingsError> {
@@ -112,6 +120,7 @@ impl Settings {
     settings.terminal.config = dir.join(&settings.terminal.config);
     settings.store.path = dir.join(&settings.store.path);
     settings.sidecar.folder = dir.join(&settings.sidecar.folder);
+    settings.console.folder = dir.join(&settings.console.folder);
 
     Ok(settings)
   }

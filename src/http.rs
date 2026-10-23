@@ -16,6 +16,7 @@ use serde::de::DeserializeOwned;
 use serde_json::{Map, Value, json};
 
 use crate::account::Account;
+use crate::console::{self, ConsoleBundle};
 use crate::desktop::sidecar::Sidecar;
 use crate::settings::Settings;
 use crate::store::Store;
@@ -23,11 +24,22 @@ use crate::terminal::tmux::Tmux;
 
 pub use inventory;
 
+/// Whom a route answers beyond the token (`docs/api.md`, 「Conventions」).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Reader {
+  /// Any caller presenting the token: the console reading for no reader, or the command.
+  Caller,
+  /// A reader of the console's screen: the token, and an `Owner-Role` allowing the screen's role.
+  Screen,
+}
+
 /// One route the service answers, registered beside its answer with `bmo_remote::route!`.
 pub trait Route: Send + Sync + 'static {
   const METHOD: Method;
   /// The path, in the router's own syntax: `/terminals/{terminalId}`.
   const PATH: &'static str;
+  /// Whom it answers: a reader of the screen unless the route says otherwise.
+  const READER: Reader = Reader::Screen;
 
   fn answer(&self, call: Call) -> impl Future<Output = Result<Response, Refused>> + Send;
 }
@@ -38,6 +50,7 @@ type Answering<'a> = Pin<Box<dyn Future<Output = Result<Response, Refused>> + Se
 pub trait Answers: Send + Sync {
   fn method(&self) -> Method;
   fn path(&self) -> &'static str;
+  fn reader(&self) -> Reader;
   fn answer(&self, call: Call) -> Answering<'_>;
 }
 
@@ -48,6 +61,10 @@ impl<R: Route> Answers for R {
 
   fn path(&self) -> &'static str {
     R::PATH
+  }
+
+  fn reader(&self) -> Reader {
+    R::READER
   }
 
   fn answer(&self, call: Call) -> Answering<'_> {
@@ -166,10 +183,18 @@ pub struct Standing {
   pub tmux: Arc<Tmux>,
   /// The desktop sidecar the desktop's sockets are handed on to.
   pub sidecar: Arc<Sidecar>,
+  /// The console bundle as it was read when the service started, or why it could not be.
+  pub console: Arc<Result<ConsoleBundle, String>>,
 }
 
 impl Standing {
-  pub fn new(settings: Settings, store: Store, account: Account, sidecar: Sidecar) -> Self {
+  pub fn new(
+    settings: Settings,
+    store: Store,
+    account: Account,
+    sidecar: Sidecar,
+    console: Result<ConsoleBundle, String>,
+  ) -> Self {
     let tmux = Tmux::new(&settings.terminal.socket, &settings.terminal.config, &account.shell);
 
     Self {
@@ -178,6 +203,7 @@ impl Standing {
       account: Arc::new(account),
       tmux: Arc::new(tmux),
       sidecar: Arc::new(sidecar),
+      console: Arc::new(console),
     }
   }
 }
@@ -271,8 +297,8 @@ async fn no_route(request: Request) -> Response {
   .into_response()
 }
 
-/// The router answering every registered route, each behind the token but the open ones, or what is wrong
-/// with the routes linked in.
+/// The router answering every registered route, each behind the token and, for the screen's routes, the
+/// reader's role, or what is wrong with the routes linked in.
 pub fn router(standing: Standing) -> Result<Router, Vec<String>> {
   let faults = route_faults();
 
@@ -292,6 +318,12 @@ pub fn router(standing: Standing) -> Result<Router, Vec<String>> {
       if !authorized(&standing, &request) {
         return Refused::new(StatusCode::UNAUTHORIZED, UNAUTHORIZED, "a missing or wrong token")
           .into_response();
+      }
+
+      if route.reader() == Reader::Screen
+        && let Err(refused) = console::admit(request.headers())
+      {
+        return refused.into_response();
       }
 
       route

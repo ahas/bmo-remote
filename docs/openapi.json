@@ -31,6 +31,97 @@
         ],
         "type": "object"
       },
+      "ConsoleManifest": {
+        "description": "The console manifest (bmo-ui's `docs/console-bundles.md`, 「The manifest」): what a console attaches the\nremote screen by.",
+        "properties": {
+          "apiPrefix": {
+            "description": "The path every call the screens make stands under.",
+            "type": "string"
+          },
+          "bundle": {
+            "description": "The path the module is answered at.",
+            "type": "string"
+          },
+          "events": {
+            "description": "Whether the screens read the service's event stream.",
+            "type": "boolean"
+          },
+          "icon": {
+            "description": "The icon drawn beside that name.",
+            "type": "string"
+          },
+          "name": {
+            "description": "The bundle's name, its words' namespace.",
+            "type": "string"
+          },
+          "ownerKey": {
+            "description": "Whether every call the screens make needs the reader's owner key.",
+            "type": "boolean"
+          },
+          "pushKinds": {
+            "description": "The event kinds a console may raise as a notice to a reader not on the screen.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "role": {
+            "$ref": "#/components/schemas/ConsoleRole",
+            "description": "The least role a reader holds to open the screen."
+          },
+          "screenPath": {
+            "description": "The path the screens stand under.",
+            "type": "string"
+          },
+          "serviceName": {
+            "description": "The name a console relays the service under.",
+            "type": "string"
+          },
+          "stylesheet": {
+            "description": "The path the stylesheet is answered at.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "title": {
+            "description": "The key, in the bundle's words, of the name a console's menu gives the screen.",
+            "type": "string"
+          },
+          "websocket": {
+            "description": "Whether the screens open a WebSocket to the service.",
+            "type": "boolean"
+          },
+          "words": {
+            "description": "The path the words are answered at.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "title",
+          "icon",
+          "screenPath",
+          "serviceName",
+          "bundle",
+          "words",
+          "apiPrefix",
+          "role",
+          "ownerKey",
+          "events",
+          "websocket",
+          "pushKinds"
+        ],
+        "type": "object"
+      },
+      "ConsoleRole": {
+        "description": "A role a reader holds, the one holding more first: an administrator holds every role a member holds.",
+        "enum": [
+          "administrator",
+          "member"
+        ],
+        "type": "string"
+      },
       "Health": {
         "description": "Whether the service is ready, why not where it is not, and its version.",
         "properties": {
@@ -163,13 +254,28 @@
   "info": {
     "description": "The console's remote access: terminal sessions on this machine (tmux) and the desktop through RDP, relayed to a browser screen. A downstream that calls nothing. The paths carry no prefix; the console relays them under its own base behind its sign-in.",
     "title": "bmo-remote",
-    "version": "0.1.0-rev.3"
+    "version": "0.1.0-rev.4"
   },
   "openapi": "3.1.0",
   "paths": {
     "/account": {
       "get": {
         "operationId": "readAccount",
+        "parameters": [
+          {
+            "description": "The reader's role, which must allow the screen's administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -190,13 +296,143 @@
           "account"
         ],
         "x-codes": [
-          "unauthorized"
+          "unauthorized",
+          "forbidden"
+        ]
+      }
+    },
+    "/console-manifest": {
+      "get": {
+        "operationId": "readConsoleManifest",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsoleManifest"
+                }
+              }
+            },
+            "description": "The console manifest the remote screen is attached by."
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "summary": "The console manifest the remote screen is attached by.",
+        "tags": [
+          "console"
+        ],
+        "x-codes": [
+          "unauthorized",
+          "failed"
+        ]
+      }
+    },
+    "/console/words.json": {
+      "get": {
+        "operationId": "readConsoleWords",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            },
+            "description": "The console bundle's words, each locale's tree under its code."
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "summary": "The console bundle's words, each locale's tree under its code.",
+        "tags": [
+          "console"
+        ],
+        "x-codes": [
+          "unauthorized",
+          "not-found"
+        ]
+      }
+    },
+    "/console/{file}": {
+      "get": {
+        "operationId": "readConsoleFile",
+        "parameters": [
+          {
+            "description": "The reader's role, which must allow the screen's administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "The file's path under `/console/`, as the manifest or the module names it, slashes included.",
+            "in": "path",
+            "name": "file",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/css": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/javascript": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "A file of the console bundle's module: the module, its stylesheet or a chunk it imports."
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "summary": "A file of the console bundle's module: the module, its stylesheet or a chunk it imports.",
+        "tags": [
+          "console"
+        ],
+        "x-codes": [
+          "unauthorized",
+          "forbidden",
+          "not-found"
         ]
       }
     },
     "/desktop/keys": {
       "get": {
         "operationId": "readDesktopKeys",
+        "parameters": [
+          {
+            "description": "The reader's role, which must allow the screen's administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "101": {
             "description": "The desktop's keyboard messages: a WebSocket."
@@ -210,13 +446,29 @@
           "desktop"
         ],
         "x-codes": [
-          "unauthorized"
+          "unauthorized",
+          "forbidden"
         ]
       }
     },
     "/desktop/pointer": {
       "get": {
         "operationId": "readDesktopPointer",
+        "parameters": [
+          {
+            "description": "The reader's role, which must allow the screen's administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "101": {
             "description": "The desktop's pointer messages: a WebSocket."
@@ -230,13 +482,29 @@
           "desktop"
         ],
         "x-codes": [
-          "unauthorized"
+          "unauthorized",
+          "forbidden"
         ]
       }
     },
     "/desktop/socket": {
       "get": {
         "operationId": "relayDesktop",
+        "parameters": [
+          {
+            "description": "The reader's role, which must allow the screen's administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "101": {
             "description": "The desktop's RDP relay: a WebSocket."
@@ -250,7 +518,8 @@
           "desktop"
         ],
         "x-codes": [
-          "unauthorized"
+          "unauthorized",
+          "forbidden"
         ]
       }
     },
@@ -285,6 +554,19 @@
       "get": {
         "operationId": "listTerminals",
         "parameters": [
+          {
+            "description": "The reader's role, which must allow the screen's administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          },
           {
             "description": "How many sessions were already read.",
             "in": "query",
@@ -337,12 +619,28 @@
         ],
         "x-codes": [
           "unauthorized",
+          "forbidden",
           "bad-request",
           "failed"
         ]
       },
       "post": {
         "operationId": "createTerminal",
+        "parameters": [
+          {
+            "description": "The reader's role, which must allow the screen's administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -374,6 +672,7 @@
         ],
         "x-codes": [
           "unauthorized",
+          "forbidden",
           "bad-request",
           "failed"
         ]
@@ -383,6 +682,19 @@
       "delete": {
         "operationId": "endTerminal",
         "parameters": [
+          {
+            "description": "The reader's role, which must allow the screen's administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          },
           {
             "description": "The session's id: `t-` and lower-case letters and digits.",
             "in": "path",
@@ -407,6 +719,7 @@
         ],
         "x-codes": [
           "unauthorized",
+          "forbidden",
           "not-found",
           "failed"
         ]
@@ -414,6 +727,19 @@
       "get": {
         "operationId": "readTerminal",
         "parameters": [
+          {
+            "description": "The reader's role, which must allow the screen's administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          },
           {
             "description": "The session's id: `t-` and lower-case letters and digits.",
             "in": "path",
@@ -445,6 +771,7 @@
         ],
         "x-codes": [
           "unauthorized",
+          "forbidden",
           "not-found",
           "failed"
         ]
@@ -452,6 +779,19 @@
       "patch": {
         "operationId": "renameTerminal",
         "parameters": [
+          {
+            "description": "The reader's role, which must allow the screen's administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          },
           {
             "description": "The session's id: `t-` and lower-case letters and digits.",
             "in": "path",
@@ -493,6 +833,7 @@
         ],
         "x-codes": [
           "unauthorized",
+          "forbidden",
           "bad-request",
           "not-found",
           "failed"
@@ -503,6 +844,19 @@
       "get": {
         "operationId": "attachTerminal",
         "parameters": [
+          {
+            "description": "The reader's role, which must allow the screen's administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          },
           {
             "description": "The session's id: `t-` and lower-case letters and digits.",
             "in": "path",
@@ -527,6 +881,7 @@
         ],
         "x-codes": [
           "unauthorized",
+          "forbidden",
           "not-found",
           "failed"
         ]
@@ -547,6 +902,9 @@
   "tags": [
     {
       "name": "health"
+    },
+    {
+      "name": "console"
     },
     {
       "name": "account"

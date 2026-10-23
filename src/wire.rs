@@ -5,6 +5,8 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+use crate::console::ConsoleRole;
+
 /// Whether the service is ready, why not where it is not, and its version.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -90,4 +92,40 @@ pub struct TerminalRequest {
 #[serde(rename_all = "camelCase")]
 pub struct TerminalRename {
   pub title: String,
+}
+
+/// The console manifest (bmo-ui's `docs/console-bundles.md`, 「The manifest」): what a console attaches the
+/// remote screen by.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct ConsoleManifest {
+  /// The bundle's name, its words' namespace.
+  pub name: String,
+  /// The key, in the bundle's words, of the name a console's menu gives the screen.
+  pub title: String,
+  /// The icon drawn beside that name.
+  pub icon: String,
+  /// The path the screens stand under.
+  pub screen_path: String,
+  /// The name a console relays the service under.
+  pub service_name: String,
+  /// The path the module is answered at.
+  pub bundle: String,
+  /// The path the stylesheet is answered at.
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub stylesheet: Option<String>,
+  /// The path the words are answered at.
+  pub words: String,
+  /// The path every call the screens make stands under.
+  pub api_prefix: String,
+  /// The least role a reader holds to open the screen.
+  pub role: ConsoleRole,
+  /// Whether every call the screens make needs the reader's owner key.
+  pub owner_key: bool,
+  /// Whether the screens read the service's event stream.
+  pub events: bool,
+  /// Whether the screens open a WebSocket to the service.
+  pub websocket: bool,
+  /// The event kinds a console may raise as a notice to a reader not on the screen.
+  pub push_kinds: Vec<String>,
 }

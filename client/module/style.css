@@ -1,0 +1,9 @@
+/* The served module's stylesheet (docs/api.md, "The console plugin bundle"): the utility classes the screen's
+   templates use, built on bmo-ui's tokens, which the console's own stylesheet carries and this one only
+   refers to; and the terminal's own faces. The styles each component scopes to itself join them in the
+   build. */
+@import "tailwindcss/utilities.css" layer(utilities) source(none);
+@import "../app/assets/css/terminal-fonts.css";
+
+@reference "bmo-ui/app/assets/css/main.css";
+@source "../app";

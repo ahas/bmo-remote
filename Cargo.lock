@@ -325,7 +325,7 @@ dependencies = [
 
 [[package]]
 name = "bmo-remote"
-version = "0.1.0-rev.3"
+version = "0.1.0-rev.4"
 dependencies = [
  "axum",
  "base64 0.22.1",
@@ -345,6 +345,7 @@ dependencies = [
  "schemars",
  "serde",
  "serde_json",
+ "sha2 0.10.9",
  "sqlx",
  "sspi",
  "thiserror 2.0.21",

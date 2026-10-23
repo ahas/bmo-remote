@@ -572,8 +572,9 @@ there, redirects it to the account's wayland session.
   upgrade included (`docs/api.md`, 「What the console does」).
 - **This service answers the console alone.** It listens on a loopback address and takes every route,
   health included, with the bearer token of its settings.
-- **One kind of user.** The console has one kind of user, and every signed-in account reaches these routes.
-  Were accounts to gain roles, these routes are the ones that must require the administrator.
+- **The administrator's alone.** The console sets the signed-in reader's role on everything it hands on, and
+  this service refuses every route the screen uses, sockets included, to a role that is not the
+  administrator's (`docs/api.md`, 「Conventions」), whatever the console offers in its menu.
 - **Nothing to aim.** No route takes a host, a port, a command or a socket name. The terminal target is the
   socket the settings name and the desktop target is the loopback RDP port.
 
@@ -585,8 +586,8 @@ there, redirects it to the account's wayland session.
   Noto Sans Symbols 2 subset and a fallback list; the Korean IME handling; the copy and paste handling (OSC
   52 included); the mobile extra-keys row with its key repeat and haptics; and the font-size and padding
   choices.
-- **The screen's words** are its bundle's own language pack, which the console's i18n module merges into its
-  own; the words every screen shares are the console's.
+- **The screen's words** are its bundle's own language pack, which the console merges into its own; the words
+  every screen shares are the console's.
 - **The terminal's faces are fetched only on the remote screen.** They are a family of their own beside the
   console's small monospace cut, and a browser loads a face only when text asks for it.
 - **The user's choices stay in the browser:** font size, padding and whether the extra keys show (without a

@@ -14,8 +14,9 @@ pack, named here by key where a label matters.
   - The screen reads the session list when it stands and whenever the page is looked at again: a running
     session without a tab gets one at the end, in the order the sessions began, and a terminal tab whose
     session has ended is dropped. There is no list of sessions apart from the tabs.
-  - Which tabs are open, in what order, which are pinned and which stands is kept for the account by the
-    host's `useKeptTabs`. A kept value that cannot be read is dropped.
+  - Which tabs are open, in what order, which are pinned and which stands is kept: for the account by the
+    host's `useKeptTabs` where a console extends the layer pack, and in the browser where it loads the
+    served module (`docs/api.md`, 「The console plugin bundle」). A kept value that cannot be read is dropped.
   - The shown tab stands in the address as `?tab=`, so a link opens that session's tab.
   - **Closing a terminal tab ends its session**, and closing the desktop tab ends the desktop connection
     (the desktop session itself stays on the machine). Either is asked once more in a dialog before it is

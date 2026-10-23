@@ -33,3 +33,8 @@ config = "deploy/tmux.conf"
 [store]
 # The SQLite file the stored desktop port stands in.
 path = "remote.db"
+
+[console]
+# The console bundle's folder, the one the bundle's build writes and a release carries (docs/api.md, 「The console
+# bundle's routes」).
+folder = "client/dist"
