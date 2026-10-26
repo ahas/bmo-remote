@@ -192,7 +192,10 @@ fn read_frame(client: &Attach, frame: &[u8]) {
   };
 
   match kind {
-    FRAME_INPUT if !body.is_empty() => client.write(body),
+    FRAME_INPUT if !body.is_empty() => {
+      probe_input(body);
+      client.write(body)
+    }
     FRAME_CONTROL => {
       let Ok(message) = serde_json::from_slice::<Value>(body) else {
         return;
@@ -204,4 +207,62 @@ fn read_frame(client: &Attach, frame: &[u8]) {
     }
     _ => {}
   }
+}
+
+// TEMPORARY PROBE: the shape of each input frame, control bytes in hex, escape sequences as they are and other
+// printable runs counted, so the bytes a page sends on a reload can be read in the journal without what was typed.
+fn probe_input(body: &[u8]) {
+  let mut shape = String::new();
+  let mut run = 0usize;
+  let mut at = 0;
+
+  while at < body.len() {
+    let byte = body[at];
+
+    if byte == 0x1b {
+      if run > 0 {
+        shape.push_str(&format!("[{run}]"));
+        run = 0;
+      }
+
+      shape.push_str("<1b>");
+      at += 1;
+
+      let start = at;
+
+      while at < body.len() && at - start < 24 && (0x20..0x7f).contains(&body[at]) {
+        let final_byte = at > start && (0x40..0x7f).contains(&body[at]);
+
+        at += 1;
+
+        if final_byte {
+          break;
+        }
+      }
+
+      shape.push_str(&String::from_utf8_lossy(&body[start..at]));
+      continue;
+    }
+
+    if (0x20..0x7f).contains(&byte) || byte >= 0x80 {
+      run += 1;
+    } else {
+      if run > 0 {
+        shape.push_str(&format!("[{run}]"));
+        run = 0;
+      }
+
+      shape.push_str(&format!("<{byte:02x}>"));
+    }
+
+    at += 1;
+  }
+
+  if run > 0 {
+    shape.push_str(&format!("[{run}]"));
+  }
+
+  let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis()).unwrap_or(0);
+
+  eprintln!("PROBE input {now} {shape}");
 }
