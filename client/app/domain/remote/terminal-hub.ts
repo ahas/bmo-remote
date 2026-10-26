@@ -473,8 +473,13 @@ function openTerminal(entry: TerminalEntry): void {
   const ime = attachTerminalIme(term, { host: element, send: (data) => term.input(data) });
 
   // The view in front takes the size (see claimSize). A cursor already resting on the terminal
-  // never enters it, so movement, presses and focus count as well.
-  const claim = () => claimSize(entry);
+  // never enters it, so movement, presses and focus count as well; a finger's moves do not, since its
+  // press already claimed the size and a swipe would otherwise send it again for as long as it lasts.
+  const claim = (event: Event) => {
+    if (event.type === "pointermove" && (event as PointerEvent).pointerType === "touch") return;
+
+    claimSize(entry);
+  };
 
   for (const type of ["pointerenter", "pointermove", "pointerdown", "focusin"] as const) {
     element.addEventListener(type, claim);

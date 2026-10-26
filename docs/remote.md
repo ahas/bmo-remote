@@ -672,5 +672,10 @@ being shown, is all it takes to reach the desktop, whatever state its daemons ar
   on Escape, and the whole-window view is left by its own menu item or by the back gesture instead. A Korean
   keyboard hides the key behind key code 229 and reports it as `Process`, so the physical code is read
   first. The extra-keys row's ESC sends the same byte through the same input.
+- **The view in front takes the size.** A session watched from two places has one size, the one sent last, so a
+  mouse arriving or moving over a terminal, a press on it and focus coming into it send its size again, even
+  unchanged, at most once every 300 ms, and tmux lays the window out for the view a person stands before. A
+  finger moving over it claims nothing: a swipe is the press that began it, and its moves would otherwise send
+  the same size again every 300 ms for as long as it lasts.
 - **An attach restores the terminal modes.** tmux's repaint on attach gives a new terminal the mode the
   program is in, so a click after a reload reaches a program that turned mouse reporting on before it.
