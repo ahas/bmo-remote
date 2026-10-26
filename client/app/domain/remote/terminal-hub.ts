@@ -10,6 +10,7 @@ import { refusalText } from "./refusals";
 import { remoteSocketUrl } from "./service";
 import { attachTerminalClipboard } from "./terminal-clipboard";
 import { attachTerminalIme } from "./terminal-ime";
+import { probeNote, probeShape, probeTextarea, probeThrough, startProbe } from "./terminal-probe";
 import { attachTerminalTouchScroll } from "./terminal-touch-scroll";
 
 import type { Ref } from "vue";
@@ -462,15 +463,26 @@ function openTerminal(entry: TerminalEntry): void {
 
   // Every input — the device keyboard, the IME, the extra keys — passes here, so an armed modifier
   // applies exactly once whatever the key came from.
-  const onData = term.onData((data) => sendInput(entry, consumeModifiers(entry, data)));
+  const onData = term.onData((data) => {
+    probeNote("data", probeShape(data));
+    sendInput(entry, consumeModifiers(entry, data));
+  });
   const onResize = term.onResize(({ cols, rows }) => sendResize(entry, cols, rows));
 
+  startProbe();
   detach.push(
     () => onData.dispose(),
-    () => onResize.dispose()
+    () => onResize.dispose(),
+    probeTextarea(term.textarea)
   );
 
-  const ime = attachTerminalIme(term, { host: element, send: (data) => term.input(data) });
+  const ime = attachTerminalIme(term, {
+    host: element,
+    send: (data) => {
+      probeNote("ime", probeShape(data));
+      term.input(data);
+    }
+  });
 
   // The view in front takes the size (see claimSize). A cursor already resting on the terminal
   // never enters it, so movement, presses and focus count as well; a finger's moves do not, since its
@@ -649,6 +661,13 @@ function control(entry: TerminalEntry, text: string): void {
   }
 
   if (message.type === "ready") {
+    const socket = entry.socket;
+
+    probeThrough((note) => {
+      if (entry.socket !== socket || socket?.readyState !== WebSocket.OPEN) return false;
+      socket.send(controlFrame({ type: "probe", ...note }));
+      return true;
+    });
     entry.status.value = "open";
     entry.attempts = 0;
     entry.lastError.value = null;
