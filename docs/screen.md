@@ -5,6 +5,15 @@ sessions, the wire and the access boundary are `docs/remote.md`; what the bundle
 `docs/api.md`, 「The console plugin bundle」. This document is the screen. Its words are the host's language
 pack, named here by key where a label matters.
 
+## The title bar
+
+- **Under the console's title bar.** The screen's route asks for the console's bar in its meta, so a console that
+  offers its bar (bmo-ui's `docs/console-bundles.md`, 「How a bundle mounts」, the title bar) draws it over the screen
+  under the manifest's title and icon, with the console's own buttons, and the screen draws no bar of its own.
+  Found without that offer it draws its own bar, named and marked the same, holding the deployment's mark, the
+  TODO button and the usage figures. A session's own window stands under no bar either way (「A page with no
+  sidebar and no title bar」).
+
 ## Tabs
 
 - **Two ways into the machine:** terminal sessions and the desktop, side by side as tabs on one screen.

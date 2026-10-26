@@ -11,7 +11,8 @@ import type { ConsoleBundleModule } from "bmo-ui/shared/console-manifest";
 
 const bundle: ConsoleBundleModule = {
   routes: [
-    { path: "/remote", name: "remote", component: RemotePage },
+    // The screen asks for the console's title bar (bmo-ui's `docs/console-bundles.md`, the title bar).
+    { path: "/remote", name: "remote", component: RemotePage, meta: { consoleTitleBar: true } },
     // A session's own window stands on no layout of the console's.
     { path: "/remote/desktop", name: "remote-desktop", component: RemoteDesktopPage, meta: { layout: false } },
     { path: "/remote/terminal/:id", name: "remote-terminal-id", component: RemoteTerminalPage, meta: { layout: false } }

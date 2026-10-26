@@ -3,7 +3,9 @@
        session stands as a tab, and every open tab stays mounted, so switching never ends or
        reconnects a session. Closing a terminal tab ends its session, once confirmed. -->
   <UDashboardPanel id="remote" :ui="{ body: 'p-0 sm:p-0 gap-0 sm:gap-0 overflow-y-hidden [&>*]:max-w-none' }">
-    <template #header>
+    <!-- Under a console that offers its title bar the console draws it, with its own buttons; alone, the screen draws
+         its own. -->
+    <template v-if="!barOffered" #header>
       <UDashboardNavbar :title="$t('remote.title.remote')" icon="i-material-symbols-devices-outline">
         <template #right>
           <DeployMark />
@@ -74,6 +76,8 @@
 </template>
 
 <script setup lang="ts">
+import { inject } from "vue";
+
 import { useRemoteDesktop } from "../../domain/remote/desktop-hub";
 import {
   DESKTOP_TAB,
@@ -101,6 +105,8 @@ import type { RemoteTabs } from "../../domain/remote/sessions";
 type Wire = components["schemas"];
 
 const { t } = useI18n();
+// Whether a console offers its title bar, under the key bmo-ui's bundle contract names.
+const barOffered = inject("bmo-console-title-bar", null) !== null;
 const route = useRoute();
 const router = useRouter();
 const desktop = useRemoteDesktop();
