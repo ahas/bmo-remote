@@ -1,7 +1,8 @@
 <template>
   <!-- The keys a phone keyboard lacks, laid out as two rows sharing the width.
-       The last row of the terminal's column, so the terminal keeps the rest. -->
-  <div class="extra-keys flex shrink-0 flex-col gap-1 border-t border-white/10 bg-[#212121] p-1" role="group" :aria-label="$t('remote.label.extra_keys')">
+       The last row of the terminal's column, so the terminal keeps the rest. It is the screen's foot, which what a
+       console floats over the page stands above (bmo-ui's docs/console-bundles.md, the screen's foot). -->
+  <div data-screen-foot class="extra-keys flex shrink-0 flex-col gap-1 border-t border-white/10 bg-[#212121] p-1" role="group" :aria-label="$t('remote.label.extra_keys')">
     <div v-for="(row, index) in KEY_ROWS" :key="index" class="flex gap-1">
       <button
         v-for="key in row"

@@ -628,7 +628,8 @@ being shown, is all it takes to reach the desktop, whatever state its daemons ar
 - **The terminal's faces are fetched only on the remote screen.** They are a family of their own beside the
   console's small monospace cut, and a browser loads a face only when text asks for it.
 - **The user's choices stay in the browser:** font size, padding and whether the extra keys show (without a
-  choice they show on a narrow screen). The keys buzz on a phone.
+  choice they show on a narrow screen). The keys buzz on a phone. The extra-keys row is the screen's foot (bmo-ui's
+  `docs/console-bundles.md`, 「How a bundle mounts」), so what the console floats over the page stands above it.
 - **The terminal outlives its page.** A session's terminal, its element and its socket are held apart from
   any page, so a tab switch, the whole-window view or leaving the remote screen keeps them and only moves
   the element.
