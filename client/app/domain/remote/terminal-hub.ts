@@ -3,6 +3,7 @@
 // uses rather than leaning on Nuxt's auto-imports.
 import { readonly, ref } from "vue";
 
+import { WebLinksAddon } from "@xterm/addon-web-links";
 import { type ITheme, Terminal } from "@xterm/xterm";
 
 import { TOUCH_QUERY } from "bmo-ui/app/domain/prompt";
@@ -84,6 +85,11 @@ export function setTerminalHubSeams(next: Partial<TerminalHubSeams>): void {
 }
 
 const ESC = "\x1b";
+
+// A link in the terminal, opened in a tab of its own that cannot reach back to the console's window.
+function openLink(uri: string): void {
+  window.open(uri, "_blank", "noopener,noreferrer");
+}
 
 // The first byte of a frame to the server: typed input, or a JSON control message.
 export const FRAME_INPUT = 0;
@@ -424,7 +430,9 @@ function createEntry(id: string, t: Translate): TerminalEntry {
     cursorBlink: true,
     cursorStyle: "block",
     convertEol: false,
-    scrollback: 5000
+    scrollback: 5000,
+    // A link a program wrote as a hyperlink (OSC 8) opens in a new tab when it is clicked.
+    linkHandler: { activate: (_event, uri) => openLink(uri) }
   });
 
   const entry: TerminalEntry = {
@@ -455,6 +463,8 @@ function openTerminal(entry: TerminalEntry): void {
   const { term, element } = entry;
 
   term.open(element);
+  // A plain address in the terminal's text is a link too, opened in a new tab when it is clicked.
+  term.loadAddon(new WebLinksAddon((_event, uri) => openLink(uri)));
 
   const detach: (() => void)[] = [
     attachTerminalClipboard(term, { host: element }),

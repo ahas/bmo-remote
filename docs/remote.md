@@ -623,6 +623,9 @@ being shown, is all it takes to reach the desktop, whatever state its daemons ar
   Noto Sans Symbols 2 subset and a fallback list; the Korean IME handling; the copy and paste handling (OSC
   52 included); the mobile extra-keys row with its key repeat and haptics; and the font-size and padding
   choices.
+- **A link in the terminal opens in a new tab when it is clicked:** an address written as plain text in the
+  terminal, found by xterm's web-links addon, and one a program wrote as a hyperlink (OSC 8), through the
+  terminal's link handler. The tab opens with no way back to the console's window.
 - **The screen's words** are its bundle's own language pack, which the console merges into its own; the words
   every screen shares are the console's.
 - **The terminal's faces are fetched only on the remote screen.** They are a family of their own beside the
