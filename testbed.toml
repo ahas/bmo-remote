@@ -24,9 +24,13 @@ paths = ["client", "desktop-sidecar"]
 # dependencies the manifests name. The ledger is the count of lines with Korean each code file may hold,
 # a file it does not name being allowed none: the Hangul the desktop's input method and the terminal's IME
 # handle stand there.
-quick = ["korean", "layout", "dependencies", "cargo-profile"]
+quick = ["korean", "layout", "dependencies", "cargo-profile", "shared-versions"]
 korean_ledger = "korean-ledger.json"
 base_libraries = ["bmo-chat", "bmo-chat-client", "bmo-ui", "bmo-markup"]
+
+# The repository whose root holds the shared versions the manifests and the lock hold to.
+[check.shared_versions]
+repository = "bmo-chat"
 
 [[check.step]]
 id = "check"

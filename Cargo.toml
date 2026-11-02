@@ -19,7 +19,7 @@ path = "src/main.rs"
 test = false
 
 [dependencies]
-axum = { version = "0.8.9", features = ["ws"] }
+axum = { version = "0.8.9", features = ["macros", "multipart", "ws"] }
 # A new pointer shape's pixels, in base64 for the page.
 base64 = "0.22.1"
 clap = { version = "4.6.7", features = ["derive"] }
@@ -44,7 +44,7 @@ portable-pty = "0.9.0"
 # A new terminal session's id.
 rand = "0.9.2"
 # The client asking the service, over plain HTTP on the loopback address.
-reqwest = { version = "0.13.5", default-features = false, features = ["json", "query"] }
+reqwest = { version = "0.13.5", features = ["json", "query", "stream"] }
 # fcitx5's configuration files, for its trigger keys and its Hangul layout.
 rust-ini = "0.21.3"
 # The JSON Schemas of the wire types, for the OpenAPI document.
@@ -58,7 +58,7 @@ sqlx = { version = "0.8.6", default-features = false, features = ["sqlite", "run
 # The relay's network-level authentication toward the desktop: CredSSP with NTLM.
 sspi = { version = "0.23.0", default-features = false }
 thiserror = "2.0.17"
-tokio = { version = "1.53.2", features = ["macros", "net", "process", "rt-multi-thread", "signal", "sync", "time"] }
+tokio = { version = "1.53.3", features = ["fs", "io-std", "io-util", "macros", "net", "process", "rt", "rt-multi-thread", "signal", "sync", "test-util", "time"] }
 # The desktop's sockets handed on to the desktop sidecar, as a websocket client toward it.
 tokio-tungstenite = { version = "0.29.0", default-features = false, features = ["connect"] }
 # The desktop's certificate, for the public key CredSSP binds.
