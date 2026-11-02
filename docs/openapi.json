@@ -14,7 +14,7 @@
     },
     "schemas": {
       "Account": {
-        "description": "The account the service runs as, whether the desktop's password is kept, and how long the screen tries a\ndesktop that does not answer.",
+        "description": "The account the service runs as, and whether the desktop's password is kept.",
         "properties": {
           "keptPassword": {
             "description": "Whether `desktop.password` is set and not empty.",
@@ -23,18 +23,11 @@
           "name": {
             "description": "The account's name, which the terminal and the desktop are reached as.",
             "type": "string"
-          },
-          "wakeSeconds": {
-            "description": "`desktop.wake_seconds`: the window, in whole seconds from the first try, in which the screen tries a\ndesktop that does not answer again; 0 tries nothing again.",
-            "format": "uint32",
-            "minimum": 0,
-            "type": "integer"
           }
         },
         "required": [
           "name",
-          "keptPassword",
-          "wakeSeconds"
+          "keptPassword"
         ],
         "type": "object"
       },
@@ -261,7 +254,7 @@
   "info": {
     "description": "The console's remote access: terminal sessions on this machine (tmux) and the desktop through RDP, relayed to a browser screen. A downstream that calls nothing. The paths carry no prefix; the console relays them under its own base behind its sign-in.",
     "title": "bmo-remote",
-    "version": "0.1.0-rev.5"
+    "version": "0.1.0-rev.6"
   },
   "openapi": "3.1.0",
   "paths": {

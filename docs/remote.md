@@ -78,8 +78,8 @@
   and an empty title takes it away.
 - **Nothing is kept in the store.** The list of sessions, their titles and their creation time are read from
   tmux each time.
-- **A call to tmux** that stands longer than five seconds is taken as failed, and a server just started
-  gets five seconds to open its socket.
+- **A call to tmux** is waited for until tmux ends. A server just started is asked again until it answers on
+  its socket, for as long as its unit runs; a unit that ended before it answered fails the start.
 
 ### The terminal socket
 
@@ -190,8 +190,8 @@
 - **Only this machine and the LAN reach the desktop.** The host firewall admits the RDP port from the LAN
   alone, and the relay dials it over loopback. Open to the internet, the port draws scanners trying
   passwords, and gnome-remote-desktop's system daemon, tearing down a burst of their connections,
-  deadlocks: it accepts nothing more until it is restarted, and the relay reports every connection after
-  that as refused once its eight seconds have passed (「The relay」).
+  deadlocks: it accepts nothing more until it is restarted, and every connection after that waits on the
+  relay's handshake, unanswered, until the page lets it go (「The relay」).
 
 ### The relay
 
@@ -218,9 +218,10 @@
   - the desktop refusing the credentials — general error, HTTP status 401, which the page shows as a
     refused connection;
   - the server not accepting the connection — general error, WSA 10061;
-  - a step standing longer than eight seconds — general error, WSA 10060;
   - no confirm, a malformed one, or a TLS handshake that fails or shows no certificate — negotiation
     error.
+- **Each step waits for the desktop's answer,** or for the connection to fail or end; no clock cuts it. A
+  browser that leaves ends the dial, wherever it stands.
 - **Every such failure is written to the service's log**, one line naming the address dialled and which of
   those it was, so a refusal the page showed can be found afterwards in the service's journal.
 - **The certificate chain** is the server's leaf certificate alone.
@@ -340,7 +341,7 @@
   initial, its vowel and its final, a doubled consonant as its shifted key, a compound vowel or final as
   its two keys. A lone compatibility jamo is typed the same way.
   - **Before each message the relay asks fcitx5 what state it is in**, on the account's session bus. Where
-    no input context has focus, or fcitx5 does not answer, or its Hangul engine is set to a layout other
+    no input context has focus, or fcitx5 cannot be asked, or its Hangul engine is set to a layout other
     than 두벌식, the whole message goes as Unicode events and its Hangul is dropped.
   - **The mode is changed by fcitx5's own trigger key**, the first of the trigger keys its configuration
     names that the relay can type — right Alt, or Ctrl with Space — typed in the same stream as the text,
@@ -419,7 +420,7 @@
 - **A shape that cannot be drawn is not sent,** and the page keeps the cursor it had: a side of none or
   above 384 pixels, the largest a browser takes as a cursor; a colour depth other than 1, 24 or 32 bits; or
   masks that are not whole scanlines, each padded to two bytes.
-- **The desktop works without it.** The page waits for its pointer socket at most a moment before
+- **The desktop works without it.** The page waits for its pointer socket to open, fail or close before
   connecting, and a pointer socket naming no valid channel is closed at once.
 
 ### Credentials
@@ -531,26 +532,22 @@ being shown, is all it takes to reach the desktop, whatever state its daemons ar
   started, a handover still in progress, a redirection whose word did not reach the page
   (「Redirection」). Each try is a connection of its own: the system daemon starts a login screen for it
   afresh, and it carries the routing token the relay still holds.
-- **What is tried again:** a connection that fails before it stands for any reason but the two below — the
-  relay's step standing longer than eight seconds, the desktop not accepting the connection, a failed
-  negotiation or TLS handshake, the relay's socket not opening, the connection ending before it stood.
+- **What is tried again:** a connection that fails before it stands for any reason but those below — the
+  desktop not accepting the connection, a failed negotiation or TLS handshake, the relay's socket not
+  opening, the connection ending before it stood.
 - **What is not tried again,** and shows at once: the desktop refusing the credentials (a wrong password, a
   refused logon, access denied, the relay's HTTP status 401), a request the relay cannot read (HTTP status
   400), and the screen's RDP client failing to load.
 - **How often.** The first try again comes one second after the failure, and each wait after it is twice the
   one before, at most eight seconds.
-- **For how long.** The window is the setting `desktop.wake_seconds`, 90 by default, counted from the first
-  try; `GET /account` tells it to the page (`docs/api.md`, 「The account」). No try is begun whose wait would
-  end past the window, so the failure shows once the window is spent, at most one try's length after it. A
-  window of 0 tries nothing again.
+- **For how long.** Until the desktop answers or refuses: a desktop that does not answer is never given up
+  on. A try waits for its own end, however long the desktop takes to answer it.
 - **What the page shows meanwhile:** that the desktop is being woken, with the try it is on and the seconds
-  passed of the window, counted each second (`docs/screen.md`, 「The desktop tab」).
-- **When the window is spent** the failure shows with the last try's reason and the reconnect action, which
-  begins a new window.
-- **What a window belongs to.** One connection begun, by a press, by the tab being shown, by a new size or
-  quality, or by a redirection followed, begins its own window. A connection that stood and then ended is
-  not tried again; it shows as ended, with the reconnect action. Disconnecting, closing the tab or another
-  window taking the desktop ends the waiting.
+  passed since the first, counted each second (`docs/screen.md`, 「The desktop tab」).
+- **What ends the waiting.** One connection begun, by a press, by the tab being shown, by a new size or
+  quality, or by a redirection followed, is tried until it stands or is refused. Disconnecting, closing the
+  tab, another window taking the desktop, or a new connection begun ends the waiting. A connection that
+  stood and then ended is not tried again; it shows as ended, with the reconnect action.
 
 ### Connection settings
 

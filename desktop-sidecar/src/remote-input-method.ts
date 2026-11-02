@@ -36,9 +36,6 @@ const DEFAULT_TRIGGERS = ["Control+space"];
 // its configuration names none.
 const DUBEOLSIK = "Dubeolsik";
 
-// How long fcitx5 is given to say its state (ms).
-const ASK_TIMEOUT_MS = 1000;
-
 // One trigger as fcitx5 writes it — modifiers and a key joined by `+` — or null where the relay
 // cannot type it.
 export function readTrigger(spec: string): KeyChord | null {
@@ -115,15 +112,14 @@ export function sessionBus(): string {
   return process.env.DBUS_SESSION_BUS_ADDRESS ?? `unix:path=${runtime}/bus`;
 }
 
-// Asks fcitx5 over the session bus; null where it could not be asked.
+// Asks fcitx5 over the session bus and waits for its answer; null where it could not be asked.
 async function askFcitx(): Promise<string | null> {
   try {
     const child = Bun.spawn(["fcitx5-remote"], {
       env: { ...process.env, DBUS_SESSION_BUS_ADDRESS: sessionBus() },
       stdin: "ignore",
       stdout: "pipe",
-      stderr: "ignore",
-      timeout: ASK_TIMEOUT_MS
+      stderr: "ignore"
     });
     const [answer, code] = await Promise.all([new Response(child.stdout).text(), child.exited]);
 

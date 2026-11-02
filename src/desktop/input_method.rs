@@ -4,7 +4,6 @@
 //! layout its Hangul engine reads keys by, are read from its configuration.
 
 use std::path::PathBuf;
-use std::time::Duration;
 
 use ini::{Ini, ParseOption};
 
@@ -81,9 +80,6 @@ const FCITX_PATH: &str = "/controller";
 const FCITX_CONTROLLER: &str = "org.fcitx.Fcitx.Controller1";
 const FCITX_INACTIVE: i32 = 1;
 const FCITX_ACTIVE: i32 = 2;
-
-// How long fcitx5 is given to say its state.
-const ASK_TIMEOUT: Duration = Duration::from_millis(1000);
 
 /// One trigger as fcitx5 writes it, modifiers and a key joined by `+`, or none where the relay cannot press
 /// it.
@@ -169,9 +165,9 @@ async fn ask_fcitx_state() -> zbus::Result<i32> {
   controller.call("State", &()).await
 }
 
-// Asks fcitx5 over the session bus; none where it could not be asked in time.
+// Asks fcitx5 over the session bus and waits for its answer; none where it could not be asked.
 async fn ask_fcitx() -> Option<i32> {
-  tokio::time::timeout(ASK_TIMEOUT, ask_fcitx_state()).await.ok()?.ok()
+  ask_fcitx_state().await.ok()
 }
 
 fn read_text(path: PathBuf) -> Option<String> {

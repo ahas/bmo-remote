@@ -1,7 +1,5 @@
 //! Whether the service is up (`docs/api.md`, 「Health」): the route, and the command that asks it.
 
-use std::time::Duration;
-
 use axum::http::{Method, StatusCode};
 use axum::response::Response;
 
@@ -33,13 +31,10 @@ impl Route for Health {
 
 crate::route!(Health);
 
-// How long the command waits on the service.
-const WAIT: Duration = Duration::from_secs(5);
-
-/// Whether the service the settings name answers ready, asked once and waited on at most five seconds.
+/// Whether the service the settings name answers ready, asked once and waited on until it answers or the
+/// connection ends.
 pub async fn ask(settings: &Settings) -> Result<(), String> {
   let asked = RemoteClient::of_settings(settings)
-    .with_timeout(WAIT)
     .health()
     .await
     .map_err(|why| format!("the service at {} did not answer: {why}", settings.server.listen))?;

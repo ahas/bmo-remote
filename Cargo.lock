@@ -336,6 +336,7 @@ dependencies = [
  "inventory",
  "ironrdp-pdu",
  "ironrdp-rdcleanpath",
+ "libsqlite3-sys",
  "nix 0.30.1",
  "portable-pty",
  "rand 0.9.5",

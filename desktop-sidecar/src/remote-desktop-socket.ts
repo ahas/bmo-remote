@@ -71,9 +71,6 @@ export async function desktopTarget(): Promise<{ host: string; port: number }> {
   return { host: DESKTOP_HOST, port: await desktopPort() };
 }
 
-// Each step of the handshake is local and quick; one standing longer than this has failed.
-const STEP_TIMEOUT_MS = 8_000;
-
 export interface RdpUpstream {
   write: (bytes: Uint8Array) => void;
   end: () => void;
@@ -99,7 +96,6 @@ export type Dial = (
 
 // WSA codes are what an RDCleanPath client understands for socket failures.
 const WSA_CONNECTION_REFUSED = 10061;
-const WSA_TIMED_OUT = 10060;
 // What a refused NLA is reported as: the browser shows it as a refused logon.
 const HTTP_UNAUTHORIZED = 401;
 const HTTP_BAD_REQUEST = 400;
@@ -112,7 +108,6 @@ export function failureReason(failure: DialFailure): string {
   if (failure.httpStatus === HTTP_BAD_REQUEST) return "the request could not be read";
   if (failure.httpStatus === HTTP_UNAUTHORIZED) return "the desktop refused the credentials";
   if (failure.wsaError === WSA_CONNECTION_REFUSED) return "the desktop did not accept the connection";
-  if (failure.wsaError === WSA_TIMED_OUT) return `a step stood longer than ${STEP_TIMEOUT_MS / 1000} seconds`;
   if (failure.code === NEGOTIATION_ERROR) return "the negotiation or its TLS handshake failed";
 
   return `failure ${JSON.stringify(failure)}`;
@@ -129,13 +124,10 @@ export const dialRdp: Dial = (target, request, handlers, nla) => {
   let settled = false;
   let ended = false;
 
-  const timer = setTimeout(() => fail({ code: GENERAL_ERROR, wsaError: WSA_TIMED_OUT }), STEP_TIMEOUT_MS);
-
   function fail(failure: DialFailure): void {
     if (settled) return;
 
     settled = true;
-    clearTimeout(timer);
     handlers.failed(failure);
     stop();
   }
@@ -144,14 +136,12 @@ export const dialRdp: Dial = (target, request, handlers, nla) => {
     if (ended) return;
 
     ended = true;
-    clearTimeout(timer);
     secure?.end();
     plain?.end();
   }
 
   function succeed(confirm: Uint8Array, certificate: Uint8Array): void {
     settled = true;
-    clearTimeout(timer);
     handlers.ready(confirm, certificate);
   }
 
@@ -251,6 +241,14 @@ export const dialRdp: Dial = (target, request, handlers, nla) => {
     socket: {
       open(socket) {
         plain = socket;
+
+        // The browser left while the connection was being dialled: its end ends this one.
+        if (ended) {
+          socket.end();
+
+          return;
+        }
+
         socket.write(request);
       },
       data(socket, bytes) {

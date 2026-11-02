@@ -29,8 +29,6 @@ const SERVICE_ENVIRONMENT: &str = "BMO_REMOTE_";
 
 /// How long the sidecar stands ended before it is started again.
 const RESTART: Duration = Duration::from_secs(2);
-/// How long handing a socket on may take before the sidecar counts as unreachable.
-const CONNECT: Duration = Duration::from_secs(5);
 /// What the browser's socket is closed with where the sidecar cannot be reached or ends without a close.
 const CLOSE_UNREACHABLE: u16 = 1011;
 
@@ -69,10 +67,9 @@ impl Sidecar {
 
     request.headers_mut().insert(header::AUTHORIZATION, bearer);
 
-    match tokio::time::timeout(CONNECT, tokio_tungstenite::connect_async(request)).await {
-      Ok(Ok((socket, _))) => Ok(socket),
-      Ok(Err(why)) => Err(why.to_string()),
-      Err(_) => Err(format!("no answer within {} seconds", CONNECT.as_secs())),
+    match tokio_tungstenite::connect_async(request).await {
+      Ok((socket, _)) => Ok(socket),
+      Err(why) => Err(why.to_string()),
     }
   }
 }

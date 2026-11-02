@@ -3,7 +3,7 @@
 // takes, and the page's waits move the clock instead of the browser's timers.
 import { describe, expect, test } from "bun:test";
 
-import { FIRST_WAIT_MS, LONGEST_WAIT_MS, keepTrying, retryable, wakePolicy } from "../app/domain/remote/desktop-wake";
+import { FIRST_WAIT_MS, LONGEST_WAIT_MS, WAKE_POLICY, keepTrying, retryable } from "../app/domain/remote/desktop-wake";
 
 import type { WakeClock, WakeProgress } from "../app/domain/remote/desktop-wake";
 
@@ -12,7 +12,7 @@ function ironError(kind: number, details?: { httpStatusCode?: number; wsaErrorCo
   return { kind: () => kind, rdcleanpathDetails: () => details, backtrace: () => "" };
 }
 
-const TIMED_OUT = ironError(4, { wsaErrorCode: 10060 });
+const NOT_ACCEPTED = ironError(4, { wsaErrorCode: 10061 });
 const REFUSED_CREDENTIALS = ironError(4, { httpStatusCode: 401 });
 const WRONG_PASSWORD = ironError(1);
 
@@ -36,7 +36,7 @@ function standInClock(letGo: (progress: WakeProgress) => boolean = () => false) 
 }
 
 // A desktop that answers once the clock reaches `wakesAt`, never where it is null; each try takes `dialMs`.
-function standInDesktop(at: ReturnType<typeof standInClock>, wakesAt: number | null, dialMs: number, failure: unknown = TIMED_OUT) {
+function standInDesktop(at: ReturnType<typeof standInClock>, wakesAt: number | null, dialMs: number, failure: unknown = NOT_ACCEPTED) {
   let tries = 0;
 
   return {
@@ -56,71 +56,49 @@ describe("a desktop that does not answer", () => {
   test("is reached by one press once it wakes, the waits doubling to the longest", async () => {
     const at = standInClock();
     const desktop = standInDesktop(at, 20_000, 500);
-    const outcome = await keepTrying(desktop.dial, wakePolicy(90), at.clock);
+    const outcome = await keepTrying(desktop.dial, WAKE_POLICY, at.clock);
 
     expect(outcome).toEqual({ kind: "connected", value: "session", tries: 5 });
     expect(desktop.tries()).toBe(6);
     expect(at.waits).toEqual([FIRST_WAIT_MS, 2000, 4000, LONGEST_WAIT_MS, LONGEST_WAIT_MS]);
-    expect(at.now()).toBeLessThan(90_000);
   });
 
   test("whose word of a redirection was lost is reached by the next try, a second later", async () => {
     const at = standInClock();
     const desktop = standInDesktop(at, 1000, 300, ironError(0));
-    const outcome = await keepTrying(desktop.dial, wakePolicy(90), at.clock);
+    const outcome = await keepTrying(desktop.dial, WAKE_POLICY, at.clock);
 
     expect(outcome.kind).toBe("connected");
     expect(at.waits).toEqual([FIRST_WAIT_MS]);
   });
 
-  test("that never answers fails once the window is spent, and no wait ends past it", async () => {
-    const at = standInClock();
+  test("that never answers is tried again for as long as the page wants it, never failing", async () => {
+    const at = standInClock((progress) => progress.tries === 200);
     const desktop = standInDesktop(at, null, 8000);
-    const outcome = await keepTrying(desktop.dial, wakePolicy(90), at.clock);
+    const outcome = await keepTrying(desktop.dial, WAKE_POLICY, at.clock);
 
-    expect(outcome.kind).toBe("failed");
-    expect(outcome.kind === "failed" && outcome.tries).toBeGreaterThan(0);
-    expect(outcome.kind === "failed" && outcome.error).toBe(TIMED_OUT);
-
-    let waited = 0;
-
-    for (const [index, wait] of at.waits.entries()) {
-      waited += wait;
-      // Each wait ends inside the window, counting every try before it.
-      expect(waited + (index + 1) * 8000).toBeLessThanOrEqual(90_000);
-    }
-
-    // The failure shows at most one try's length after the window.
-    expect(at.now()).toBeGreaterThan(90_000 - LONGEST_WAIT_MS - 8000);
-    expect(at.now()).toBeLessThanOrEqual(90_000 + 8000);
+    expect(outcome).toEqual({ kind: "dropped" });
+    expect(desktop.tries()).toBe(200);
+    expect(at.waits.every((wait) => wait <= LONGEST_WAIT_MS)).toBe(true);
+    expect(at.waits.slice(-1)).toEqual([LONGEST_WAIT_MS]);
   });
 
-  test("says the try it is on and the seconds passed of the window", async () => {
+  test("says the try it is on and the seconds passed since the first", async () => {
     const at = standInClock();
     const desktop = standInDesktop(at, 10_000, 1000);
 
-    await keepTrying(desktop.dial, wakePolicy(90), at.clock);
+    await keepTrying(desktop.dial, WAKE_POLICY, at.clock);
 
     expect(at.said.map((one) => one.tries)).toEqual([1, 2, 3]);
     expect(at.said.map((one) => one.seconds)).toEqual([1, 3, 6]);
-    expect(at.said.every((one) => one.window === 90)).toBe(true);
   });
 
   test("is let go of when the page no longer wants it", async () => {
     const at = standInClock((progress) => progress.tries === 2);
     const desktop = standInDesktop(at, null, 500);
 
-    expect(await keepTrying(desktop.dial, wakePolicy(90), at.clock)).toEqual({ kind: "dropped" });
+    expect(await keepTrying(desktop.dial, WAKE_POLICY, at.clock)).toEqual({ kind: "dropped" });
     expect(desktop.tries()).toBe(2);
-  });
-
-  test("with a window of 0 is tried once", async () => {
-    const at = standInClock();
-    const desktop = standInDesktop(at, null, 500);
-    const outcome = await keepTrying(desktop.dial, wakePolicy(0), at.clock);
-
-    expect(outcome).toEqual({ kind: "failed", error: TIMED_OUT, tries: 0 });
-    expect(desktop.tries()).toBe(1);
   });
 });
 
@@ -135,7 +113,7 @@ describe("a desktop that refuses", () => {
     test(`is not tried again: ${name}`, async () => {
       const at = standInClock();
       const desktop = standInDesktop(at, null, 500, failure);
-      const outcome = await keepTrying(desktop.dial, wakePolicy(90), at.clock);
+      const outcome = await keepTrying(desktop.dial, WAKE_POLICY, at.clock);
 
       expect(outcome).toEqual({ kind: "failed", error: failure, tries: 0 });
       expect(at.waits).toEqual([]);
@@ -143,8 +121,7 @@ describe("a desktop that refuses", () => {
   }
 
   test("is told apart from one that did not answer", () => {
-    expect(retryable(TIMED_OUT)).toBe(true);
-    expect(retryable(ironError(4, { wsaErrorCode: 10061 }))).toBe(true);
+    expect(retryable(NOT_ACCEPTED)).toBe(true);
     expect(retryable(ironError(5))).toBe(true);
     expect(retryable(ironError(6))).toBe(true);
     expect(retryable(new Error("socket closed"))).toBe(true);

@@ -18,7 +18,9 @@ Environment=BMO_REMOTE_SIDECAR__BUN=%h/.bun/bin/bun
 ExecStart=%h/.local/share/bmo-remote/deploy/bin/bmo-remote serve
 Restart=always
 RestartSec=2
-TimeoutStopSec=30
+# A stop waits for the service and its sidecar to end on their SIGTERM, however long that takes; it is never
+# escalated to a kill.
+TimeoutStopSec=infinity
 
 [Install]
 WantedBy=default.target

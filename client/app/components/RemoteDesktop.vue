@@ -65,7 +65,6 @@ const { status, lastError, waking, password, settings, keyboardOpen } = desktop;
 const hostRef = useTemplateRef<HTMLElement>("hostRef");
 const username = ref("");
 const keptPassword = ref(false);
-const wakeSeconds = ref(0);
 const accountRead = ref(false);
 
 const connected = computed(() => status.value === "connected");
@@ -107,7 +106,7 @@ let observer: ResizeObserver | null = null;
 async function connect(): Promise<void> {
   if (!username.value) return;
 
-  await desktop.connect({ t, username: username.value, keptPassword: keptPassword.value, wakeSeconds: wakeSeconds.value });
+  await desktop.connect({ t, username: username.value, keptPassword: keptPassword.value });
 }
 
 onMounted(async () => {
@@ -128,7 +127,6 @@ onMounted(async () => {
 
     username.value = account.name;
     keptPassword.value = account.keptPassword;
-    wakeSeconds.value = account.wakeSeconds;
   } catch {
     // The login form stays disabled without a user; the route answers only a signed-in console.
   }

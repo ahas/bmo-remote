@@ -52,7 +52,7 @@ service answers. It takes the token alone.
 
 | Method and path | Sends | Answers |
 |---|---|---|
-| `GET /account` | | `name`: the account the service runs as, which the terminal and the desktop are reached as; `keptPassword`: whether `desktop.password` is set and not empty; `wakeSeconds`: `desktop.wake_seconds`, the window in which the screen tries a desktop that does not answer again (`docs/remote.md`, 「A desktop that does not answer」) |
+| `GET /account` | | `name`: the account the service runs as, which the terminal and the desktop are reached as; `keptPassword`: whether `desktop.password` is set and not empty |
 
 The password itself is never answered.
 
@@ -121,7 +121,6 @@ The RDCleanPath relay, binary frames both ways.
 | general error, HTTP status 400 | the request cannot be read |
 | general error, HTTP status 401 | the desktop refused the credentials |
 | general error, WSA 10061 | the desktop did not accept the connection |
-| general error, WSA 10060 | a step stood longer than eight seconds |
 | negotiation error | no confirm, a malformed one, or a TLS handshake that failed or showed no certificate |
 
 - **After the response** every byte is relayed both ways as it came, but for the logon packet's rewrite
@@ -269,8 +268,8 @@ A SQLite file, the one `store.path` names, opened and migrated when the service 
 (bmo-cli's `docs/boundary.md`, 「Unit commands」).
 
 - **`bmo-remote serve`** opens and migrates the store and answers the routes and sockets.
-- **`bmo-remote health`** asks the service the settings name, with the settings' token and waiting at most
-  five seconds, and ends 0 where it answers ready.
+- **`bmo-remote health`** asks the service the settings name, with the settings' token, waits for its answer
+  or the connection's end, and ends 0 where it answers ready.
 - **`bmo-remote openapi`** prints the OpenAPI document the code generates.
 - **`bmo-remote nouns`** prints the nouns it carries, one a line, each marked `home` after a tab, since the
   desktop is the machine the service stands on: `node remote-desktop` and `remote-desktop`.
@@ -317,7 +316,6 @@ from the settings folder. An empty token lets no caller in.
 | `server` | `token` | the bearer token every caller presents | none |
 | `desktop` | `host` | the RDP server's address | `127.0.0.1` |
 | `desktop` | `port` | the RDP server's port where the store holds none | `3389` |
-| `desktop` | `wake_seconds` | the window, in whole seconds from the first try, in which the screen tries a desktop that does not answer again (`docs/remote.md`, 「A desktop that does not answer」); 0 tries nothing again | `90` |
 | `desktop` | `password` | the password the relay answers the desktop's authentication with (`docs/remote.md`, 「Credentials」), kept in the local settings or the environment | none |
 | `sidecar` | `listen` | where the desktop sidecar answers, a loopback `host:port` (「The desktop sidecar」) | `127.0.0.1:3321` |
 | `sidecar` | `bun` | the program that runs it, a path or a name found on the `PATH` | `bun` |
@@ -411,14 +409,13 @@ time takes.
   - `remote.error.access_denied`, `remote.error.attach-failed-because`, `remote.error.bad-request`,
     `remote.error.connect_failed`, `remote.error.end_failed`, `remote.error.failed`, `remote.error.forbidden`,
     `remote.error.load_failed`, `remote.error.logon_failed`, `remote.error.negotiation_failed`,
-    `remote.error.no_answer`, `remote.error.no-route`, `remote.error.no-terminal-session`, `remote.error.not-found`,
+    `remote.error.no-route`, `remote.error.no-terminal-session`, `remote.error.not-found`,
     `remote.error.open_failed`, `remote.error.relay_refused`, `remote.error.relay_unreachable`,
     `remote.error.rename_failed`, `remote.error.terminals_failed`, `remote.error.unauthorized`,
     `remote.error.wrong_password`
   - A key ending in `-because` takes the socket's `reason` as `{reason}`.
-  - `remote.status.waking` takes `{tries}`, the try the screen is on, `{seconds}`, the seconds passed, and
-    `{window}`, the window's seconds; `remote.error.no_answer` takes `{window}` and `{reason}`, the last try's
-    failure in the pack's words.
+  - `remote.status.waking` takes `{tries}`, the try the screen is on, and `{seconds}`, the seconds passed
+    since the first.
 
 ## What the console does
 

@@ -52,7 +52,6 @@ impl Route for AccountRoute {
       AccountAnswer {
         name: standing.account.name.clone(),
         kept_password: standing.settings.desktop.kept_password().is_some(),
-        wake_seconds: standing.settings.desktop.wake_seconds,
       },
     ))
   }

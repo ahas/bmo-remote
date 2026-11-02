@@ -2,8 +2,6 @@
 //! sending and reading the types of `wire`, with the reader's role where it is given one. The command reaches
 //! the service through it, and so may any other Rust caller.
 
-use std::time::Duration;
-
 use reqwest::{Method, RequestBuilder, Response};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
@@ -52,7 +50,6 @@ pub struct RemoteClient {
   address: String,
   token: String,
   http: reqwest::Client,
-  timeout: Option<Duration>,
   /// The role sent as `Owner-Role`, which every route the screen uses asks for.
   role: Option<ConsoleRole>,
 }
@@ -64,7 +61,6 @@ impl RemoteClient {
       address: address.into().trim_end_matches('/').to_owned(),
       token: token.into(),
       http: reqwest::Client::new(),
-      timeout: None,
       role: None,
     }
   }
@@ -72,12 +68,6 @@ impl RemoteClient {
   /// The service the settings name, on this machine, with the settings' token.
   pub fn of_settings(settings: &Settings) -> Self {
     Self::new(format!("http://{}", settings.server.listen), settings.server.token.clone())
-  }
-
-  /// The client giving up on any call that has not answered within `timeout`.
-  pub fn with_timeout(mut self, timeout: Duration) -> Self {
-    self.timeout = Some(timeout);
-    self
   }
 
   /// The client asking for a reader holding `role`, as the console hands a reader's calls on.
@@ -88,13 +78,8 @@ impl RemoteClient {
 
   fn request(&self, method: Method, path: &str) -> RequestBuilder {
     let request = self.http.request(method, format!("{}{path}", self.address)).bearer_auth(&self.token);
-    let request = match self.role {
+    match self.role {
       Some(role) => request.header(OWNER_ROLE_HEADER, role.name()),
-      None => request,
-    };
-
-    match self.timeout {
-      Some(timeout) => request.timeout(timeout),
       None => request,
     }
   }

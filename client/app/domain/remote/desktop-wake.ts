@@ -1,5 +1,5 @@
-// A desktop that does not answer is tried again by the page itself, within a window the service's settings
-// name (docs/remote.md, 「A desktop that does not answer」). The desktop is the machine the service runs on,
+// A desktop that does not answer is tried again by the page itself until it answers, refuses, or the connection
+// is no longer wanted (docs/remote.md, 「A desktop that does not answer」). The desktop is the machine the service runs on,
 // so what wakes it is the next connection: the system daemon starts a login screen for each one afresh, and
 // each carries the routing token the relay still holds. This module holds the rule alone, with its clock and
 // its waiting handed in, so the hub drives it with the browser's and a test with a stand-in's.
@@ -18,15 +18,11 @@ const RDCLEANPATH_KIND = 4;
 const REFUSED_STATUSES = new Set([400, 401]);
 
 export interface WakePolicy {
-  // How long, from the first try, a desktop that does not answer is tried again (ms).
-  windowMs: number;
   firstWaitMs: number;
   longestWaitMs: number;
 }
 
-export function wakePolicy(windowSeconds: number): WakePolicy {
-  return { windowMs: Math.max(0, windowSeconds) * 1000, firstWaitMs: FIRST_WAIT_MS, longestWaitMs: LONGEST_WAIT_MS };
-}
+export const WAKE_POLICY: WakePolicy = { firstWaitMs: FIRST_WAIT_MS, longestWaitMs: LONGEST_WAIT_MS };
 
 // Whether a failed connection is one the desktop did not answer, which another try may reach, rather than
 // one it refused.
@@ -46,16 +42,15 @@ export function retryable(error: unknown): boolean {
   return true;
 }
 
-// What the page says while it waits: the try it is on, and the seconds passed of the window.
+// What the page says while it waits: the try it is on, and the seconds passed since the first.
 export interface WakeProgress {
   tries: number;
   seconds: number;
-  window: number;
 }
 
 export type WakeOutcome<T> =
   | { kind: "connected"; value: T; tries: number }
-  // The last failure, and how many tries again came before it; tries above 0 means the window was spent.
+  // A failure that is not tried again, the desktop's refusal, and how many tries again came before it.
   | { kind: "failed"; error: unknown; tries: number }
   // The waiting was ended from outside: the connection is no longer wanted.
   | { kind: "dropped" };
@@ -66,22 +61,16 @@ export interface WakeClock {
   wait(ms: number, progress: WakeProgress): Promise<boolean>;
 }
 
-// The wait before try `tries + 1`, or null where it would end past the window begun at `startedAt`.
-export function nextWait(policy: WakePolicy, startedAt: number, tries: number, now: number): number | null {
-  const wait = Math.min(policy.firstWaitMs * 2 ** tries, policy.longestWaitMs);
-
-  return now - startedAt + wait > policy.windowMs ? null : wait;
+// The wait before try `tries + 1`: doubling from the first, at most the longest.
+export function nextWait(policy: WakePolicy, tries: number): number {
+  return Math.min(policy.firstWaitMs * 2 ** tries, policy.longestWaitMs);
 }
 
-export function wakeProgress(policy: WakePolicy, startedAt: number, tries: number, now: number): WakeProgress {
-  return {
-    tries,
-    seconds: Math.min(Math.floor((now - startedAt) / 1000), Math.floor(policy.windowMs / 1000)),
-    window: Math.floor(policy.windowMs / 1000)
-  };
+export function wakeProgress(startedAt: number, tries: number, now: number): WakeProgress {
+  return { tries, seconds: Math.floor((now - startedAt) / 1000) };
 }
 
-// Dials until the desktop answers, refuses, or the window is spent.
+// Dials until the desktop answers or refuses, or the connection is no longer wanted.
 export async function keepTrying<T>(dial: () => Promise<T>, policy: WakePolicy, clock: WakeClock): Promise<WakeOutcome<T>> {
   const startedAt = clock.now();
   let tries = 0;
@@ -90,13 +79,13 @@ export async function keepTrying<T>(dial: () => Promise<T>, policy: WakePolicy, 
     try {
       return { kind: "connected", value: await dial(), tries };
     } catch (error) {
-      const wait = retryable(error) ? nextWait(policy, startedAt, tries, clock.now()) : null;
+      if (!retryable(error)) return { kind: "failed", error, tries };
 
-      if (wait === null) return { kind: "failed", error, tries };
+      const wait = nextWait(policy, tries);
 
       tries += 1;
 
-      if (!(await clock.wait(wait, wakeProgress(policy, startedAt, tries, clock.now())))) return { kind: "dropped" };
+      if (!(await clock.wait(wait, wakeProgress(startedAt, tries, clock.now())))) return { kind: "dropped" };
     }
   }
 }

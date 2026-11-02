@@ -33,6 +33,8 @@ inventory = "0.3.24"
 ironrdp-pdu = "0.9.0"
 # The handshake the browser's RDP client speaks to the relay.
 ironrdp-rdcleanpath = "0.2.2"
+# SQLite's own interface under the store's connections: the busy handler that waits for another writer's lock.
+libsqlite3-sys = { version = "0.30.1", default-features = false }
 # The account the service runs as, read from the passwd database.
 nix = { version = "0.30.1", features = ["user"] }
 # One pseudo-terminal per viewer of a terminal session.

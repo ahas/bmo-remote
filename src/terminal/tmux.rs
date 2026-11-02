@@ -8,15 +8,12 @@ use std::time::Duration;
 
 use tokio::process::Command;
 use tokio::sync::Mutex;
-use tokio::time::{Instant, sleep, timeout};
+use tokio::time::sleep;
 
 /// A title's most characters, counted as the screen counts them, in UTF-16 units.
 pub const TITLE_MAX: usize = 80;
 
-// tmux answers from a local socket at once; a call standing longer than this is stuck.
-const CALL_TIMEOUT: Duration = Duration::from_secs(5);
-// How long a freshly launched server gets to open its socket, and how often it is asked meanwhile.
-const START_WAIT: Duration = Duration::from_secs(5);
+// How often a freshly launched server is asked whether its socket is open, while its unit runs.
 const START_POLL: Duration = Duration::from_millis(50);
 
 // A tab: tmux prints it as it is (other control characters come out escaped), and a title never holds
@@ -146,11 +143,9 @@ impl Tmux {
       .kill_on_drop(true)
       .spawn()
       .map_err(|why| TmuxError(format!("tmux could not be run: {why}")))?;
-    let output = timeout(CALL_TIMEOUT, child.wait_with_output())
+    let output = child
+      .wait_with_output()
       .await
-      .map_err(|_| {
-        TmuxError(format!("tmux {} stood longer than {} seconds", args[0], CALL_TIMEOUT.as_secs()))
-      })?
       .map_err(|why| TmuxError(format!("tmux could not be run: {why}")))?;
 
     Ok(Ran {
@@ -177,7 +172,7 @@ impl Tmux {
   /// Starts the server as a transient user unit; a unit of that name left standing without a server
   /// behind it is stopped and started again.
   async fn launch(&self) -> Result<(), TmuxError> {
-    let unit = format!("bmo-remote-{}", self.socket);
+    let unit = self.unit();
     let config = self.config.to_string_lossy();
     let start = || {
       Command::new("systemd-run")
@@ -222,15 +217,29 @@ impl Tmux {
     Ok(())
   }
 
+  // The transient unit the server runs as.
+  fn unit(&self) -> String {
+    format!("bmo-remote-{}", self.socket)
+  }
+
+  // Whether the server's unit still runs: a server that ended before it opened its socket never will.
+  async fn unit_runs(&self) -> bool {
+    Command::new("systemctl")
+      .args(["--user", "is-active", "--quiet", &self.unit()])
+      .stdin(Stdio::null())
+      .status()
+      .await
+      .is_ok_and(|status| status.success())
+  }
+
   async fn bring_up(&self) -> Result<(), TmuxError> {
     if !self.answers().await {
       self.launch().await?;
 
-      let until = Instant::now() + START_WAIT;
-
+      // A just-started server is asked until it answers on its socket, for as long as its unit runs.
       while !self.answers().await {
-        if Instant::now() > until {
-          return Err(TmuxError(format!("tmux server did not answer on socket {}", self.socket)));
+        if !self.unit_runs().await {
+          return Err(TmuxError(format!("tmux server on socket {} ended before it answered", self.socket)));
         }
 
         sleep(START_POLL).await;

@@ -9,7 +9,7 @@ import { TOUCH_QUERY } from "bmo-ui/app/domain/prompt";
 import { attachDesktopKeyboard, componentTyping, holdHoverFocus } from "./desktop-input";
 import { canvasRasterise, createPointerShapes, pointerChannelId, readPointerMessage } from "./desktop-pointer";
 import { remoteSocketUrl } from "./service";
-import { keepTrying, retryable, wakePolicy } from "./desktop-wake";
+import { WAKE_POLICY, keepTrying } from "./desktop-wake";
 
 import type { RemoteDesktopQuality } from "../../../shared/remote";
 import type { Translate } from "bmo-ui/shared/wording";
@@ -143,8 +143,6 @@ export interface ConnectOptions {
   username: string;
   // The console keeps the password, and the relay authenticates with it.
   keptPassword: boolean;
-  // How long, from the first try, a desktop that does not answer is tried again (s).
-  wakeSeconds: number;
 }
 
 let element: HTMLElement | null = null;
@@ -165,8 +163,6 @@ let pointerSocket: WebSocket | null = null;
 // The keys socket of the connection in hand, and whether the relay has taken it on.
 let keysSocket: WebSocket | null = null;
 let keysReady = false;
-// How long a connection waits for its pointer socket before going on without it (ms).
-const POINTER_OPEN_MS = 1500;
 
 function listen(): void {
   if (channel !== null || typeof BroadcastChannel === "undefined") return;
@@ -291,8 +287,8 @@ export function proxyAddress(quality: RemoteDesktopQuality, pointer: string): st
 }
 
 // Opens the pointer socket for one connection and shows each shape it brings on the desktop's
-// canvas. Resolves once it is open, or failed, or has stood too long: the desktop works without it,
-// with the browser's arrow.
+// canvas. Resolves once it is open, or failed or closed: the desktop works without it, with the
+// browser's arrow.
 function openPointer(id: string): Promise<WebSocket> {
   closePointer();
 
@@ -320,14 +316,11 @@ function openPointer(id: string): Promise<WebSocket> {
   };
 
   return new Promise((resolve) => {
-    const timer = setTimeout(() => resolve(socket), POINTER_OPEN_MS);
-    const done = () => {
-      clearTimeout(timer);
-      resolve(socket);
-    };
+    const done = () => resolve(socket);
 
     socket.onopen = done;
     socket.onerror = done;
+    socket.onclose = done;
   });
 }
 
@@ -554,8 +547,7 @@ async function connect(options: ConnectOptions): Promise<void> {
 
   status.value = "connecting";
 
-  const policy = wakePolicy(options.wakeSeconds);
-  const outcome = await keepTrying(() => dial(interaction, options, mine), policy, {
+  const outcome = await keepTrying(() => dial(interaction, options, mine), WAKE_POLICY, {
     now: Date.now,
     wait: (ms, progress) => pause(ms, progress, mine)
   });
@@ -566,12 +558,8 @@ async function connect(options: ConnectOptions): Promise<void> {
   endWaking();
 
   if (outcome.kind === "failed") {
-    const reason = describeError(options.t, outcome.error);
-
     status.value = "error";
-    // A desktop that never answered within the window says so; one that refused says only why.
-    lastError.value =
-      outcome.tries > 0 && retryable(outcome.error) ? options.t("remote.error.no_answer", { window: policy.windowMs / 1000, reason }) : reason;
+    lastError.value = describeError(options.t, outcome.error);
 
     return;
   }
@@ -657,7 +645,7 @@ function pause(ms: number, progress: WakeProgress, mine: number): Promise<boolea
   wakeTicker = setInterval(() => {
     const now = waking.value;
 
-    if (now) waking.value = { ...now, seconds: Math.min(now.seconds + 1, now.window) };
+    if (now) waking.value = { ...now, seconds: now.seconds + 1 };
   }, 1000);
 
   return new Promise((resolve) => {
