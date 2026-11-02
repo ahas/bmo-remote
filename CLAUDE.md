@@ -71,8 +71,9 @@ structure (archive document #301, 「원칙」).
 - `Cargo.toml` is the only manifest at the root, one crate split into its own modules, and no directory is
   named after its parent.
 - The console plugin bundle stands in `client/`, a project of its own.
-- Tests live in `tests/`; no test module stands in `src/`. The repository-wide personal-data check stands
-  there beside the behaviour tests that stand; the rest are deferred for now (README.md).
+- Tests live in `tests/`, one test target, `tests/main.rs`, each file of tests a module of it (bmo-chat's
+  `docs/conventions.md`, 「Rust builds」); no test module stands in `src/`. The repository-wide personal-data
+  check stands there beside the behaviour tests that stand; the rest are deferred for now (README.md).
 
 ## The stages of a change
 
