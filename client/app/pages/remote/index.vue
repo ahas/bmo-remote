@@ -38,7 +38,7 @@
           <ActionGroup :actions="actions" :label="$t('remote.label.menu')" :narrow-fold="false" />
         </div>
 
-        <p v-if="failure" role="alert" class="shrink-0 border-b border-default px-4 py-2 text-sm text-error">{{ failure }}</p>
+        <p v-if="failure !== ''" role="alert" class="shrink-0 border-b border-default px-4 py-2 text-sm text-error">{{ failure }}</p>
 
         <div v-if="state.tabs.length === 0" class="flex flex-1 flex-col items-center justify-center gap-4 p-4 text-muted">
           <p class="text-sm">{{ $t("remote.status.no_sessions") }}</p>
@@ -95,6 +95,8 @@ import {
 import { claimTerminalKeyboard, releaseRemoteTerminal, sessionName } from "../../domain/remote/terminal-hub";
 import { useBackClose } from "bmo-ui/app/domain/layers";
 import { failureText } from "../../domain/remote/refusals";
+import { sessionListReads } from "../../domain/remote/session-list";
+import { onTerminalSignal } from "../../domain/remote/terminal-signals";
 import { remotePath } from "../../domain/remote/service";
 
 import type { components } from "../../../shared/openapi";
@@ -116,7 +118,9 @@ const desktop = useRemoteDesktop();
 const state = ref<RemoteTabs>(NO_TABS);
 const sessions = ref(new Map<string, RemoteTerminalInfo>());
 const creating = ref(false);
-const failure = ref("");
+// What failed on the last terminal opened, beside what failed on the last read of the list; the line over the tabs
+// says the one standing.
+const openFailure = ref("");
 const fullView = ref(false);
 const renaming = ref<string | null>(null);
 const renameOpen = ref(false);
@@ -290,23 +294,30 @@ function forget(id: string): void {
   sessions.value = next;
 }
 
-async function loadSessions(): Promise<void> {
-  try {
-    const page = await $fetch<Wire["TerminalPage"]>(remotePath("/terminals"), { query: { limit: "1000" } });
-    const ordered = [...page.items].sort((one, other) => one.createdAt - other.createdAt);
+function applySessions(page: Wire["TerminalPage"]): void {
+  const ordered = [...page.items].sort((one, other) => one.createdAt - other.createdAt);
 
-    sessions.value = new Map(ordered.map((session) => [session.id, session]));
-    sessionsRead.value = true;
-    failure.value = "";
+  sessions.value = new Map(ordered.map((session) => [session.id, session]));
+  sessionsRead.value = true;
 
-    for (const id of state.value.tabs) {
-      if (isTerminalTab(id) && !sessions.value.has(id)) releaseRemoteTerminal(id);
-    }
-
-    update(matchLiveSessions(state.value, [...sessions.value.keys()]));
-  } catch {
-    failure.value = t("remote.error.terminals_failed");
+  for (const id of state.value.tabs) {
+    if (isTerminalTab(id) && !sessions.value.has(id)) releaseRemoteTerminal(id);
   }
+
+  update(matchLiveSessions(state.value, [...sessions.value.keys()]));
+}
+
+// The list is read when the screen stands, when it is looked at again, and on what the terminals' connections say of
+// the service (docs/screen.md, 「Tabs」).
+const listReads = sessionListReads(
+  t,
+  () => $fetch<Wire["TerminalPage"]>(remotePath("/terminals"), { query: { limit: "1000" } }),
+  applySessions
+);
+const failure = computed(() => openFailure.value || listReads.failure.value);
+
+function loadSessions(): Promise<void> {
+  return listReads.read();
 }
 
 async function createTerminal(): Promise<void> {
@@ -319,9 +330,12 @@ async function createTerminal(): Promise<void> {
 
     remember(terminal);
     update(openTab(state.value, terminal.id));
-    failure.value = "";
+    openFailure.value = "";
+
+    // A terminal opened is the service reached, so a list that could not be read is read again.
+    if (listReads.failure.value !== "") void loadSessions();
   } catch (error) {
-    failure.value = failureText(t, error, t("remote.error.open_failed"));
+    openFailure.value = failureText(t, error, t("remote.error.open_failed"));
   } finally {
     creating.value = false;
   }
@@ -347,6 +361,9 @@ function openWindow(): void {
   if (opened !== null) fullView.value = false;
 }
 
+// What the terminals' connections say of the service, heard while the screen stands.
+let stopHearing: () => void = () => undefined;
+
 // Sessions start and end in other windows too; the list is read again whenever this one is looked at.
 function onVisible(): void {
   if (document.visibilityState === "visible") void loadSessions();
@@ -358,10 +375,12 @@ onMounted(() => {
   if (isRemoteTab(asked)) update(openTab(state.value, asked));
 
   document.addEventListener("visibilitychange", onVisible);
+  stopHearing = onTerminalSignal(listReads.heard);
   void loadSessions();
 });
 
 onBeforeUnmount(() => {
   document.removeEventListener("visibilitychange", onVisible);
+  stopHearing();
 });
 </script>

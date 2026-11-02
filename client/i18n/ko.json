@@ -88,7 +88,9 @@
       "relay_refused": "원격 데스크톱 중계가 연결을 거절했습니다.",
       "relay_unreachable": "원격 데스크톱 중계에 연결하지 못했습니다.",
       "rename_failed": "이름을 바꾸지 못했습니다.",
-      "terminals_failed": "터미널 목록을 읽지 못했습니다.",
+      "terminals_refused": "터미널 목록을 읽지 못했습니다: {reason}",
+      "terminals_status": "터미널 목록을 읽지 못했습니다. 원격 서비스가 {status} 상태로 답했습니다.",
+      "terminals_unreached": "원격 서비스에 닿지 못해 터미널 목록을 읽지 못했습니다.",
       "unauthorized": "원격 서비스가 요청을 허락하지 않았습니다.",
       "wrong_password": "비밀번호가 맞지 않습니다."
     }

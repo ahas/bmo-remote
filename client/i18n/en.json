@@ -88,7 +88,9 @@
       "relay_refused": "The remote desktop relay refused the connection.",
       "relay_unreachable": "Could not reach the remote desktop relay.",
       "rename_failed": "Could not rename.",
-      "terminals_failed": "Could not read the terminal list.",
+      "terminals_refused": "Could not read the terminal list: {reason}",
+      "terminals_status": "Could not read the terminal list. The remote service answered with status {status}.",
+      "terminals_unreached": "Could not reach the remote service to read the terminal list.",
       "unauthorized": "The remote service did not allow the request.",
       "wrong_password": "The password is not correct."
     }

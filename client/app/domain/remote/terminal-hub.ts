@@ -12,6 +12,7 @@ import { remoteSocketUrl } from "./service";
 import { attachTerminalClipboard } from "./terminal-clipboard";
 import { attachTerminalIme } from "./terminal-ime";
 import { probeNote, probeShape, probeTextarea, probeThrough, startProbe } from "./terminal-probe";
+import { signalTerminal } from "./terminal-signals";
 import { attachTerminalTouchScroll } from "./terminal-touch-scroll";
 
 import type { Ref } from "vue";
@@ -652,6 +653,7 @@ function connect(entry: TerminalEntry): void {
     if (event.code === CLOSE_NOT_FOUND) {
       entry.status.value = "error";
       entry.lastError.value ??= entry.t("remote.error.no-terminal-session");
+      signalTerminal("gone");
 
       return;
     }
@@ -681,6 +683,7 @@ function control(entry: TerminalEntry, text: string): void {
     entry.status.value = "open";
     entry.attempts = 0;
     entry.lastError.value = null;
+    signalTerminal("ready");
   } else if (message.type === "exit") {
     entry.status.value = "closed";
     entry.term.writeln(`\r\n\x1b[33m[${entry.t("remote.status.session_ended")}]\x1b[0m`);

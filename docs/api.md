@@ -411,9 +411,11 @@ time takes.
     `remote.error.load_failed`, `remote.error.logon_failed`, `remote.error.negotiation_failed`,
     `remote.error.no-route`, `remote.error.no-terminal-session`, `remote.error.not-found`,
     `remote.error.open_failed`, `remote.error.relay_refused`, `remote.error.relay_unreachable`,
-    `remote.error.rename_failed`, `remote.error.terminals_failed`, `remote.error.unauthorized`,
-    `remote.error.wrong_password`
+    `remote.error.rename_failed`, `remote.error.terminals_refused`, `remote.error.terminals_status`,
+    `remote.error.terminals_unreached`, `remote.error.unauthorized`, `remote.error.wrong_password`
   - A key ending in `-because` takes the socket's `reason` as `{reason}`.
+  - `remote.error.terminals_refused` takes the refusal's own words as `{reason}`, and
+    `remote.error.terminals_status` the answer's status as `{status}`.
   - `remote.status.waking` takes `{tries}`, the try the screen is on, and `{seconds}`, the seconds passed
     since the first.
 

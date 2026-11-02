@@ -23,6 +23,13 @@ pack, named here by key where a label matters.
   - The screen reads the session list when it stands and whenever the page is looked at again: a running
     session without a tab gets one at the end, in the order the sessions began, and a terminal tab whose
     session has ended is dropped. There is no list of sessions apart from the tabs.
+  - **The list is read again on the events that say the service is reached.** A terminal's connection
+    answering `ready` after a read of the list failed reads it again, and so does a terminal's connection
+    closed because the service holds no such session. A login the console renews brings the screen up again,
+    which reads the list as it stands. Nothing reads the list on a clock.
+  - A read that fails says what failed in one line over the tabs: the service's refusal in the pack's words
+    for its code, the answer's status where the refusal names no code, or that the service was not reached
+    at all. The next read that succeeds clears the line.
   - Which tabs are open, in what order, which are pinned and which stands is kept: for the account by the
     host's `useKeptTabs` where a console extends the layer pack, and in the browser where it loads the
     served module (`docs/api.md`, 「The console plugin bundle」). A kept value that cannot be read is dropped.
