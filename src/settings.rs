@@ -79,6 +79,8 @@ pub struct Terminal {
   pub socket: String,
   /// The tmux configuration file.
   pub config: PathBuf,
+  /// The folder a pasted picture is kept under, a folder for each session.
+  pub pastes: PathBuf,
 }
 
 /// The store of the desktop port.
@@ -118,6 +120,7 @@ impl Settings {
       .try_deserialize()?;
 
     settings.terminal.config = dir.join(&settings.terminal.config);
+    settings.terminal.pastes = dir.join(&settings.terminal.pastes);
     settings.store.path = dir.join(&settings.store.path);
     settings.sidecar.folder = dir.join(&settings.sidecar.folder);
     settings.console.folder = dir.join(&settings.console.folder);

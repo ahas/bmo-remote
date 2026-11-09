@@ -29,6 +29,8 @@ folder = "desktop-sidecar"
 socket = "bmo-remote"
 # The tmux configuration file the server is started with and applied again at every start.
 config = "deploy/tmux.conf"
+# The folder a picture pasted into a session is kept under, a folder for each session.
+pastes = "pastes"
 
 [store]
 # The SQLite file the stored desktop port stands in.

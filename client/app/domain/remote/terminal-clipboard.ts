@@ -11,6 +11,11 @@ import type { Terminal } from "@xterm/xterm";
 // - OSC 52, how a program in the terminal (nvim's `"+y`, tmux's copy mode) asks for the clipboard.
 //   xterm does not implement it. Such a write does not start from a gesture, which most browsers
 //   refuse; a refused text is kept and written on the next press.
+// - a pasted picture. A browser's paste carries words alone to a terminal, and a program there reads a picture from
+//   the clipboard of the machine it runs on, which is not the reader's. A paste holding a picture is handed to the
+//   caller, which keeps it as a file on that machine, and the file's path is pasted as words, the way a file
+//   dropped on a terminal arrives. Ctrl+V, which xterm sends the program as a key, is read the same way where the
+//   browser lets the page read the clipboard, and is the key it always was where the clipboard holds no picture.
 
 // The largest OSC 52 payload taken for the clipboard (base64 characters).
 const OSC52_MAX_PAYLOAD = 1_000_000;
@@ -53,15 +58,48 @@ export function decodeOsc52(data: string): string | null {
   }
 }
 
+// One thing a paste or the clipboard holds, as far as a picture is looked for in it.
+interface Held {
+  kind?: string;
+  type: string;
+  getAsFile?: () => File | null;
+}
+
+/** The first picture among what a paste holds, or null where it holds none. */
+export function pastedPicture(items: Iterable<Held> | ArrayLike<Held> | null | undefined): File | null {
+  for (const item of Array.from(items ?? [])) {
+    if (item.kind === "file" && item.type.startsWith("image/")) {
+      const file = item.getAsFile?.() ?? null;
+
+      if (file !== null) return file;
+    }
+  }
+
+  return null;
+}
+
+/** A kept file's path as the words a terminal is pasted: as it stands, or quoted where it holds a blank. */
+export function pastedPath(path: string): string {
+  return /\s/.test(path) ? `'${path.replaceAll("'", "'\\''")}' ` : `${path} `;
+}
+
+// Ctrl+V alone, the key xterm sends the program as it is.
+function isPlainPaste(event: KeyboardEvent): boolean {
+  return event.code === "KeyV" && event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey;
+}
+
 export interface TerminalClipboardOptions {
   host: HTMLElement;
   // Copy a selection as soon as it is made.
   copyOnSelect?: boolean;
   pasteEnabled?: boolean;
+  // Keeps a pasted picture where the program in the terminal can open it, and answers the file's path there, or
+  // null where it could not be kept. Without it a picture is not looked for.
+  keepPicture?: (picture: Blob) => Promise<string | null>;
 }
 
 export function attachTerminalClipboard(term: Terminal, options: TerminalClipboardOptions): () => void {
-  const { host, copyOnSelect = true, pasteEnabled = true } = options;
+  const { host, copyOnSelect = true, pasteEnabled = true, keepPicture } = options;
 
   // Text the clipboard refused for want of a gesture, tried again on the next press.
   let deferred: string | null = null;
@@ -139,9 +177,55 @@ export function attachTerminalClipboard(term: Terminal, options: TerminalClipboa
     }, 0);
   }
 
+  // A picture kept on the terminal's machine arrives as its path, pasted as words.
+  async function pastePicture(picture: Blob): Promise<void> {
+    const path = await keepPicture?.(picture).catch(() => null);
+
+    if (path) term.paste(pastedPath(path));
+  }
+
+  // The browser's own paste, taken before xterm where it holds a picture; a paste of words is xterm's as before.
+  function onPaste(event: ClipboardEvent): void {
+    if (!pasteEnabled || keepPicture === undefined) return;
+
+    const picture = pastedPicture(event.clipboardData?.items);
+
+    if (picture === null) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    void pastePicture(picture);
+  }
+
+  // Ctrl+V with the clipboard read by the page: a picture on it is kept and its path pasted, and with none the key
+  // goes to the program as xterm would have sent it.
+  async function pasteFromClipboard(): Promise<void> {
+    try {
+      for (const item of await navigator.clipboard.read()) {
+        const type = item.types.find((one) => one.startsWith("image/"));
+
+        if (type !== undefined) {
+          await pastePicture(await item.getType(type));
+
+          return;
+        }
+      }
+    } catch {
+      // No permission or no gesture: the key below.
+    }
+
+    term.input("\x16", true);
+  }
+
   // The shortcuts, before xterm consumes the key.
   function onKeyEvent(event: KeyboardEvent): boolean {
     if (event.type !== "keydown") return true;
+
+    if (pasteEnabled && keepPicture !== undefined && isPlainPaste(event) && typeof navigator.clipboard?.read === "function") {
+      event.preventDefault();
+      void pasteFromClipboard();
+      return false;
+    }
 
     if (isCopyShortcut(event)) {
       event.preventDefault();
@@ -166,8 +250,10 @@ export function attachTerminalClipboard(term: Terminal, options: TerminalClipboa
   // The capture phase, so a press xterm swallows still passes here first.
   host.addEventListener("keydown", flushDeferred, true);
   host.addEventListener("mousedown", flushDeferred, true);
+  host.addEventListener("paste", onPaste, true);
 
   return () => {
+    host.removeEventListener("paste", onPaste, true);
     term.attachCustomKeyEventHandler(() => true);
     host.removeEventListener("mouseup", onMouseUp);
     host.removeEventListener("keydown", flushDeferred, true);

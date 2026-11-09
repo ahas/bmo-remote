@@ -260,8 +260,14 @@ impl Call {
 
   /// The body read as JSON of the route's shape. A route reads it once.
   pub async fn body<T: DeserializeOwned>(&mut self) -> Result<T, Refused> {
+    self.body_within(BODY_LIMIT).await
+  }
+
+  /// The body read as JSON of the route's shape, for a route whose body may hold more than most: at most
+  /// `limit` bytes.
+  pub async fn body_within<T: DeserializeOwned>(&mut self, limit: usize) -> Result<T, Refused> {
     let body = std::mem::take(self.request.body_mut());
-    let bytes = axum::body::to_bytes(body, BODY_LIMIT)
+    let bytes = axum::body::to_bytes(body, limit)
       .await
       .map_err(|why| Refused::bad_request(why.to_string()))?;
 

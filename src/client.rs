@@ -9,8 +9,8 @@ use serde::de::DeserializeOwned;
 use crate::console::{ConsoleRole, OWNER_ROLE_HEADER};
 use crate::settings::Settings;
 use crate::wire::{
-  Account, ConsoleManifest, Health, Terminal, TerminalPage, TerminalRename, TerminalRequest,
-  TerminalsQuery, WireError,
+  Account, ConsoleManifest, Health, Terminal, TerminalPage, TerminalPaste, TerminalPasted, TerminalRename,
+  TerminalRequest, TerminalsQuery, WireError,
 };
 
 /// Why a call reached no answer of the route's shape.
@@ -157,6 +157,15 @@ impl RemoteClient {
     rename: &TerminalRename,
   ) -> Result<Terminal, ClientFailure> {
     Self::read(self.request(Method::PATCH, &format!("/terminals/{terminal_id}")).json(rename)).await
+  }
+
+  /// `POST /terminals/{terminalId}/pastes`: a pasted picture kept as a file on the session's machine.
+  pub async fn paste_terminal(
+    &self,
+    terminal_id: &str,
+    paste: &TerminalPaste,
+  ) -> Result<TerminalPasted, ClientFailure> {
+    Self::read(self.request(Method::POST, &format!("/terminals/{terminal_id}/pastes")).json(paste)).await
   }
 
   /// `DELETE /terminals/{terminalId}`: the session and every program in it ended.

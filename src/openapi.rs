@@ -9,8 +9,8 @@ use serde_json::{Map, Value, json};
 use crate::console::{ConsoleRole, FORBIDDEN, OWNER_ROLE_HEADER};
 use crate::http::Reader;
 use crate::wire::{
-  Account, ConsoleManifest, Health, Terminal, TerminalPage, TerminalRename, TerminalRequest,
-  TerminalsQuery, WireError,
+  Account, ConsoleManifest, Health, Terminal, TerminalPage, TerminalPaste, TerminalPasted, TerminalRename,
+  TerminalRequest, TerminalsQuery, WireError,
 };
 
 /// Where the schemas the routes refer to stand in the document.
@@ -274,6 +274,18 @@ fn operations(generator: &mut SchemaGenerator) -> Vec<Operation> {
       body: None,
       answers: vec![(204, None)],
       codes: &["unauthorized", "not-found", "failed"],
+      reader: Reader::Screen,
+    },
+    Operation {
+      method: "post",
+      path: "/terminals/{terminalId}/pastes",
+      id: "pasteTerminal",
+      tag: "terminals",
+      summary: "Keep a picture pasted into a terminal session as a file on this machine.",
+      parameters: vec![terminal_id()],
+      body: json_body::<TerminalPaste>(generator),
+      answers: vec![(201, json_answer::<TerminalPasted>(generator))],
+      codes: &["unauthorized", "bad-request", "not-found", "failed"],
       reader: Reader::Screen,
     },
     Operation {

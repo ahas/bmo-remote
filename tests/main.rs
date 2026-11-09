@@ -3,4 +3,5 @@
 
 mod console;
 mod import;
+mod pastes;
 mod personal_data;

@@ -195,6 +195,34 @@
         ],
         "type": "object"
       },
+      "TerminalPaste": {
+        "description": "The body of `POST /terminals/{terminalId}/pastes`: a picture pasted into the session, its media type and its\nbytes in base64.",
+        "properties": {
+          "data": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "data"
+        ],
+        "type": "object"
+      },
+      "TerminalPasted": {
+        "description": "Where a pasted picture was kept: the file's absolute path on the machine the session runs on.",
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "type": "object"
+      },
       "TerminalRename": {
         "description": "The body of `PATCH /terminals/{terminalId}`: the name the session takes, an empty one taking it away.",
         "properties": {
@@ -254,7 +282,7 @@
   "info": {
     "description": "The console's remote access: terminal sessions on this machine (tmux) and the desktop through RDP, relayed to a browser screen. A downstream that calls nothing. The paths carry no prefix; the console relays them under its own base behind its sign-in.",
     "title": "bmo-remote",
-    "version": "0.1.0-rev.6"
+    "version": "0.1.0-rev.5"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -828,6 +856,71 @@
           }
         },
         "summary": "Rename a terminal session; an empty title takes the name away.",
+        "tags": [
+          "terminals"
+        ],
+        "x-codes": [
+          "unauthorized",
+          "forbidden",
+          "bad-request",
+          "not-found",
+          "failed"
+        ]
+      }
+    },
+    "/terminals/{terminalId}/pastes": {
+      "post": {
+        "operationId": "pasteTerminal",
+        "parameters": [
+          {
+            "description": "The reader's role, which must allow the screen's administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "The session's id: `t-` and lower-case letters and digits.",
+            "in": "path",
+            "name": "terminalId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TerminalPaste"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TerminalPasted"
+                }
+              }
+            },
+            "description": "Keep a picture pasted into a terminal session as a file on this machine."
+          },
+          "default": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "summary": "Keep a picture pasted into a terminal session as a file on this machine.",
         "tags": [
           "terminals"
         ],

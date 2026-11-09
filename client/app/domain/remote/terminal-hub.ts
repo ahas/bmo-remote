@@ -8,7 +8,7 @@ import { type ITheme, Terminal } from "@xterm/xterm";
 
 import { TOUCH_QUERY } from "bmo-ui/app/domain/prompt";
 import { refusalText } from "./refusals";
-import { remoteSocketUrl } from "./service";
+import { remotePath, remoteSocketUrl } from "./service";
 import { attachTerminalClipboard } from "./terminal-clipboard";
 import { attachTerminalIme } from "./terminal-ime";
 import { probeNote, probeShape, probeTextarea, probeThrough, startProbe } from "./terminal-probe";
@@ -468,7 +468,7 @@ function openTerminal(entry: TerminalEntry): void {
   term.loadAddon(new WebLinksAddon((_event, uri) => openLink(uri)));
 
   const detach: (() => void)[] = [
-    attachTerminalClipboard(term, { host: element }),
+    attachTerminalClipboard(term, { host: element, keepPicture: (picture) => keepPicture(entry.id, picture) }),
     attachTerminalTouchScroll(term, element)
   ];
 
@@ -722,6 +722,35 @@ function reconnect(entry: TerminalEntry): void {
   entry.socket = null;
 
   if (entry.opened) connect(entry);
+}
+
+// A picture's bytes in base64, read a slice at a time so a large one is no single string of arguments.
+async function base64Of(picture: Blob): Promise<string> {
+  const bytes = new Uint8Array(await picture.arrayBuffer());
+  let binary = "";
+
+  for (let at = 0; at < bytes.length; at += 0x8000) {
+    binary += String.fromCharCode(...bytes.subarray(at, at + 0x8000));
+  }
+
+  return btoa(binary);
+}
+
+// Hands a pasted picture to the service, which keeps it as a file on the session's machine, and answers the
+// file's path there; null where the service did not keep it (docs/remote.md, 「The terminal interface」).
+async function keepPicture(id: string, picture: Blob): Promise<string | null> {
+  const answer = await fetch(remotePath(`/terminals/${encodeURIComponent(id)}/pastes`), {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    credentials: "same-origin",
+    body: JSON.stringify({ type: picture.type, data: await base64Of(picture) })
+  });
+
+  if (!answer.ok) return null;
+
+  const kept = (await answer.json()) as { path?: unknown };
+
+  return typeof kept.path === "string" ? kept.path : null;
 }
 
 function sendInput(entry: TerminalEntry, data: string): void {

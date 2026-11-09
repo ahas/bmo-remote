@@ -94,6 +94,23 @@ pub struct TerminalRename {
   pub title: String,
 }
 
+/// The body of `POST /terminals/{terminalId}/pastes`: a picture pasted into the session, its media type and its
+/// bytes in base64.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct TerminalPaste {
+  #[serde(rename = "type")]
+  pub media_type: String,
+  pub data: String,
+}
+
+/// Where a pasted picture was kept: the file's absolute path on the machine the session runs on.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct TerminalPasted {
+  pub path: String,
+}
+
 /// The console manifest (bmo-ui's `docs/console-bundles.md`, 「The manifest」): what a console attaches the
 /// remote screen by.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]

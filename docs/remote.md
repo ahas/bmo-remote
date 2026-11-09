@@ -620,6 +620,14 @@ being shown, is all it takes to reach the desktop, whatever state its daemons ar
   Noto Sans Symbols 2 subset and a fallback list; the Korean IME handling; the copy and paste handling (OSC
   52 included); the mobile extra-keys row with its key repeat and haptics; and the font-size and padding
   choices.
+- **A picture pasted into the terminal reaches the program running there.** A browser's paste carries words
+  alone to a terminal, and a program such as a coding assistant reads a picture from the clipboard of the
+  machine it runs on, which is not the reader's. So a paste that holds a picture, by the browser's own paste
+  or by Ctrl+V where the browser lets the page read the clipboard, hands the picture to the service
+  (`docs/api.md`, 「Terminal sessions」), which keeps it as a file on this machine, and the file's path is
+  pasted into the session as words, the way a file dropped on a terminal arrives. A paste that holds no
+  picture is the words it always was, and Ctrl+V with no picture on the clipboard reaches the program as
+  the key.
 - **A link in the terminal opens in a new tab when it is clicked:** an address written as plain text in the
   terminal, found by xterm's web-links addon, and one a program wrote as a hyperlink (OSC 8), through the
   terminal's link handler. The tab opens with no way back to the console's window.

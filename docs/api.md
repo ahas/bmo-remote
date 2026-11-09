@@ -65,6 +65,7 @@ The password itself is never answered.
 | `GET /terminals/{terminalId}` | | the `terminal` |
 | `PATCH /terminals/{terminalId}` | `title`, a string; an empty one takes the name away | the renamed `terminal` |
 | `DELETE /terminals/{terminalId}` | | 204: the session and every program in it ended |
+| `POST /terminals/{terminalId}/pastes` | `type`, the picture's media type; `data`, its bytes in base64 | 201, `path`: the file the picture was kept as on this machine |
 
 - **A terminal** is `id` (`t-` and lower-case letters and digits), `title` (at most 80 characters, empty
   where it has none), `state` (`running`: the list holds the sessions that stand, and an ended session is
@@ -73,6 +74,11 @@ The password itself is never answered.
   read: 100 where none is given, at most 1000.
 - **An id that is not a session id's shape names no session,** so `GET`, `PATCH` and `DELETE` answer 404
   `not-found` for it as for an id no session has.
+- **A pasted picture is kept as a file a program in the session can open** (`docs/remote.md`, 「The terminal
+  interface」): under the folder `terminal.pastes` names, in a folder of the session's own, named by the moment
+  it was kept, with the ending its type has. `type` is `image/png`, `image/jpeg`, `image/gif` or `image/webp`;
+  any other, a `data` that is no base64 or holds nothing, and a picture past 20 MiB are answered 400
+  `bad-request`. The answer's `path` is absolute. A session's folder goes when the session is ended.
 
 ## The terminal socket
 
@@ -322,6 +328,7 @@ from the settings folder. An empty token lets no caller in.
 | `sidecar` | `folder` | its package folder, the one a release carries | `desktop-sidecar` |
 | `terminal` | `socket` | the tmux socket's name, letters, digits, `_` and `-` | `bmo-remote` |
 | `terminal` | `config` | the tmux configuration file, the one a release carries | `deploy/tmux.conf` |
+| `terminal` | `pastes` | the folder a picture pasted into a session is kept under, a folder for each session | `pastes` |
 | `store` | `path` | the SQLite file of 「The store」 | `remote.db` |
 | `console` | `folder` | the console bundle's folder, the one the bundle's build writes and a release carries (「The console bundle's routes」) | `client/dist` |
 

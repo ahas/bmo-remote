@@ -177,6 +177,23 @@ export interface paths {
         patch: operations["renameTerminal"];
         trace?: never;
     };
+    "/terminals/{terminalId}/pastes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Keep a picture pasted into a terminal session as a file on this machine. */
+        post: operations["pasteTerminal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/terminals/{terminalId}/socket": {
         parameters: {
             query?: never;
@@ -270,6 +287,18 @@ export interface components {
             items: components["schemas"]["Terminal"][];
             /** @description Whether anything stands past the last item. */
             more: boolean;
+        };
+        /**
+         * @description The body of `POST /terminals/{terminalId}/pastes`: a picture pasted into the session, its media type and its
+         *     bytes in base64.
+         */
+        TerminalPaste: {
+            data: string;
+            type: string;
+        };
+        /** @description Where a pasted picture was kept: the file's absolute path on the machine the session runs on. */
+        TerminalPasted: {
+            path: string;
         };
         /** @description The body of `PATCH /terminals/{terminalId}`: the name the session takes, an empty one taking it away. */
         TerminalRename: {
@@ -628,6 +657,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Terminal"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    pasteTerminal: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The reader's role, which must allow the screen's administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                /** @description The session's id: `t-` and lower-case letters and digits. */
+                terminalId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TerminalPaste"];
+            };
+        };
+        responses: {
+            /** @description Keep a picture pasted into a terminal session as a file on this machine. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TerminalPasted"];
                 };
             };
             default: components["responses"]["Error"];
