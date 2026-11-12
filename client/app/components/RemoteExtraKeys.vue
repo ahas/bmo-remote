@@ -7,7 +7,7 @@
       <button
         v-for="key in row"
         :key="key.name"
-        class="key text-sm rounded-md"
+        class="key text-xs rounded-md"
         type="button"
         :class="{ armed: isArmed(key) }"
         :aria-label="key.label === undefined ? key.name : $t(key.label)"
