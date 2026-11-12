@@ -77,7 +77,8 @@ language pack, named here by key where a label matters.
 
 - **The terminal, and on a phone the extra-keys row** above the keyboard (`docs/remote.md`, 「The terminal
   interface」). At a phone's width ten keys share a row, each key on the medium corner tier of 6 pixels with
-  its legend at 12 pixels. A key drawn as a mark rather than a word — the arrows, Enter, Backspace and
+  its legend at 12 pixels, set on the key itself, since bmo-ui draws its own step below 14 pixels at 14: the
+  owner's size for this row, under the console's 14-pixel floor. A key drawn as a mark rather than a word — the arrows, Enter, Backspace and
   Shift — carries its Material Symbols mark, and every key carries a name a reader hears.
 - Its settings in the view's menu are the extra-keys row (`remote.label.extra_keys`) as a check, and the font
   size (`remote.label.font_size`) and the padding (`remote.label.padding`) as submenus. The extra-keys choice

@@ -7,7 +7,7 @@
       <button
         v-for="key in row"
         :key="key.name"
-        class="key text-xs rounded-md"
+        class="key rounded-md"
         type="button"
         :class="{ armed: isArmed(key) }"
         :aria-label="key.label === undefined ? key.name : $t(key.label)"
@@ -170,6 +170,8 @@ onBeforeUnmount(stopRepeat);
   background: rgb(255 255 255 / 0.1);
   color: rgb(255 255 255 / 0.85);
   font-family: var(--font-mono);
+  /* The owner's 12 pixels for the legends; the library's step below 14 pixels draws at 14 (docs/screen.md). */
+  font-size: 0.75rem;
   font-weight: 600;
   line-height: 1;
   user-select: none;
