@@ -16,6 +16,9 @@ bmo-ui's own reading on the release the client vendors, the service's declaratio
 bmo-chat's console face, the console's credential and the reader's role asked where the screen needs them, and
 the service's own token refused on the face and taken on the screen's routes. The face's own rules are its
 crate's tests'. They run with `cargo test`; the manifest's reading runs bun on the vendored release file.
+A test that writes files writes them in a folder of its own under the system's temporary folder, and a test
+that starts a tmux server starts it on a socket of its own; both are taken down when the test ends, whether it
+passes or panics.
 The bundle's own tests stand in `client/tests/`: a desktop that does not answer, tried again until it
 answers, refuses or is let go of, against a stand-in desktop and a stand-in clock (`docs/remote.md`, 「A
 desktop that does not answer」), run by `bun run test` inside `client/` as part of the bundle's check. The other behaviour tests are deferred: they are

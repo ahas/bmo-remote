@@ -15,29 +15,12 @@ use bmo_remote::settings::Settings;
 use bmo_remote::store::Store;
 use serde_json::Value;
 
+use crate::scratch::Scratch;
+
 /// The service's own token, which the command presents.
 const TOKEN: &str = "console-test-service";
 /// The console's credential.
 const CONSOLE: &str = "console-test-console";
-
-/// A test's own folder under the system's temporary folder, removed with everything in it when the test ends.
-struct Scratch(PathBuf);
-
-impl Scratch {
-  fn new(name: &str) -> Self {
-    let folder = std::env::temp_dir().join(format!("bmo-remote-console-{}-{name}", std::process::id()));
-    let _ = std::fs::remove_dir_all(&folder);
-    std::fs::create_dir_all(&folder).expect("the scratch folder is made");
-
-    Self(folder)
-  }
-}
-
-impl Drop for Scratch {
-  fn drop(&mut self) {
-    let _ = std::fs::remove_dir_all(&self.0);
-  }
-}
 
 /// The bmo-ui release file the client vendors, as its package manifest names it.
 fn vendored_release() -> PathBuf {
@@ -83,16 +66,16 @@ fn bundle_folder(folder: &Path) -> PathBuf {
 /// The service on a loopback port of its own, its face over a scratch bundle where the console's credential is
 /// set: its address, and the folder it stands on, which the test holds while it asks the service.
 async fn service(name: &str, console_token: &str) -> (String, Scratch) {
-  let scratch = Scratch::new(name);
-  let folder = scratch.0.clone();
-  let bundle = bundle_folder(&folder);
+  let scratch = Scratch::new("console", name);
+  let folder = scratch.path();
+  let bundle = bundle_folder(folder);
   let environment = HashMap::from([
     ("BMO_REMOTE_SERVER__TOKEN".to_owned(), TOKEN.to_owned()),
     ("BMO_REMOTE_CONSOLE__TOKEN".to_owned(), console_token.to_owned()),
     ("BMO_REMOTE_CONSOLE__FOLDER".to_owned(), bundle.display().to_string()),
     ("BMO_REMOTE_SIDECAR__FOLDER".to_owned(), folder.join("no-sidecar").display().to_string()),
   ]);
-  let settings = Settings::read(&folder, Some(environment)).expect("the settings are read");
+  let settings = Settings::read(folder, Some(environment)).expect("the settings are read");
   let face = console::face(&settings.console.folder, &settings.console.token).ok();
   let store = Store::open(&settings.store.path).await.expect("the store opens");
   let account = Account::current().expect("the account is read");

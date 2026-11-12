@@ -16,18 +16,27 @@ use bmo_remote::store::Store;
 use bmo_remote::terminal::routes::{paste_ending, pastes_of};
 use bmo_remote::wire::{TerminalPaste, TerminalRequest};
 
+use crate::scratch::Scratch;
+
 const TOKEN: &str = "pastes-test";
 
 // The fewest bytes that are a picture's: a PNG's signature and nothing after it.
 const PICTURE: &[u8] = &[0x89, b'P', b'N', b'G', 0x0d, 0x0a, 0x1a, 0x0a];
 
-/// The service on a loopback port and a tmux socket of its own, its settings folder a scratch one: its address,
-/// the folder and the socket's name.
-async fn service(name: &str) -> (String, PathBuf, String) {
-  let folder = std::env::temp_dir().join(format!("bmo-remote-pastes-{}-{name}", std::process::id()));
-  let _ = std::fs::remove_dir_all(&folder);
-  std::fs::create_dir_all(&folder).expect("the scratch folder is made");
+/// The tmux server on a test's own socket, killed when the test ends, whether the test passes or panics.
+struct TmuxServer(String);
 
+impl Drop for TmuxServer {
+  fn drop(&mut self) {
+    let _ = std::process::Command::new("tmux").args(["-L", &self.0, "kill-server"]).output();
+  }
+}
+
+/// The service on a loopback port and a tmux socket of its own, its settings folder a scratch one: its address,
+/// and the folder and the tmux server it stands on, which the test holds while it asks the service.
+async fn service(name: &str) -> (String, Scratch, TmuxServer) {
+  let scratch = Scratch::new("pastes", name);
+  let folder = scratch.path();
   let socket = format!("bmo-remote-pastes-{}-{name}", std::process::id());
   let config = Path::new(env!("CARGO_MANIFEST_DIR")).join("deploy/tmux.conf");
   let environment = HashMap::from([
@@ -36,7 +45,7 @@ async fn service(name: &str) -> (String, PathBuf, String) {
     ("BMO_REMOTE_TERMINAL__SOCKET".to_owned(), socket.clone()),
     ("BMO_REMOTE_TERMINAL__CONFIG".to_owned(), config.display().to_string()),
   ]);
-  let settings = Settings::read(&folder, Some(environment)).expect("the settings are read");
+  let settings = Settings::read(folder, Some(environment)).expect("the settings are read");
   let store = Store::open(&settings.store.path).await.expect("the store opens");
   let account = Account::current().expect("the account is read");
   let sidecar = Sidecar::start(&settings, &account);
@@ -47,7 +56,7 @@ async fn service(name: &str) -> (String, PathBuf, String) {
 
   tokio::spawn(async move { axum::serve(listener, router).await });
 
-  (address, folder, socket)
+  (address, scratch, TmuxServer(socket))
 }
 
 fn paste(media_type: &str, bytes: &[u8]) -> TerminalPaste {
@@ -70,7 +79,8 @@ fn a_picture_takes_the_ending_of_its_type_and_any_other_type_none() {
 
 #[tokio::test]
 async fn a_pasted_picture_is_kept_for_its_session_and_goes_with_it() {
-  let (address, folder, socket) = service("kept").await;
+  let (address, scratch, _tmux) = service("kept").await;
+  let folder = scratch.path();
   let client = RemoteClient::new(&address, TOKEN);
   let session = client.open_terminal(&TerminalRequest::default()).await.expect("the session opens");
   let kept = client
@@ -117,7 +127,4 @@ async fn a_pasted_picture_is_kept_for_its_session_and_goes_with_it() {
   // The session's pictures go when it is ended.
   client.end_terminal(&session.id).await.expect("the session ends");
   assert!(!folder.join("pastes").join(&session.id).exists(), "the session's folder is gone");
-
-  let _ = std::process::Command::new("tmux").args(["-L", &socket, "kill-server"]).output();
-  let _ = std::fs::remove_dir_all(&folder);
 }
