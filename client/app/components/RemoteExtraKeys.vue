@@ -7,7 +7,7 @@
       <button
         v-for="key in row"
         :key="key.name"
-        class="key"
+        class="key text-sm rounded-md"
         type="button"
         :class="{ armed: isArmed(key) }"
         :aria-label="key.label === undefined ? key.name : $t(key.label)"
@@ -70,7 +70,7 @@ const REPEAT_INTERVAL_MS = 55;
 const KEY_ROWS: ExtraKey[][] = [
   [
     { name: "ESC", caption: "ESC", data: "\x1b" },
-    { name: "SHIFT", caption: "SHIFT", modifier: "shift" },
+    { name: "SHIFT", icon: "i-material-symbols-shift", modifier: "shift" },
     { name: "CTRL", caption: "CTRL", modifier: "ctrl" },
     { name: "ALT", caption: "ALT", modifier: "alt" },
     { name: "UP", label: "remote.aria.key_up", icon: "i-material-symbols-arrow-upward", data: "\x1b[A" },
@@ -167,11 +167,9 @@ onBeforeUnmount(stopRepeat);
   justify-content: center;
   aspect-ratio: 1;
   max-height: 56px;
-  border-radius: 4px;
   background: rgb(255 255 255 / 0.1);
   color: rgb(255 255 255 / 0.85);
   font-family: var(--font-mono);
-  font-size: 10px;
   font-weight: 600;
   line-height: 1;
   user-select: none;

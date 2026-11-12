@@ -74,7 +74,9 @@ pack, named here by key where a label matters.
 ## A terminal tab
 
 - **The terminal, and on a phone the extra-keys row** above the keyboard (`docs/remote.md`, 「The terminal
-  interface」).
+  interface」). At a phone's width ten keys share a row, each key on the medium corner tier of 6 pixels with
+  its legend at 14 pixels. A key drawn as a mark rather than a word — the arrows, Enter, Backspace and
+  Shift — carries its Material Symbols mark, and every key carries a name a reader hears.
 - Its settings in the view's menu are the extra-keys row (`remote.label.extra_keys`) as a check, and the font
   size (`remote.label.font_size`) and the padding (`remote.label.padding`) as submenus. The extra-keys choice
   is one for the browser, shared by every terminal; with none made, the row follows the screen's width.
