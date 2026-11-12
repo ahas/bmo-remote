@@ -20,12 +20,23 @@ const TOKEN: &str = "console-test-service";
 /// The console's credential.
 const CONSOLE: &str = "console-test-console";
 
-fn scratch(name: &str) -> PathBuf {
-  let folder = std::env::temp_dir().join(format!("bmo-remote-console-{}-{name}", std::process::id()));
-  let _ = std::fs::remove_dir_all(&folder);
-  std::fs::create_dir_all(&folder).expect("the scratch folder is made");
+/// A test's own folder under the system's temporary folder, removed with everything in it when the test ends.
+struct Scratch(PathBuf);
 
-  folder
+impl Scratch {
+  fn new(name: &str) -> Self {
+    let folder = std::env::temp_dir().join(format!("bmo-remote-console-{}-{name}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&folder);
+    std::fs::create_dir_all(&folder).expect("the scratch folder is made");
+
+    Self(folder)
+  }
+}
+
+impl Drop for Scratch {
+  fn drop(&mut self) {
+    let _ = std::fs::remove_dir_all(&self.0);
+  }
 }
 
 /// The bmo-ui release file the client vendors, as its package manifest names it.
@@ -70,9 +81,10 @@ fn bundle_folder(folder: &Path) -> PathBuf {
 }
 
 /// The service on a loopback port of its own, its face over a scratch bundle where the console's credential is
-/// set, and its address.
-async fn service(name: &str, console_token: &str) -> String {
-  let folder = scratch(name);
+/// set: its address, and the folder it stands on, which the test holds while it asks the service.
+async fn service(name: &str, console_token: &str) -> (String, Scratch) {
+  let scratch = Scratch::new(name);
+  let folder = scratch.0.clone();
   let bundle = bundle_folder(&folder);
   let environment = HashMap::from([
     ("BMO_REMOTE_SERVER__TOKEN".to_owned(), TOKEN.to_owned()),
@@ -92,7 +104,7 @@ async fn service(name: &str, console_token: &str) -> String {
 
   tokio::spawn(async move { axum::serve(listener, router).await });
 
-  address
+  (address, scratch)
 }
 
 /// A `GET` of `path` with `token` as its bearer and `role` as the reader's, its status and its body.
@@ -116,7 +128,7 @@ async fn get(address: &str, path: &str, token: Option<&str>, role: Option<&str>)
 
 #[tokio::test]
 async fn the_served_manifest_is_read_by_the_contract_on_the_vendored_release() {
-  let address = service("manifest", CONSOLE).await;
+  let (address, _scratch) = service("manifest", CONSOLE).await;
   let (status, served) = get(&address, "/console-manifest", Some(CONSOLE), None).await;
 
   assert_eq!(status, 200, "{served}");
@@ -135,7 +147,7 @@ async fn the_served_manifest_is_read_by_the_contract_on_the_vendored_release() {
 
 #[tokio::test]
 async fn each_credential_is_taken_where_the_service_takes_it() {
-  let address = service("credentials", CONSOLE).await;
+  let (address, _scratch) = service("credentials", CONSOLE).await;
   let (_, manifest) = get(&address, "/console-manifest", Some(CONSOLE), None).await;
   let module = manifest["bundle"].as_str().expect("the manifest names the module").to_owned();
   let words = manifest["words"].as_str().expect("the manifest names the words").to_owned();
@@ -180,7 +192,7 @@ async fn each_credential_is_taken_where_the_service_takes_it() {
 
 #[tokio::test]
 async fn with_no_console_credential_no_face_stands() {
-  let address = service("no-face", "").await;
+  let (address, _scratch) = service("no-face", "").await;
   let (status, refused) = get(&address, "/console-manifest", Some(TOKEN), None).await;
 
   assert_eq!((status, refused["code"].as_str()), (404, Some("no-route")));
