@@ -52,18 +52,24 @@ pack, named here by key where a label matters.
 - **No toolbar stands under the tab bar:** the view fills everything below it. One vertical-dots menu
   (`remote.label.menu`), at the tab bar's right end, holds what is done with the shown view and how it is
   shown.
-- Its first group is the whole-window view (`remote.action.fullscreen`) and a window of its own
-  (`remote.action.open_window`); under them, the shown view's own settings — a terminal's, or the desktop's
-  connection settings.
+- Its first group is the whole-window view (`remote.action.fullscreen`), while the view stands in the page, and
+  a window of its own (`remote.action.open_window`); under them, the shown view's own settings — a terminal's,
+  or the desktop's connection settings.
 - On a touch screen the desktop's keyboard (raising the phone's keyboard) stands beside the menu as an icon
   button, since a menu would take focus from the desktop before the keyboard could be raised in it.
-- **The whole-window view** takes the shown view over the whole window, inside the page, under one dark row
-  with the session's name and the same menu, where `remote.action.exit_fullscreen` leaves it. It never asks
-  the browser for full screen, and nothing is reconnected.
+- **The whole-window view** takes the shown view over the whole window, inside the page, under one dark row:
+  at its left end the way back out of it, an icon button named `remote.action.exit_fullscreen` in its
+  tooltip, then the session's name, and the same menu at its right end. The way back never gathers into the
+  menu. The view never asks the browser for full screen, and nothing is reconnected.
 - **A window of its own** opens the shown session in a browser window of its own, which attaches to the same
   session. The desktop follows the window that connected last; the window it left says so in a thin line
   with `remote.action.open_here`.
-- That dark row keeps the same right edge as the tab bar's actions, 4 pixels.
+- That dark row keeps the same edges as the tab bar's actions, 4 pixels, wherever a button stands at its end;
+  where its row opens on the session's mark, the mark stands 12 pixels in.
+- **Every button in these rows is the component library's small button at its own size**, centred in its
+  row: the tab bar's actions, the view's menu, the keyboard and the way back are its small square icon
+  buttons, each with a tooltip. Hovered or pressed, a button colours only its own rounded shape, never its
+  row.
 
 ## A terminal tab
 
@@ -79,7 +85,8 @@ pack, named here by key where a label matters.
 - The terminal keeps its black Argonaut colours and its fonts in both screen modes.
 - What the connection is doing stands over the terminal in one thin line with a bottom border, the mark
   turning while it connects; a lost connection is retried by itself, and a failure offers
-  `remote.action.reconnect`.
+  `remote.action.reconnect`. The line's button is the component library's small button at its own size,
+  and the line is as tall as leaves it room above and below, 40 pixels.
 - A session that ends by itself leaves the bar with its tab.
 
 ## The desktop tab
@@ -88,8 +95,8 @@ pack, named here by key where a label matters.
   that password first. It opens on whatever the desktop shows — the login screen where no session is
   running, logged on at by hand (`docs/remote.md`, 「The login screen」).
 - The desktop is drawn scaled to the panel, with no border and no focus ring of its own. What the connection
-  is doing stands in a thin line like a terminal's, laid over the top of the desktop so the panel keeps its
-  size, with `remote.action.reconnect` where it has ended.
+  is doing stands in a line like a terminal's, of the same height and with the same small button, laid over
+  the top of the desktop so the panel keeps its size, with `remote.action.reconnect` where it has ended.
 - **A desktop that does not answer is never a second press.** While the screen tries it again by itself,
   the line says the desktop is being woken (`remote.status.waking`), with the try it is on and the seconds
   passed since the first, counted each second, until the desktop answers or refuses (`docs/remote.md`,
@@ -122,5 +129,6 @@ pack, named here by key where a label matters.
 - **A page with no sidebar and no title bar:** a terminal at `/remote/terminal/<id>`, the desktop at
   `/remote/desktop`, each standing on bmo-ui's `ScreenFrame`.
 - It fills the window with the view under the dark row the whole-window view has, the session's name at its
-  left end and the view's settings in its menu.
+  left end and the view's settings in its menu. Nothing stands behind the window to go back to, so the row
+  holds no way back.
 - A terminal whose session has ended says so there.

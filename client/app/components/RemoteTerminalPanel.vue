@@ -3,12 +3,12 @@
        extra keys. The remote screen's tab and a window of its own both stand on it. The terminal is
        dark in either screen mode, so its controls take the dark colours too. -->
   <div class="dark flex min-h-0 flex-col bg-black text-white">
-    <div v-if="lastError" role="alert" class="flex h-8 shrink-0 items-center gap-2 border-b border-white/10 px-3 text-sm text-error">
+    <div v-if="lastError" role="alert" class="flex h-10 shrink-0 items-center gap-2 border-b border-white/10 px-3 text-sm text-error">
       <UIcon name="i-material-symbols-error-outline" class="size-4 shrink-0" />
       <span class="min-w-0 flex-1 truncate">{{ lastError }}</span>
-      <UButton color="error" variant="ghost" size="xs" icon="i-material-symbols-refresh" :label="$t('remote.action.reconnect')" @click="reconnect()" />
+      <UButton color="error" variant="ghost" size="sm" icon="i-material-symbols-refresh" :label="$t('remote.action.reconnect')" @click="reconnect()" />
     </div>
-    <div v-else-if="statusLabel" role="status" class="flex h-8 shrink-0 items-center gap-2 border-b border-white/10 px-3 text-sm text-white/70">
+    <div v-else-if="statusLabel" role="status" class="flex h-10 shrink-0 items-center gap-2 border-b border-white/10 px-3 text-sm text-white/70">
       <UIcon
         :name="status === 'closed' ? 'i-material-symbols-stop-circle-outline' : 'i-material-symbols-progress-activity'"
         class="size-4 shrink-0"

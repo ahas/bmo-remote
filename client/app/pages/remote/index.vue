@@ -50,9 +50,9 @@
 
         <!-- The view taken to the whole window stands over the page, in the same place in the
              document, so nothing it holds is moved or reconnected; the tab bar stays behind, and a row
-             of the view's own name and menu stands over it instead. -->
+             of the way back out of it, the view's own name and its menu stands over it instead. -->
         <div v-else class="flex min-h-0 flex-1 flex-col" :class="fullView ? 'fixed inset-0 z-50 bg-black' : ''">
-          <RemoteWindowBar v-if="fullView && shownView !== null" :label="labelOf(state.active!)" :view="shownView" :views="views" />
+          <RemoteWindowBar v-if="fullView && shownView !== null" :label="labelOf(state.active!)" :view="shownView" :views="views" :back="leaveFullView" />
           <template v-for="id in state.tabs" :key="id">
             <RemoteDesktop v-if="id === DESKTOP_TAB" v-show="state.active === id" :active="state.active === id" class="min-h-0 flex-1" />
             <RemoteTerminalPanel v-else v-show="state.active === id" :id="id" :active="state.active === id" class="min-h-0 flex-1" @ended="ended(id)" />
@@ -98,6 +98,7 @@ import { failureText } from "../../domain/remote/refusals";
 import { sessionListReads } from "../../domain/remote/session-list";
 import { onTerminalSignal } from "../../domain/remote/terminal-signals";
 import { remotePath } from "../../domain/remote/service";
+import { viewActions } from "../../domain/remote/view-actions";
 
 import type { components } from "../../../shared/openapi";
 import type { RemoteTerminalInfo } from "../../../shared/remote";
@@ -171,19 +172,17 @@ const actions = computed<BarAction[]>(() => [
   }
 ]);
 
-// What the shown view's menu offers first: the whole window, and a window of its own.
-const views = computed<BarAction[]>(() => [
-  {
-    id: "full",
-    label: fullView.value ? t("remote.action.exit_fullscreen") : t("remote.action.fullscreen"),
-    icon: fullView.value ? "i-material-symbols-fullscreen-exit" : "i-material-symbols-fullscreen",
-    pressed: fullView.value,
-    onSelect: () => {
-      fullView.value = !fullView.value;
-    }
-  },
-  { id: "window", label: t("remote.action.open_window"), icon: "i-material-symbols-open-in-new", onSelect: openWindow }
-]);
+// What the shown view's menu offers first, and the way back out of the whole-window view at its row's left end.
+const shownViewActions = computed(() =>
+  viewActions(t, fullView.value, {
+    setFull: (full) => {
+      fullView.value = full;
+    },
+    openWindow
+  })
+);
+const views = computed(() => shownViewActions.value.menu);
+const leaveFullView = computed(() => shownViewActions.value.back);
 
 function tabMenu(id: string): BarMenuItem[] {
   return isTerminalTab(id)

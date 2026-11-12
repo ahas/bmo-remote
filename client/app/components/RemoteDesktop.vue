@@ -11,20 +11,20 @@
       <div
         v-if="lastError && keptPassword"
         role="alert"
-        class="absolute inset-x-0 top-0 z-10 flex h-8 items-center gap-2 border-b border-white/10 bg-black/85 px-3 text-sm text-error"
+        class="absolute inset-x-0 top-0 z-10 flex h-10 items-center gap-2 border-b border-white/10 bg-black/85 px-3 text-sm text-error"
       >
         <UIcon name="i-material-symbols-error-outline" class="size-4 shrink-0" />
         <span class="min-w-0 flex-1 truncate">{{ lastError }}</span>
-        <UButton color="error" variant="ghost" size="xs" icon="i-material-symbols-refresh" :label="$t('remote.action.reconnect')" @click="connect()" />
+        <UButton color="error" variant="ghost" size="sm" icon="i-material-symbols-refresh" :label="$t('remote.action.reconnect')" @click="connect()" />
       </div>
       <div
         v-else-if="notice"
         role="status"
-        class="absolute inset-x-0 top-0 z-10 flex h-8 items-center gap-2 border-b border-white/10 bg-black/85 px-3 text-sm text-white/70"
+        class="absolute inset-x-0 top-0 z-10 flex h-10 items-center gap-2 border-b border-white/10 bg-black/85 px-3 text-sm text-white/70"
       >
         <UIcon :name="notice.icon" class="size-4 shrink-0" />
         <span class="min-w-0 flex-1 truncate">{{ notice.text }}</span>
-        <UButton v-if="notice.retry" color="neutral" variant="ghost" size="xs" icon="i-material-symbols-refresh" :label="notice.retry" @click="connect()" />
+        <UButton v-if="notice.retry" color="neutral" variant="ghost" size="sm" icon="i-material-symbols-refresh" :label="notice.retry" @click="connect()" />
       </div>
 
       <div v-if="asking" class="absolute inset-0 flex items-center justify-center overflow-y-auto bg-default text-default">
