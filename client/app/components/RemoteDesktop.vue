@@ -45,7 +45,7 @@
 <script setup lang="ts">
 import { holdHistoryButtons, attachDesktopTouch, createDesktopView } from "../domain/remote/desktop-input";
 import { useRemoteDesktop } from "../domain/remote/desktop-hub";
-import { remotePath } from "../domain/remote/service";
+import { remoteCall } from "../domain/remote/service";
 
 import type { components } from "../../shared/openapi";
 import type { DesktopView } from "../domain/remote/desktop-input";
@@ -123,7 +123,7 @@ onMounted(async () => {
   observer.observe(host);
 
   try {
-    const account = await $fetch<Wire["Account"]>(remotePath("/account"));
+    const account = await remoteCall<Wire["Account"]>("/account");
 
     username.value = account.name;
     keptPassword.value = account.keptPassword;

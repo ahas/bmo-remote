@@ -32,9 +32,7 @@
     "action": {
       "connect": "Connect",
       "disconnect": "Disconnect",
-      "disconnect_desktop": "Disconnect the desktop",
       "end": "End",
-      "end_session": "End session",
       "exit_fullscreen": "Exit full screen",
       "fullscreen": "Full screen",
       "keyboard_show": "Show keyboard",
@@ -66,9 +64,14 @@
       "waking": "Waking the desktop · try {tries} again, {seconds} seconds passed"
     },
     "message": {
-      "disconnect_desktop": "The desktop will be disconnected.",
-      "end_many": "{n} terminal sessions and every program running in them will be ended.",
-      "end_one": "The session {name} and every program running in it will be ended."
+      "disconnect_desktop": "The desktop session stays on the machine.",
+      "end_many": "Every program running in them is ended too.",
+      "end_one": "Every program running in it is ended too."
+    },
+    "question": {
+      "disconnect_desktop": "Disconnect the desktop?",
+      "end_many": "End {n} terminal sessions?",
+      "end_one": "End the session {name}?"
     },
     "error": {
       "access_denied": "Access was denied.",

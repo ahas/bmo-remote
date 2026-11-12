@@ -19,7 +19,7 @@ structure (archive document #301, 「원칙」).
 - `docs/` is the canonical statement of what the service does; the code is one realisation of it. Before
   changing code, read the document covering that area: `docs/remote.md` for the terminal sessions and the
   desktop relay, `docs/screen.md` for the console's remote screen, `docs/api.md` for the routes, the sockets,
-  the command, the store, the settings and the console plugin bundle.
+  the command, the store, the settings, the console face and the console plugin bundle.
 - A change that would make a document wrong or incomplete repairs the document first, stating what is true
   now, and the code is written to match.
 - A document states what is true now: no change history, no rationale told through an earlier design, no
@@ -42,7 +42,7 @@ structure (archive document #301, 「원칙」).
 - **A client of another service is one module named for that service** under `src/clients/`, holding only
   the calls this repository makes, so it can be swapped for that service's own client.
 - **Dependencies:** crates from the registry pinned in `Cargo.toml`, and among other repositories only the
-  base libraries `bmo-chat`, `bmo-chat-client`, `bmo-ui` and `bmo-markup`.
+  base libraries `bmo-chat`, `bmo-chat-client`, `bmo-console-face`, `bmo-ui` and `bmo-markup`.
 - **The plumbing knows no route.** A route or a socket registers itself beside its own answer; adding one
   changes no file but its own.
 - **The relay is a transparent pipe.** It never runs an RDP connection of its own; it rewrites and reads only
@@ -55,7 +55,7 @@ structure (archive document #301, 「원칙」).
 ## Language
 
 - Everything in this repository is English: code, comments, strings, tests, documents, commit messages and
-  branch names. The one exception is the screen's language pack under `client/i18n/locales/`, a file to a
+  branch names. The one exception is the screen's language pack under `client/i18n/`, a file to a
   language, each in its own.
 - **Hangul the code inherently handles** — the 두벌식 keys a syllable is typed as, the terminal IME's
   composition — is written plainly, never as an escape or a character code, and each file's count of lines

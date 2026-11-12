@@ -3,43 +3,29 @@ import { fileURLToPath } from "node:url";
 
 import type { Nuxt } from "@nuxt/schema";
 
-// The remote screen as a layer a console extends (docs/api.md, "The console plugin bundle"). It extends the
-// bmo-ui layer and adds the screen's pages, components, domain modules, language pack and the terminal's own
-// faces; the host brings its i18n module and the words every screen shares, the console's title-bar
-// components and the kept tabs the screen asks of it, and relays the service's own paths to it. The bundle
-// declares itself to such a host in console-bundle.json; the same pages built as the served module are
-// module.config.ts's.
+// The remote screen's sources as a Nuxt project on bmo-ui, which `nuxi prepare` and the typecheck read
+// (docs/api.md, "The console plugin bundle"). A console loads none of it: it attaches the module
+// module.config.ts builds from the same sources by the manifest the service answers.
 const here = dirname(fileURLToPath(import.meta.url));
 
 export default defineNuxtConfig({
   extends: ["bmo-ui"],
   css: [join(here, "app/assets/css/terminal-fonts.css")],
   modules: [
-    // Where the bundle is the project being prepared it stands as the host does, one unprefixed locale by
-    // default, ahead of the i18n module that reads it; a host extending the bundle keeps its own choice.
-    (_options: unknown, nuxt: Nuxt) => {
-      if (nuxt.options.rootDir === here) {
-        nuxt.options.i18n = { ...nuxt.options.i18n, strategy: "no_prefix", defaultLocale: "ko" };
-      }
-    },
     "@nuxtjs/i18n",
-    // What the host owes is declared under host/ for the bundle's own typecheck alone: where the bundle is
-    // the project being prepared, those declarations are read with the screen, and so is the served module's
-    // entry under module/ with its build; a host extending the bundle reads none of them and keeps its own
-    // components' and functions' types.
+    // What the served module stands in for the pages is declared under host/, and is read with the screen,
+    // with the module's entry under module/ and its build.
     (_options: unknown, nuxt: Nuxt) => {
-      if (nuxt.options.rootDir === here) {
-        nuxt.hook("prepare:types", ({ tsConfig, nodeTsConfig }) => {
-          tsConfig.include = [...(tsConfig.include ?? []), "../host/**/*.d.ts", "../module/**/*"];
-          nodeTsConfig.include = [...(nodeTsConfig.include ?? []), "../module.config.ts"];
-        });
-      }
+      nuxt.hook("prepare:types", ({ tsConfig, nodeTsConfig }) => {
+        tsConfig.include = [...(tsConfig.include ?? []), "../host/**/*.d.ts", "../module/**/*"];
+        nodeTsConfig.include = [...(nodeTsConfig.include ?? []), "../module.config.ts"];
+      });
     }
   ],
-  // The screen's own words, one JSON file to a language under i18n/, the folder console-bundle.json names,
-  // registered as the host registers its own locales; the host's i18n module reads them as part of its
-  // locale of the same code, its own pack standing where both hold a key.
+  // The screen's own words, one JSON file to a language under i18n/, one unprefixed locale by default.
   i18n: {
+    strategy: "no_prefix",
+    defaultLocale: "ko",
     langDir: ".",
     locales: [
       { code: "ko", language: "ko-KR", file: "ko.json" },

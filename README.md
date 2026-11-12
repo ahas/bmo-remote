@@ -11,13 +11,14 @@ hands the remote screen's requests on, as `docs/api.md` states.
 The tests in `tests/` are the repository-wide personal-data check in `tests/personal_data.rs`
 (`PERSONAL-DATA.md`), which reads every tracked file for a mail address, a home path, a telephone number, a
 token and a private network address; the old archive's kept desktop port taken into the store,
-`tests/import.rs`; and the console bundle's routes, `tests/console.rs`: the manifest read through bmo-ui's
-`consoleManifest` and held to `client/console-bundle.json`, the token and the role refused 401 and 403, and
-the module's path following its bytes. They run with `cargo test`; the manifest's reading runs bun in
-`client/`, whose packages the testbed's setup installs. The bundle's own tests stand in `client/tests/`: a
-desktop that does not answer, tried again until it answers, refuses or is let go of, against a stand-in
-desktop and a stand-in clock (`docs/remote.md`, 「A desktop that does not answer」), run by `bun run test`
-inside `client/` as part of the bundle's check. The other behaviour tests are deferred: they are
+`tests/import.rs`; and the console face, `tests/console.rs`: the manifest the service serves read through
+bmo-ui's own reading on the release the client vendors, the service's declaration and credentials wired to
+bmo-chat's console face, the console's credential and the reader's role asked where the screen needs them, and
+the service's own token refused on the face and taken on the screen's routes. The face's own rules are its
+crate's tests'. They run with `cargo test`; the manifest's reading runs bun on the vendored release file.
+The bundle's own tests stand in `client/tests/`: a desktop that does not answer, tried again until it
+answers, refuses or is let go of, against a stand-in desktop and a stand-in clock (`docs/remote.md`, 「A
+desktop that does not answer」), run by `bun run test` inside `client/` as part of the bundle's check. The other behaviour tests are deferred: they are
 written and run here once the minimal services stand on the new repositories, and until then the build check,
 `cargo check --all-targets`, and the checks of the bundle and the desktop sidecar stand beside them.
 `docs/inventory.md` lists the tests the old behaviour was held to.
@@ -41,21 +42,13 @@ the local settings a deployment gives.
 
 ## The console plugin bundle
 
-`client/` holds the console's remote screen on bmo-ui's console plugin contract, with the IronRDP web
-client's RDP backend vendored under `client/vendor/` and the script that builds it under `client/scripts/`,
-and carries the TypeScript client generated from `docs/openapi.json` in `client/shared/openapi.ts`. It
-reaches a console in two forms (`docs/api.md`, 「The console plugin bundle」):
-
-- **the served module:** `bun run bundle` builds the pages with `client/module.config.ts` into `client/dist/`,
-  standing in from `client/module/` what a Nuxt host would give them; the service answers it with its
-  manifest at `GET /console-manifest`, and a deployment builds it in its release;
-- **the layer pack:** `bun pm pack` packs `client/` as `bmo-remote-client`, a Nuxt layer on top of bmo-ui that
-  declares itself in `client/console-bundle.json`, for a console that extends its bundles at build time.
-  Such a host owes it bmo-ui at the version the bundle's peer names (a packed copy stands in `client/vendor/`
-  for the bundle's own install and typecheck); its i18n module, which merges the bundle's own language pack
-  under `client/i18n/` into the host's; the title-bar pieces `DeployMark`, `TodoOpenButton` and
-  `UsageMeters`, and `useKeptTabs`, declared in `client/host/`; and a relay base under `bmoUi.relayBase`,
-  with the service's own routes and sockets relayed under it (`docs/api.md`, 「What the console does」).
+`client/` holds the console's remote screen as a bundle of bmo-ui's console plugin contract, with the IronRDP
+web client's RDP backend vendored under `client/vendor/` and the script that builds it under `client/scripts/`,
+and carries the TypeScript client generated from `docs/openapi.json` in `client/shared/openapi.ts`. It is built
+on the bmo-ui release bmo-chat's `shared-versions.toml` pins, vendored under `client/vendor/`: `bun run bundle`
+builds the pages with bmo-ui's bundle build into `client/dist/`, standing in from `client/module/` what no
+console gives them, and the service answers it through bmo-chat's console face, a deployment building it in
+its release (`docs/api.md`, 「The console face」, 「The console plugin bundle」).
 
 The screen says a refusal by its code in the pack's words. The bundle's check is `bun run check` inside
 `client/`, which installs its locked packages, typechecks it, runs its tests and builds the module; the testbed
@@ -67,7 +60,7 @@ runs it as the check of a project of its own.
 |---|---|
 | `docs/remote.md` | The terminal sessions and the desktop: what holds them, what crosses the wire, and the boundary |
 | `docs/screen.md` | The console's remote screen: its tabs, its views and its menu |
-| `docs/api.md` | The routes, the sockets, their messages and refusals, the command, the store, the settings, the console plugin bundle and what the console does |
+| `docs/api.md` | The routes, the sockets, their messages and refusals, the command, the store, the settings, the console face, the console plugin bundle and what the console does |
 | `docs/inventory.md` | What this repository takes from the old repository, with each set's count and source |
 | `PERSONAL-DATA.md` | What may never stand in this repository: a person's name, address, path, device or network details, a room member's, a company's, or a line of an actual conversation, and the check that holds it |
 

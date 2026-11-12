@@ -5,7 +5,7 @@
 [server]
 # Where the service answers, as host:port: a loopback address, so only this machine reaches it.
 listen = "127.0.0.1:3320"
-# The bearer token every caller presents. A deployment names its own.
+# The service's own token, which the command presents. A deployment names its own.
 token = ""
 
 [desktop]
@@ -37,6 +37,8 @@ pastes = "pastes"
 path = "remote.db"
 
 [console]
-# The console bundle's folder, the one the bundle's build writes and a release carries (docs/api.md, 「The console
-# bundle's routes」).
+# The console's credential, which the console presents; none stands no console face (docs/api.md, 「The console
+# face」). A deployment names its own.
+token = ""
+# The console bundle's folder, the one the bundle's build writes and a release carries.
 folder = "client/dist"

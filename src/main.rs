@@ -22,6 +22,9 @@ enum Word {
   Health,
   /// Prints the OpenAPI document the code generates.
   Openapi,
+  /// Prints how a console reaches the service, as one JSON object, for a deployment's console probe.
+  #[command(name = "console-reach")]
+  ConsoleReach,
   /// The nouns this command carries, one a line, as `bmo` asks a unit command.
   Nouns,
   /// Moves the old archive's kept values from the item's export into this service's store (TODO #1923).
@@ -105,6 +108,10 @@ async fn main() -> ExitCode {
     Word::Serve => bmo_remote::serve(settings).await,
     Word::Health => bmo_remote::health::ask(&settings).await,
     Word::Nouns | Word::Openapi => Ok(()),
+    Word::ConsoleReach => {
+      println!("{}", command::console_reach(&settings));
+      Ok(())
+    }
     Word::Import { .. } => unreachable!("the import is answered before the settings are read"),
     Word::Node {
       word: NodeWord::RemoteDesktop(asked),

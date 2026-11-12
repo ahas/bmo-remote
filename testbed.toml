@@ -6,8 +6,8 @@ testbed = 0
 name = "bmo-remote"
 
 [test]
-# Cargo runs the tests in tests/, the console test running bun in client/, and Bun runs the two projects'
-# check scripts.
+# Cargo runs the tests in tests/, the console test running bun on the vendored bmo-ui release, and Bun runs
+# the two projects' check scripts.
 languages = ["cargo", "bun"]
 # A fresh tree gets each project's locked packages through the same frozen install its check script runs.
 setup = ["cd client && bun install --frozen-lockfile", "cd desktop-sidecar && bun install --frozen-lockfile"]
@@ -26,7 +26,7 @@ paths = ["client", "desktop-sidecar"]
 # handle stand there.
 quick = ["korean", "layout", "dependencies", "cargo-profile", "shared-versions"]
 korean_ledger = "korean-ledger.json"
-base_libraries = ["bmo-chat", "bmo-chat-client", "bmo-ui", "bmo-markup"]
+base_libraries = ["bmo-chat", "bmo-chat-client", "bmo-console-face", "bmo-ui", "bmo-markup"]
 
 # The repository whose root holds the shared versions the manifests and the lock hold to.
 [check.shared_versions]
@@ -51,7 +51,8 @@ binaries = ["bmo-remote"]
 
 # The service's own deploy tree, and the data root its settings stand under: the data root's env/remote.toml,
 # which each release links to as settings.local.toml, the file the service reads beside settings.toml
-# (docs/api.md, 「Settings」). It names the token, the desktop password and a store path under the data root.
+# (docs/api.md, 「Settings」). It names the service's own token, the console's credential, the desktop password
+# and a store path under the data root.
 [deploy]
 root = "~/.local/share/bmo-remote"
 link = "deploy"
@@ -62,8 +63,14 @@ units = ["deploy/*.service"]
 # Answers 0 once the service the deployed settings name answers ready (docs/api.md, 「Health」).
 health = "~/.local/share/bmo-remote/deploy/bin/bmo-remote health"
 
+# The service brings the remote screen to a console; once it is up the deployment probes its console face
+# (docs/api.md, 「The console face」). Run from the release, the command prints how a console reaches the service
+# from the release's settings (docs/api.md, 「The command」).
+[deploy.console]
+reach = "bin/bmo-remote console-reach"
+
 # The console bundle's module, built in the release from its own sources before the release is put live, into
-# the folder the service answers it from (docs/api.md, 「The console plugin bundle」).
+# the folder the service's console face answers it from (docs/api.md, 「The console plugin bundle」).
 [[deploy.step]]
 id = "console-bundle"
 command = "cd client && bun run bundle"

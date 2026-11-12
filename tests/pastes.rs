@@ -9,7 +9,6 @@ use base64::Engine;
 use base64::engine::general_purpose::STANDARD;
 use bmo_remote::account::Account;
 use bmo_remote::client::RemoteClient;
-use bmo_remote::console::{ConsoleBundle, ConsoleRole};
 use bmo_remote::desktop::sidecar::Sidecar;
 use bmo_remote::http::{self, Standing};
 use bmo_remote::settings::Settings;
@@ -41,9 +40,8 @@ async fn service(name: &str) -> (String, PathBuf, String) {
   let store = Store::open(&settings.store.path).await.expect("the store opens");
   let account = Account::current().expect("the account is read");
   let sidecar = Sidecar::start(&settings, &account);
-  let bundle = ConsoleBundle::load(&folder.join("no-bundle"));
   let router =
-    http::router(Standing::new(settings, store, account, sidecar, bundle)).expect("the routes stand");
+    http::router(Standing::new(settings, store, account, sidecar), None).expect("the routes stand");
   let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.expect("a port is taken");
   let address = format!("http://{}", listener.local_addr().expect("the port is known"));
 
@@ -73,7 +71,7 @@ fn a_picture_takes_the_ending_of_its_type_and_any_other_type_none() {
 #[tokio::test]
 async fn a_pasted_picture_is_kept_for_its_session_and_goes_with_it() {
   let (address, folder, socket) = service("kept").await;
-  let client = RemoteClient::new(&address, TOKEN).with_role(ConsoleRole::Administrator);
+  let client = RemoteClient::new(&address, TOKEN);
   let session = client.open_terminal(&TerminalRequest::default()).await.expect("the session opens");
   let kept = client
     .paste_terminal(&session.id, &paste("image/png", PICTURE))

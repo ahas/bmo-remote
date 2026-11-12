@@ -1,7 +1,9 @@
-//! The unit command's own words (`docs/api.md`, 「The command」): the nouns it declares to `bmo`, and
-//! `node remote-desktop`, which tells and sets the port the desktop relay dials.
+//! The unit command's own words (`docs/api.md`, 「The command」): the nouns it declares to `bmo`,
+//! `node remote-desktop`, which tells and sets the port the desktop relay dials, and `console-reach`, which
+//! says how a console reaches the service.
 
 use clap::Args;
+use serde_json::json;
 
 use crate::settings::Settings;
 use crate::store::Store;
@@ -78,4 +80,15 @@ pub async fn remote_desktop(settings: Settings, args: DesktopArgs) -> Result<Str
   }
 
   tell(&store, settings.desktop.port).await
+}
+
+/// Runs `console-reach`: how a console reaches the service, as one JSON object of its base address, the
+/// console's credential and the service's own token, for a deployment's console probe.
+pub fn console_reach(settings: &Settings) -> String {
+  json!({
+    "address": format!("http://{}", settings.server.listen),
+    "consoleToken": settings.console.token,
+    "token": settings.server.token,
+  })
+  .to_string()
 }

@@ -11,12 +11,12 @@ use axum::extract::{FromRequestParts, Query, RawPathParams, Request, State};
 use axum::http::{Method, StatusCode, header};
 use axum::response::{IntoResponse, Json, Response};
 use axum::routing::{MethodFilter, MethodRouter};
+use bmo_console_face::ConsoleFace;
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 use serde_json::{Map, Value, json};
 
 use crate::account::Account;
-use crate::console::{self, ConsoleBundle};
 use crate::desktop::sidecar::Sidecar;
 use crate::settings::Settings;
 use crate::store::Store;
@@ -24,12 +24,13 @@ use crate::terminal::tmux::Tmux;
 
 pub use inventory;
 
-/// Whom a route answers beyond the token (`docs/api.md`, 「Conventions」).
+/// Whom a route answers (`docs/api.md`, 「Conventions」).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Reader {
-  /// Any caller presenting the token: the console reading for no reader, or the command.
+  /// The command alone, by the service's own token.
   Caller,
-  /// A reader of the console's screen: the token, and an `Owner-Role` allowing the screen's role.
+  /// A reader of the console's screen, by the console's credential and a role the console face's guard
+  /// allows, or the command by the service's own token.
   Screen,
 }
 
@@ -183,18 +184,10 @@ pub struct Standing {
   pub tmux: Arc<Tmux>,
   /// The desktop sidecar the desktop's sockets are handed on to.
   pub sidecar: Arc<Sidecar>,
-  /// The console bundle as it was read when the service started, or why it could not be.
-  pub console: Arc<Result<ConsoleBundle, String>>,
 }
 
 impl Standing {
-  pub fn new(
-    settings: Settings,
-    store: Store,
-    account: Account,
-    sidecar: Sidecar,
-    console: Result<ConsoleBundle, String>,
-  ) -> Self {
+  pub fn new(settings: Settings, store: Store, account: Account, sidecar: Sidecar) -> Self {
     let tmux = Tmux::new(&settings.terminal.socket, &settings.terminal.config, &account.shell);
 
     Self {
@@ -203,7 +196,6 @@ impl Standing {
       account: Arc::new(account),
       tmux: Arc::new(tmux),
       sidecar: Arc::new(sidecar),
-      console: Arc::new(console),
     }
   }
 }
@@ -281,16 +273,20 @@ pub fn answer(status: StatusCode, body: impl Serialize) -> Response {
   (status, Json(body)).into_response()
 }
 
-/// Whether a request carries the settings' token as its bearer; an empty token lets nobody in.
-fn authorized(standing: &Standing, request: &Request) -> bool {
-  let expected = standing.settings.server.token.as_str();
-  let presented = request
+/// Whether a request carries a token it may as its bearer: the service's own, or on a screen's route, where a
+/// console face stands, the console's credential. An empty token lets nobody in by it.
+fn authorized(standing: &Standing, request: &Request, console: bool) -> bool {
+  let Some(presented) = request
     .headers()
     .get(header::AUTHORIZATION)
     .and_then(|value| value.to_str().ok())
-    .and_then(|value| value.strip_prefix("Bearer "));
+    .and_then(|value| value.strip_prefix("Bearer "))
+  else {
+    return false;
+  };
+  let taken = |expected: &str| !expected.is_empty() && presented == expected;
 
-  matches!(presented, Some(token) if !expected.is_empty() && token == expected)
+  taken(&standing.settings.server.token) || (console && taken(&standing.settings.console.token))
 }
 
 /// What a request to a path no route or socket claims is answered, before anything else is asked of it.
@@ -303,33 +299,30 @@ async fn no_route(request: Request) -> Response {
   .into_response()
 }
 
-/// The router answering every registered route, each behind the token and, for the screen's routes, the
-/// reader's role, or what is wrong with the routes linked in.
-pub fn router(standing: Standing) -> Result<Router, Vec<String>> {
+/// The router answering every registered route behind its tokens, the screen's routes under the console face's
+/// guard, and the console face's own routes where one stands, or what is wrong with the routes linked in.
+pub fn router(standing: Standing, face: Option<ConsoleFace>) -> Result<Router, Vec<String>> {
   let faults = route_faults();
 
   if !faults.is_empty() {
     return Err(faults);
   }
 
-  let mut by_path: BTreeMap<&'static str, MethodRouter<Arc<Standing>>> = BTreeMap::new();
+  let mut screens: BTreeMap<&'static str, MethodRouter<Arc<Standing>>> = BTreeMap::new();
+  let mut callers: BTreeMap<&'static str, MethodRouter<Arc<Standing>>> = BTreeMap::new();
   let mut faults = Vec::new();
+  let console = face.is_some();
 
   for route in routes() {
     let Ok(filter) = MethodFilter::try_from(route.method()) else {
       faults.push(format!("{}: the method cannot be routed", route_name(&route.method(), route.path())));
       continue;
     };
+    let screen = route.reader() == Reader::Screen;
     let handler = move |State(standing): State<Arc<Standing>>, request: Request| async move {
-      if !authorized(&standing, &request) {
+      if !authorized(&standing, &request, console && screen) {
         return Refused::new(StatusCode::UNAUTHORIZED, UNAUTHORIZED, "a missing or wrong token")
           .into_response();
-      }
-
-      if route.reader() == Reader::Screen
-        && let Err(refused) = console::admit(request.headers())
-      {
-        return refused.into_response();
       }
 
       route
@@ -337,19 +330,29 @@ pub fn router(standing: Standing) -> Result<Router, Vec<String>> {
         .await
         .unwrap_or_else(IntoResponse::into_response)
     };
-    let methods = by_path.remove(route.path()).unwrap_or_default();
+    let paths = if screen { &mut screens } else { &mut callers };
+    let methods = paths.remove(route.path()).unwrap_or_default();
 
-    by_path.insert(route.path(), methods.on(filter, handler));
+    paths.insert(route.path(), methods.on(filter, handler));
   }
 
   if !faults.is_empty() {
     return Err(faults);
   }
 
-  let router = by_path
-    .into_iter()
-    .fold(Router::new(), |router, (path, methods)| router.route(path, methods))
-    .fallback(no_route);
+  let routed = |paths: BTreeMap<&'static str, MethodRouter<Arc<Standing>>>| {
+    paths
+      .into_iter()
+      .fold(Router::new(), |router, (path, methods)| router.route(path, methods))
+  };
+  let any_screen = !screens.is_empty();
+  let screens = routed(screens);
+  let router = match &face {
+    // The guard is laid over routes alone; with none to guard there is nothing to lay it over.
+    Some(face) if any_screen => routed(callers).merge(face.guard_screens(screens)).merge(face.router()),
+    Some(face) => routed(callers).merge(face.router()),
+    None => routed(callers).merge(screens),
+  };
 
-  Ok(router.with_state(Arc::new(standing)))
+  Ok(router.fallback(no_route).with_state(Arc::new(standing)))
 }

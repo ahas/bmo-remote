@@ -1,7 +1,6 @@
-// What a Nuxt host gives the screen's pages and the served module has no host to take from (docs/api.md,
-// "The console plugin bundle"): a console loading the module registers nothing for it, so the module stands
-// these in itself. The pages are written once, for the layer a console extends and for the module alike.
-import { defineComponent, onMounted, watch } from "vue";
+// What the screen's pages take by name and no console gives them (docs/api.md, "The console plugin bundle"): a
+// console loading the module registers nothing for it, so the module stands these in itself.
+import { onMounted, watch } from "vue";
 
 // What a screen keeps of its open tabs across visits: what it keeps, read fresh each time it changes, and
 // how a kept value is put back, null where nothing was kept.
@@ -53,9 +52,3 @@ export function useKeptTabs<S>(screen: string, kept: KeptTabs<S>): void {
 
 // A page's layout stands on its route's meta in the module's routes; the pages' own hint has nothing to do.
 export function definePageMeta(_meta: Record<string, unknown>): void {}
-
-// The console's title-bar pieces are a host's own, and a console loading the module offers none: each draws
-// nothing here.
-export const DeployMark = defineComponent({ name: "DeployMark", render: () => null });
-export const TodoOpenButton = defineComponent({ name: "TodoOpenButton", render: () => null });
-export const UsageMeters = defineComponent({ name: "UsageMeters", render: () => null });

@@ -6,12 +6,12 @@ use schemars::JsonSchema;
 use schemars::generate::{SchemaGenerator, SchemaSettings};
 use serde_json::{Map, Value, json};
 
-use crate::console::{ConsoleRole, FORBIDDEN, OWNER_ROLE_HEADER};
 use crate::http::Reader;
 use crate::wire::{
-  Account, ConsoleManifest, Health, Terminal, TerminalPage, TerminalPaste, TerminalPasted, TerminalRename,
-  TerminalRequest, TerminalsQuery, WireError,
+  Account, Health, Terminal, TerminalPage, TerminalPaste, TerminalPasted, TerminalRename, TerminalRequest,
+  TerminalsQuery, WireError,
 };
+use bmo_console_face::OWNER_ROLE_HEADER;
 
 /// Where the schemas the routes refer to stand in the document.
 const SCHEMAS: &str = "/components/schemas";
@@ -108,14 +108,18 @@ fn path_parameter(name: &str, description: &str) -> Value {
   })
 }
 
+/// The code of a call whose reader's role does not allow the screen.
+const FORBIDDEN: &str = "forbidden";
+
 /// The reader's role the console sets on every route the screen uses.
 fn owner_role() -> Value {
   json!({
     "name": OWNER_ROLE_HEADER,
     "in": "header",
-    "required": true,
-    "description": "The reader's role, which must allow the screen's administrator.",
-    "schema": { "type": "string", "enum": [ConsoleRole::Administrator.name(), ConsoleRole::Member.name()] },
+    "required": false,
+    "description": "The reader's role, as bmo-ui's console plugin contract names it, which a call with the \
+      console's credential carries and which must allow the manifest's role; the command's own token needs none.",
+    "schema": { "type": "string" },
   })
 }
 
@@ -164,23 +168,11 @@ fn operations(generator: &mut SchemaGenerator) -> Vec<Operation> {
       path: "/console-manifest",
       id: "readConsoleManifest",
       tag: "console",
-      summary: "The console manifest the remote screen is attached by.",
-      parameters: Vec::new(),
-      body: None,
-      answers: vec![(200, json_answer::<ConsoleManifest>(generator))],
-      codes: &["unauthorized", "failed"],
-      reader: Reader::Caller,
-    },
-    Operation {
-      method: "get",
-      path: "/console/words.json",
-      id: "readConsoleWords",
-      tag: "console",
-      summary: "The console bundle's words, each locale's tree under its code.",
+      summary: "The console face's manifest, by bmo-ui's console plugin contract, to the console's credential alone.",
       parameters: Vec::new(),
       body: None,
       answers: vec![(200, Some(json!({ "application/json": { "schema": { "type": "object" } } })))],
-      codes: &["unauthorized", "not-found"],
+      codes: &["unauthorized"],
       reader: Reader::Caller,
     },
     Operation {
@@ -188,7 +180,8 @@ fn operations(generator: &mut SchemaGenerator) -> Vec<Operation> {
       path: "/console/{file}",
       id: "readConsoleFile",
       tag: "console",
-      summary: "A file of the console bundle's module: the module, its stylesheet or a chunk it imports.",
+      summary: "A file of the console bundle at the path the manifest names: the words to the console's credential \
+        alone, the module, the stylesheet and every other file to it with the manifest's role.",
       parameters: vec![path_parameter(
         "file",
         "The file's path under `/console/`, as the manifest or the module names it, slashes included.",
@@ -199,10 +192,11 @@ fn operations(generator: &mut SchemaGenerator) -> Vec<Operation> {
         Some(json!({
           "text/javascript": { "schema": { "type": "string" } },
           "text/css": { "schema": { "type": "string" } },
+          "application/json": { "schema": { "type": "object" } },
         })),
       )],
-      codes: &["unauthorized", "not-found"],
-      reader: Reader::Screen,
+      codes: &["unauthorized", "forbidden", "not-found"],
+      reader: Reader::Caller,
     },
     Operation {
       method: "get",
@@ -384,7 +378,7 @@ pub fn openapi() -> Value {
         "bearer": {
           "type": "http",
           "scheme": "bearer",
-          "description": "The token of the service's settings.",
+          "description": "The console's credential, or the service's own token (docs/api.md, Conventions).",
         },
       },
     },

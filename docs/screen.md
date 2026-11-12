@@ -1,18 +1,17 @@
 # The remote screen
 
 The console's remote screen, as the plugin bundle in `client/` draws it under `/remote`. What holds the
-sessions, the wire and the access boundary are `docs/remote.md`; what the bundle asks of its host is
-`docs/api.md`, 「The console plugin bundle」. This document is the screen. Its words are the host's language
-pack, named here by key where a label matters.
+sessions, the wire and the access boundary are `docs/remote.md`; how the bundle is built and served is
+`docs/api.md`, 「The console plugin bundle」. This document is the screen. Its words are the bundle's own
+language pack, named here by key where a label matters.
 
 ## The title bar
 
 - **Under the console's title bar.** The screen's route asks for the console's bar in its meta, so a console that
   offers its bar (bmo-ui's `docs/console-bundles.md`, 「How a bundle mounts」, the title bar) draws it over the screen
-  under the manifest's title and icon, with the console's own buttons, and the screen draws no bar of its own.
-  Found without that offer it draws its own bar, named and marked the same, holding the deployment's mark, the
-  TODO button and the usage figures. A session's own window stands under no bar either way (「A page with no
-  sidebar and no title bar」).
+  under the manifest's title and icon, and the screen draws no bar of its own. Found without that offer it draws
+  its own bar, named and marked the same and holding nothing else. A session's own window stands under no bar
+  either way (「A page with no sidebar and no title bar」).
 
 ## Tabs
 
@@ -30,13 +29,16 @@ pack, named here by key where a label matters.
   - A read that fails says what failed in one line over the tabs: the service's refusal in the pack's words
     for its code, the answer's status where the refusal names no code, or that the service was not reached
     at all. The next read that succeeds clears the line.
-  - Which tabs are open, in what order, which are pinned and which stands is kept: for the account by the
-    host's `useKeptTabs` where a console extends the layer pack, and in the browser where it loads the
-    served module (`docs/api.md`, 「The console plugin bundle」). A kept value that cannot be read is dropped.
+  - Which tabs are open, in what order, which are pinned and which stands is kept in the browser
+    (`docs/api.md`, 「The console plugin bundle」). A kept value that cannot be read is dropped.
   - The shown tab stands in the address as `?tab=`, so a link opens that session's tab.
   - **Closing a terminal tab ends its session**, and closing the desktop tab ends the desktop connection
-    (the desktop session itself stays on the machine). Either is asked once more in a dialog before it is
-    done. Switching tabs or leaving the screen ends nothing.
+    (the desktop session itself stays on the machine). Either is asked once more before it is done, as
+    bmo-ui's question asks before an action: the question names the session or the desktop, what ending a
+    session also ends or that the desktop session stays stands under it, and the way through is
+    `remote.action.end` or `remote.action.disconnect`. A close that fails says so in the line over the tabs,
+    `remote.error.end_failed` or the service's refusal, and the tab stays. Switching tabs or leaving the
+    screen ends nothing.
   - The tab's own menu renames a terminal session, beside the closings and the pin.
   - The right end of the tab bar holds a new terminal and open the desktop as two icon buttons, on a phone
     too, and beside them, one gap apart like the rest of the group, the shown view's menu (「The view's

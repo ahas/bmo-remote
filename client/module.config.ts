@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 
 import tailwindcss from "@tailwindcss/vite";
 import vue from "@vitejs/plugin-vue";
+import { consoleBundle } from "bmo-ui/bundle/console-bundle.js";
 import AutoImport from "unplugin-auto-import/vite";
 import Components from "unplugin-vue-components/vite";
 import { defineConfig } from "vite";
@@ -12,22 +13,16 @@ import type { ConsoleWords } from "bmo-ui/shared/console-manifest";
 import type { ComponentResolver } from "unplugin-vue-components";
 import type { Plugin } from "vite";
 
-// The served module's build (docs/api.md, "The console plugin bundle"): the screen's pages built for the
-// browser as one ECMAScript module, its stylesheet and its words beside it in dist/, which the service
-// answers. What Nuxt gives the pages by name is imported here by the package's own path, and every path of
-// the libraries the console shares is left unbundled, so the console resolves each to its own copy.
+// The served module's build, on bmo-ui's bundle build (docs/api.md, "The console plugin bundle"): the
+// screen's pages built for the browser as one ECMAScript module, its stylesheet, its words and the layer it
+// was built on beside it in dist/, which the service answers through its console face. What Nuxt gives the
+// pages by name is imported here by the package's own path; bmo-ui's plugin leaves the libraries the console
+// shares unbundled, so the console resolves each to its own copy.
 const here = dirname(fileURLToPath(import.meta.url));
 const host = join(here, "module/host.ts");
 
-// The libraries a console shares with every bundle it loads (bmo-ui's console plugin contract, "What a
-// bundle is").
-const SHARED = /^(?:vue|vue-router|vue-i18n|nuxt\/app|@nuxt\/ui|bmo-ui)(?:\/|$)/;
-
 // What a Nuxt host makes importable by name, each from the package that holds it.
 const NUXT_IMPORTS = ["useRoute", "useRouter", "useHead", "useRuntimeConfig", "useAppConfig"];
-
-// The console's title-bar pieces the screen draws, which the module stands in itself (module/host.ts).
-const HOST_PIECES = ["DeployMark", "TodoOpenButton", "UsageMeters"];
 
 // A component library's component by the name Nuxt registers it under: Nuxt UI's under its `U` prefix, and
 // bmo-ui's by its file's own name.
@@ -42,7 +37,7 @@ const libraryComponents: ComponentResolver = (name) => {
     return { name: "default", from: `bmo-ui/app/components/${name}.vue` };
   }
 
-  return HOST_PIECES.includes(name) ? { name, from: host } : undefined;
+  return undefined;
 };
 
 // The bundle's words as the service answers them: each language file's tree under its locale's code.
@@ -63,6 +58,7 @@ const words: Plugin = {
 export default defineConfig({
   root: here,
   plugins: [
+    consoleBundle(),
     vue(),
     tailwindcss(),
     AutoImport({
@@ -78,7 +74,6 @@ export default defineConfig({
     copyPublicDir: false,
     lib: { entry: join(here, "module/main.ts"), formats: ["es"], fileName: () => "remote.js", cssFileName: "remote" },
     rollupOptions: {
-      external: (id) => SHARED.test(id),
       // Library mode inlines every asset, so the stylesheet is the one asset the build writes.
       output: { chunkFileNames: "chunks/[name]-[hash].js", assetFileNames: "[name][extname]" }
     }

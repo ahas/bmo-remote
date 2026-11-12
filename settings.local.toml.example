@@ -5,6 +5,9 @@
 listen = "127.0.0.1:3320"
 token = "remote-token"
 
+[console]
+token = "console-token"
+
 [desktop]
 password = "desktop-password"
 

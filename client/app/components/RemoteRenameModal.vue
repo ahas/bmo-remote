@@ -14,7 +14,7 @@
 
 <script setup lang="ts">
 import { failureText } from "../domain/remote/refusals";
-import { remotePath } from "../domain/remote/service";
+import { remoteCall } from "../domain/remote/service";
 
 import type { components } from "../../shared/openapi";
 import type { RemoteTerminalInfo } from "../../shared/remote";
@@ -54,7 +54,7 @@ async function submit(): Promise<void> {
   error.value = undefined;
 
   try {
-    const terminal = await $fetch<Wire["Terminal"]>(remotePath(`/terminals/${encodeURIComponent(props.id)}`), {
+    const terminal = await remoteCall<Wire["Terminal"]>(`/terminals/${encodeURIComponent(props.id)}`, {
       method: "PATCH",
       body: { title: name.value.trim() }
     });

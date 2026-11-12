@@ -1,14 +1,14 @@
-// Where the remote screen calls its service (bmo-ui's console plugin contract, "How a bundle mounts"): the
-// app's base path, the console's relay base, the service's name, then the path as the service's own API
-// writes it. The console relays everything under that address to the service unchanged, behind its own
-// sign-in, and the address is complete as given, to the app's fetcher and to a socket alike.
-import { relayAddress, relaySocketAddress } from "bmo-ui/app/domain/relay";
+// Where the remote screen calls its service: a route through bmo-ui's relay module's call, and a socket at the
+// address the same module answers (bmo-ui's console plugin contract, "How a bundle mounts").
+import { relayCall, relaySocketAddress } from "bmo-ui/app/domain/relay";
+
+import type { RelayOptions } from "bmo-ui/app/domain/relay";
 
 const SERVICE = "remote";
 
-/** The address one of the service's routes is called at. */
-export function remotePath(path: string): string {
-  return relayAddress(SERVICE, path);
+/** One of the service's routes called through the console's relay, its answer as the app's fetcher reads it. */
+export function remoteCall<T = unknown>(path: string, options?: RelayOptions): Promise<T> {
+  return relayCall<T>(SERVICE, path, options);
 }
 
 /** The address one of the service's sockets is opened at, its query carried, as `ws:` or `wss:`. */

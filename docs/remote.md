@@ -604,11 +604,13 @@ being shown, is all it takes to reach the desktop, whatever state its daemons ar
   `Origin` is not the host it was sent to — or the forwarded host behind the proxy — so another site cannot
   open a shell with a signed-in user's cookie. The console then hands the request on to this service, the
   upgrade included (`docs/api.md`, 「What the console does」).
-- **This service answers the console alone.** It listens on a loopback address and takes every route,
-  health included, with the bearer token of its settings.
+- **This service answers the console and its own command alone.** It listens on a loopback address and
+  takes every route with a bearer token of its settings: the console's credential, or the service's own token
+  the command presents (`docs/api.md`, 「Conventions」).
 - **The administrator's alone.** The console sets the signed-in reader's role on everything it hands on, and
-  this service refuses every route the screen uses, sockets included, to a role that is not the
-  administrator's (`docs/api.md`, 「Conventions」), whatever the console offers in its menu.
+  this service refuses every route the screen uses, sockets included, to a call with the console's credential
+  whose role is not the administrator's (`docs/api.md`, 「Conventions」), whatever the console offers in its
+  menu.
 - **Nothing to aim.** No route takes a host, a port, a command or a socket name. The terminal target is the
   socket the settings name and the desktop target is the loopback RDP port.
 

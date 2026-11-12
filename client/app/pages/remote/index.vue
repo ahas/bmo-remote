@@ -3,16 +3,10 @@
        session stands as a tab, and every open tab stays mounted, so switching never ends or
        reconnects a session. Closing a terminal tab ends its session, once confirmed. -->
   <UDashboardPanel id="remote" :ui="{ body: 'p-0 sm:p-0 gap-0 sm:gap-0 overflow-y-hidden [&>*]:max-w-none' }">
-    <!-- Under a console that offers its title bar the console draws it, with its own buttons; alone, the screen draws
-         its own. -->
+    <!-- Under a console that offers its title bar the console draws it; alone, the screen draws its own, with its
+         name and mark and nothing else. -->
     <template v-if="!barOffered" #header>
-      <UDashboardNavbar :title="$t('remote.title.remote')" icon="i-material-symbols-devices-outline">
-        <template #right>
-          <DeployMark />
-          <TodoOpenButton />
-          <UsageMeters />
-        </template>
-      </UDashboardNavbar>
+      <UDashboardNavbar :title="$t('remote.title.remote')" icon="i-material-symbols-devices-outline" />
     </template>
 
     <template #body>
@@ -61,16 +55,6 @@
       </div>
 
       <RemoteRenameModal v-if="renaming !== null" v-model:open="renameOpen" :id="renaming" :current="sessions.get(renaming)?.title ?? ''" @renamed="remember($event)" />
-
-      <SettingsDialog v-model:open="closeOpen" :title="closeTitle">
-        <p>{{ closeText }}</p>
-        <p v-if="closeError" class="text-error">{{ closeError }}</p>
-
-        <template #footer>
-          <UButton color="neutral" variant="ghost" :label="$t('common.action.cancel')" @click="closeOpen = false" />
-          <UButton color="error" :label="closeAction" :loading="closing" :disabled="closing" @click="confirmClose()" />
-        </template>
-      </SettingsDialog>
     </template>
   </UDashboardPanel>
 </template>
@@ -94,14 +78,16 @@ import {
 } from "../../domain/remote/sessions";
 import { claimTerminalKeyboard, releaseRemoteTerminal, sessionName } from "../../domain/remote/terminal-hub";
 import { useBackClose } from "bmo-ui/app/domain/layers";
+import { askQuestion } from "bmo-ui/app/domain/question";
 import { failureText } from "../../domain/remote/refusals";
 import { sessionListReads } from "../../domain/remote/session-list";
 import { onTerminalSignal } from "../../domain/remote/terminal-signals";
-import { remotePath } from "../../domain/remote/service";
+import { remoteCall } from "../../domain/remote/service";
 import { viewActions } from "../../domain/remote/view-actions";
 
 import type { components } from "../../../shared/openapi";
 import type { RemoteTerminalInfo } from "../../../shared/remote";
+import type { QuestionAsked } from "bmo-ui/app/domain/question";
 import type { BarAction, BarMenuItem, BarTab } from "bmo-ui/app/domain/tabs";
 import type { RemoteTabs } from "../../domain/remote/sessions";
 
@@ -125,14 +111,13 @@ const openFailure = ref("");
 const fullView = ref(false);
 const renaming = ref<string | null>(null);
 const renameOpen = ref(false);
-const closeIds = ref<string[]>([]);
-const closeOpen = ref(false);
 
 // The view taken to the whole window stands over the page like anything floating, so the back
 // gesture hands the page back rather than leaving it.
 useBackClose(fullView);
 const closing = ref(false);
-const closeError = ref<string | null>(null);
+// What failed on the last close, beside the other failures the line over the tabs says.
+const closeFailure = ref("");
 const sessionsRead = ref(false);
 
 // Entering or leaving that view is a view being shown, so the shown terminal takes the keyboard
@@ -199,20 +184,28 @@ function tabMenu(id: string): BarMenuItem[] {
     : [];
 }
 
-// What closing asks: a terminal's session ends with it; the desktop's connection closes and its
-// session stays.
-const closingTerminals = computed(() => closeIds.value.filter(isTerminalTab));
-const closeTitle = computed(() => (closingTerminals.value.length > 0 ? t("remote.action.end_session") : t("remote.action.disconnect_desktop")));
-const closeAction = computed(() => (closingTerminals.value.length > 0 ? t("remote.action.end") : t("remote.action.disconnect")));
-const closeText = computed(() => {
-  const count = closingTerminals.value.length;
+// What closing asks (docs/screen.md, 「Tabs」): a terminal's session ends with it; the desktop's connection closes
+// and its session stays.
+function closeQuestion(ids: string[]): QuestionAsked {
+  const terminals = ids.filter(isTerminalTab);
+  const count = terminals.length;
 
-  if (count === 0) return t("remote.message.disconnect_desktop");
+  if (count === 0) {
+    return { title: t("remote.question.disconnect_desktop"), effect: t("remote.message.disconnect_desktop"), confirm: t("remote.action.disconnect") };
+  }
 
   return count === 1
-    ? t("remote.message.end_one", { name: labelOf(closingTerminals.value[0]!) })
-    : t("remote.message.end_many", { n: count.toLocaleString() });
-});
+    ? {
+        title: t("remote.question.end_one", { name: labelOf(terminals[0]!) }),
+        effect: t("remote.message.end_one"),
+        confirm: t("remote.action.end")
+      }
+    : {
+        title: t("remote.question.end_many", { n: count.toLocaleString() }),
+        effect: t("remote.message.end_many"),
+        confirm: t("remote.action.end")
+      };
+}
 
 useKeptTabs<RemoteTabs>("remote", {
   read: () => state.value,
@@ -241,24 +234,18 @@ function show(id: string): void {
   update(showTab(state.value, id));
 }
 
-function askClose(ids: string[]): void {
-  closeIds.value = ids;
-  closeError.value = null;
-  closeOpen.value = true;
-}
-
-async function confirmClose(): Promise<void> {
-  if (closing.value) return;
+async function askClose(ids: string[]): Promise<void> {
+  if (closing.value || !(await askQuestion(closeQuestion(ids)))) return;
 
   closing.value = true;
-  closeError.value = null;
+  closeFailure.value = "";
 
   const done: string[] = [];
 
   try {
-    for (const id of closeIds.value) {
+    for (const id of ids) {
       if (isTerminalTab(id)) {
-        await $fetch(remotePath(`/terminals/${encodeURIComponent(id)}`), { method: "DELETE" });
+        await remoteCall(`/terminals/${encodeURIComponent(id)}`, { method: "DELETE" });
         releaseRemoteTerminal(id);
         forget(id);
       } else {
@@ -267,10 +254,8 @@ async function confirmClose(): Promise<void> {
 
       done.push(id);
     }
-
-    closeOpen.value = false;
   } catch (error) {
-    closeError.value = failureText(t, error, t("remote.error.end_failed"));
+    closeFailure.value = failureText(t, error, t("remote.error.end_failed"));
   } finally {
     closing.value = false;
 
@@ -310,10 +295,10 @@ function applySessions(page: Wire["TerminalPage"]): void {
 // the service (docs/screen.md, 「Tabs」).
 const listReads = sessionListReads(
   t,
-  () => $fetch<Wire["TerminalPage"]>(remotePath("/terminals"), { query: { limit: "1000" } }),
+  () => remoteCall<Wire["TerminalPage"]>("/terminals", { query: { limit: "1000" } }),
   applySessions
 );
-const failure = computed(() => openFailure.value || listReads.failure.value);
+const failure = computed(() => closeFailure.value || openFailure.value || listReads.failure.value);
 
 function loadSessions(): Promise<void> {
   return listReads.read();
@@ -325,7 +310,7 @@ async function createTerminal(): Promise<void> {
   creating.value = true;
 
   try {
-    const terminal = await $fetch<Wire["Terminal"]>(remotePath("/terminals"), { method: "POST", body: {} });
+    const terminal = await remoteCall<Wire["Terminal"]>("/terminals", { method: "POST", body: {} });
 
     remember(terminal);
     update(openTab(state.value, terminal.id));

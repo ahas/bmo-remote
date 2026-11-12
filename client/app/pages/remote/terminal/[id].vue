@@ -13,7 +13,7 @@
 
 <script setup lang="ts">
 import { isRemoteTab, isTerminalTab } from "../../../domain/remote/sessions";
-import { remotePath } from "../../../domain/remote/service";
+import { remoteCall } from "../../../domain/remote/service";
 import { sessionName } from "../../../domain/remote/terminal-hub";
 
 import type { components } from "../../../../shared/openapi";
@@ -35,7 +35,7 @@ useHead({ title: () => t("remote.title.terminal_page", { name: label.value }) })
 
 async function load(): Promise<void> {
   try {
-    session.value = await $fetch<Wire["Terminal"]>(remotePath(`/terminals/${encodeURIComponent(id.value)}`));
+    session.value = await remoteCall<Wire["Terminal"]>(`/terminals/${encodeURIComponent(id.value)}`);
   } catch {
     session.value = null;
   }

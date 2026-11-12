@@ -8,7 +8,7 @@ import { type ITheme, Terminal } from "@xterm/xterm";
 
 import { TOUCH_QUERY } from "bmo-ui/app/domain/prompt";
 import { refusalText } from "./refusals";
-import { remotePath, remoteSocketUrl } from "./service";
+import { remoteCall, remoteSocketUrl } from "./service";
 import { attachTerminalClipboard } from "./terminal-clipboard";
 import { attachTerminalIme } from "./terminal-ime";
 import { probeNote, probeShape, probeTextarea, probeThrough, startProbe } from "./terminal-probe";
@@ -737,18 +737,13 @@ async function base64Of(picture: Blob): Promise<string> {
 }
 
 // Hands a pasted picture to the service, which keeps it as a file on the session's machine, and answers the
-// file's path there; null where the service did not keep it (docs/remote.md, 「The terminal interface」).
+// file's path there; null where the answer names none, and a refusal thrown (docs/remote.md, 「The terminal
+// interface」).
 async function keepPicture(id: string, picture: Blob): Promise<string | null> {
-  const answer = await fetch(remotePath(`/terminals/${encodeURIComponent(id)}/pastes`), {
+  const kept = await remoteCall<{ path?: unknown }>(`/terminals/${encodeURIComponent(id)}/pastes`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
-    credentials: "same-origin",
-    body: JSON.stringify({ type: picture.type, data: await base64Of(picture) })
+    body: { type: picture.type, data: await base64Of(picture) }
   });
-
-  if (!answer.ok) return null;
-
-  const kept = (await answer.json()) as { path?: unknown };
 
   return typeof kept.path === "string" ? kept.path : null;
 }

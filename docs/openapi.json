@@ -31,97 +31,6 @@
         ],
         "type": "object"
       },
-      "ConsoleManifest": {
-        "description": "The console manifest (bmo-ui's `docs/console-bundles.md`, 「The manifest」): what a console attaches the\nremote screen by.",
-        "properties": {
-          "apiPrefix": {
-            "description": "The path every call the screens make stands under.",
-            "type": "string"
-          },
-          "bundle": {
-            "description": "The path the module is answered at.",
-            "type": "string"
-          },
-          "events": {
-            "description": "Whether the screens read the service's event stream.",
-            "type": "boolean"
-          },
-          "icon": {
-            "description": "The icon drawn beside that name.",
-            "type": "string"
-          },
-          "name": {
-            "description": "The bundle's name, its words' namespace.",
-            "type": "string"
-          },
-          "ownerKey": {
-            "description": "Whether every call the screens make needs the reader's owner key.",
-            "type": "boolean"
-          },
-          "pushKinds": {
-            "description": "The event kinds a console may raise as a notice to a reader not on the screen.",
-            "items": {
-              "type": "string"
-            },
-            "type": "array"
-          },
-          "role": {
-            "$ref": "#/components/schemas/ConsoleRole",
-            "description": "The least role a reader holds to open the screen."
-          },
-          "screenPath": {
-            "description": "The path the screens stand under.",
-            "type": "string"
-          },
-          "serviceName": {
-            "description": "The name a console relays the service under.",
-            "type": "string"
-          },
-          "stylesheet": {
-            "description": "The path the stylesheet is answered at.",
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "title": {
-            "description": "The key, in the bundle's words, of the name a console's menu gives the screen.",
-            "type": "string"
-          },
-          "websocket": {
-            "description": "Whether the screens open a WebSocket to the service.",
-            "type": "boolean"
-          },
-          "words": {
-            "description": "The path the words are answered at.",
-            "type": "string"
-          }
-        },
-        "required": [
-          "name",
-          "title",
-          "icon",
-          "screenPath",
-          "serviceName",
-          "bundle",
-          "words",
-          "apiPrefix",
-          "role",
-          "ownerKey",
-          "events",
-          "websocket",
-          "pushKinds"
-        ],
-        "type": "object"
-      },
-      "ConsoleRole": {
-        "description": "A role a reader holds, the one holding more first: an administrator holds every role a member holds.",
-        "enum": [
-          "administrator",
-          "member"
-        ],
-        "type": "string"
-      },
       "Health": {
         "description": "Whether the service is ready, why not where it is not, and its version.",
         "properties": {
@@ -273,7 +182,7 @@
     },
     "securitySchemes": {
       "bearer": {
-        "description": "The token of the service's settings.",
+        "description": "The console's credential, or the service's own token (docs/api.md, Conventions).",
         "scheme": "bearer",
         "type": "http"
       }
@@ -291,15 +200,11 @@
         "operationId": "readAccount",
         "parameters": [
           {
-            "description": "The reader's role, which must allow the screen's administrator.",
+            "description": "The reader's role, as bmo-ui's console plugin contract names it, which a call with the console's credential carries and which must allow the manifest's role; the command's own token needs none.",
             "in": "header",
             "name": "Owner-Role",
-            "required": true,
+            "required": false,
             "schema": {
-              "enum": [
-                "administrator",
-                "member"
-              ],
               "type": "string"
             }
           }
@@ -337,51 +242,22 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ConsoleManifest"
-                }
-              }
-            },
-            "description": "The console manifest the remote screen is attached by."
-          },
-          "default": {
-            "$ref": "#/components/responses/Error"
-          }
-        },
-        "summary": "The console manifest the remote screen is attached by.",
-        "tags": [
-          "console"
-        ],
-        "x-codes": [
-          "unauthorized",
-          "failed"
-        ]
-      }
-    },
-    "/console/words.json": {
-      "get": {
-        "operationId": "readConsoleWords",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
                   "type": "object"
                 }
               }
             },
-            "description": "The console bundle's words, each locale's tree under its code."
+            "description": "The console face's manifest, by bmo-ui's console plugin contract, to the console's credential alone."
           },
           "default": {
             "$ref": "#/components/responses/Error"
           }
         },
-        "summary": "The console bundle's words, each locale's tree under its code.",
+        "summary": "The console face's manifest, by bmo-ui's console plugin contract, to the console's credential alone.",
         "tags": [
           "console"
         ],
         "x-codes": [
-          "unauthorized",
-          "not-found"
+          "unauthorized"
         ]
       }
     },
@@ -389,19 +265,6 @@
       "get": {
         "operationId": "readConsoleFile",
         "parameters": [
-          {
-            "description": "The reader's role, which must allow the screen's administrator.",
-            "in": "header",
-            "name": "Owner-Role",
-            "required": true,
-            "schema": {
-              "enum": [
-                "administrator",
-                "member"
-              ],
-              "type": "string"
-            }
-          },
           {
             "description": "The file's path under `/console/`, as the manifest or the module names it, slashes included.",
             "in": "path",
@@ -415,6 +278,11 @@
         "responses": {
           "200": {
             "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              },
               "text/css": {
                 "schema": {
                   "type": "string"
@@ -426,13 +294,13 @@
                 }
               }
             },
-            "description": "A file of the console bundle's module: the module, its stylesheet or a chunk it imports."
+            "description": "A file of the console bundle at the path the manifest names: the words to the console's credential alone, the module, the stylesheet and every other file to it with the manifest's role."
           },
           "default": {
             "$ref": "#/components/responses/Error"
           }
         },
-        "summary": "A file of the console bundle's module: the module, its stylesheet or a chunk it imports.",
+        "summary": "A file of the console bundle at the path the manifest names: the words to the console's credential alone, the module, the stylesheet and every other file to it with the manifest's role.",
         "tags": [
           "console"
         ],
@@ -448,15 +316,11 @@
         "operationId": "readDesktopKeys",
         "parameters": [
           {
-            "description": "The reader's role, which must allow the screen's administrator.",
+            "description": "The reader's role, as bmo-ui's console plugin contract names it, which a call with the console's credential carries and which must allow the manifest's role; the command's own token needs none.",
             "in": "header",
             "name": "Owner-Role",
-            "required": true,
+            "required": false,
             "schema": {
-              "enum": [
-                "administrator",
-                "member"
-              ],
               "type": "string"
             }
           }
@@ -484,15 +348,11 @@
         "operationId": "readDesktopPointer",
         "parameters": [
           {
-            "description": "The reader's role, which must allow the screen's administrator.",
+            "description": "The reader's role, as bmo-ui's console plugin contract names it, which a call with the console's credential carries and which must allow the manifest's role; the command's own token needs none.",
             "in": "header",
             "name": "Owner-Role",
-            "required": true,
+            "required": false,
             "schema": {
-              "enum": [
-                "administrator",
-                "member"
-              ],
               "type": "string"
             }
           }
@@ -520,15 +380,11 @@
         "operationId": "relayDesktop",
         "parameters": [
           {
-            "description": "The reader's role, which must allow the screen's administrator.",
+            "description": "The reader's role, as bmo-ui's console plugin contract names it, which a call with the console's credential carries and which must allow the manifest's role; the command's own token needs none.",
             "in": "header",
             "name": "Owner-Role",
-            "required": true,
+            "required": false,
             "schema": {
-              "enum": [
-                "administrator",
-                "member"
-              ],
               "type": "string"
             }
           }
@@ -583,15 +439,11 @@
         "operationId": "listTerminals",
         "parameters": [
           {
-            "description": "The reader's role, which must allow the screen's administrator.",
+            "description": "The reader's role, as bmo-ui's console plugin contract names it, which a call with the console's credential carries and which must allow the manifest's role; the command's own token needs none.",
             "in": "header",
             "name": "Owner-Role",
-            "required": true,
+            "required": false,
             "schema": {
-              "enum": [
-                "administrator",
-                "member"
-              ],
               "type": "string"
             }
           },
@@ -656,15 +508,11 @@
         "operationId": "createTerminal",
         "parameters": [
           {
-            "description": "The reader's role, which must allow the screen's administrator.",
+            "description": "The reader's role, as bmo-ui's console plugin contract names it, which a call with the console's credential carries and which must allow the manifest's role; the command's own token needs none.",
             "in": "header",
             "name": "Owner-Role",
-            "required": true,
+            "required": false,
             "schema": {
-              "enum": [
-                "administrator",
-                "member"
-              ],
               "type": "string"
             }
           }
@@ -711,15 +559,11 @@
         "operationId": "endTerminal",
         "parameters": [
           {
-            "description": "The reader's role, which must allow the screen's administrator.",
+            "description": "The reader's role, as bmo-ui's console plugin contract names it, which a call with the console's credential carries and which must allow the manifest's role; the command's own token needs none.",
             "in": "header",
             "name": "Owner-Role",
-            "required": true,
+            "required": false,
             "schema": {
-              "enum": [
-                "administrator",
-                "member"
-              ],
               "type": "string"
             }
           },
@@ -756,15 +600,11 @@
         "operationId": "readTerminal",
         "parameters": [
           {
-            "description": "The reader's role, which must allow the screen's administrator.",
+            "description": "The reader's role, as bmo-ui's console plugin contract names it, which a call with the console's credential carries and which must allow the manifest's role; the command's own token needs none.",
             "in": "header",
             "name": "Owner-Role",
-            "required": true,
+            "required": false,
             "schema": {
-              "enum": [
-                "administrator",
-                "member"
-              ],
               "type": "string"
             }
           },
@@ -808,15 +648,11 @@
         "operationId": "renameTerminal",
         "parameters": [
           {
-            "description": "The reader's role, which must allow the screen's administrator.",
+            "description": "The reader's role, as bmo-ui's console plugin contract names it, which a call with the console's credential carries and which must allow the manifest's role; the command's own token needs none.",
             "in": "header",
             "name": "Owner-Role",
-            "required": true,
+            "required": false,
             "schema": {
-              "enum": [
-                "administrator",
-                "member"
-              ],
               "type": "string"
             }
           },
@@ -873,15 +709,11 @@
         "operationId": "pasteTerminal",
         "parameters": [
           {
-            "description": "The reader's role, which must allow the screen's administrator.",
+            "description": "The reader's role, as bmo-ui's console plugin contract names it, which a call with the console's credential carries and which must allow the manifest's role; the command's own token needs none.",
             "in": "header",
             "name": "Owner-Role",
-            "required": true,
+            "required": false,
             "schema": {
-              "enum": [
-                "administrator",
-                "member"
-              ],
               "type": "string"
             }
           },
@@ -938,15 +770,11 @@
         "operationId": "attachTerminal",
         "parameters": [
           {
-            "description": "The reader's role, which must allow the screen's administrator.",
+            "description": "The reader's role, as bmo-ui's console plugin contract names it, which a call with the console's credential carries and which must allow the manifest's role; the command's own token needs none.",
             "in": "header",
             "name": "Owner-Role",
-            "required": true,
+            "required": false,
             "schema": {
-              "enum": [
-                "administrator",
-                "member"
-              ],
               "type": "string"
             }
           },

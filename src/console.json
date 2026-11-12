@@ -4,7 +4,9 @@
   "icon": "i-material-symbols-devices-outline",
   "screenPath": "/remote",
   "serviceName": "remote",
-  "languagePack": "i18n",
+  "apiPrefix": "/",
+  "role": "administrator",
+  "ownerKey": false,
   "events": false,
   "websocket": true,
   "pushKinds": []

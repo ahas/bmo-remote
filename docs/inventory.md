@@ -102,13 +102,14 @@ Carried into the console plugin bundle under `client/`, at the same paths below 
   (`useNarrow`), `prompt` (`TOUCH_QUERY`), `tabs` (`BarAction`, `BarTab`, `BarMenuItem`), `layers`
   (`useBackClose`) and `wording` (`Translate`). The components `ActionGroup`, `ScreenFrame`,
   `SettingsDialog` and `TabBar` are bmo-ui's too.
-- **What bmo-ui does not serve** is the host's, declared in `client/host/` (`docs/api.md`, 「The console
-  plugin bundle」): `useKeptTabs`, `DeployMark`, `TodoOpenButton` and `UsageMeters`.
-- **The screen's words** are the bundle's own language pack, `client/i18n/locales/ko.yaml`: the 75 keys under
+- **What bmo-ui does not serve** the bundle stands in itself (`docs/api.md`, 「The console plugin bundle」):
+  `useKeptTabs`, which keeps the open tabs in the browser. The old screen's title-bar pieces, `DeployMark`,
+  `TodoOpenButton` and `UsageMeters`, are the console's own and are not taken.
+- **The screen's words** are the bundle's own language pack, `client/i18n/ko.json`: the 75 keys under
   `remote` of the old console's `client/i18n/locales/ko.yaml` (its lines 2037 to 2119), each value as it
   stood, and one key for each of the three refusal codes the old screen had none for, `failed`, `not_found`
-  and `unauthorized`. `client/i18n/locales/en.yaml` holds the same keys in English. The five shared keys
-  the screen reads stay in the host's pack (`docs/api.md`, 「The console plugin bundle」).
+  and `unauthorized`. `client/i18n/en.json` holds the same keys in English. The shared keys the screen reads
+  stay in the layer's own words, which the console answers (`docs/api.md`, 「The console plugin bundle」).
 - **Where the screen showed the server's sentence** — a session not opened, renamed or ended, and the
   terminal socket's `error` — it shows the pack's words for the refusal's code (`docs/api.md`, 「The console
   plugin bundle」), through `client/app/domain/remote/refusals.ts`, since the service answers English and codes.

@@ -36,7 +36,7 @@ pub struct Settings {
 pub struct Server {
   /// Where the service answers, a loopback address by default.
   pub listen: SocketAddr,
-  /// The bearer token every caller presents; an empty one lets no caller in.
+  /// The service's own token, which the command presents; an empty one lets no caller in by it.
   pub token: String,
 }
 
@@ -90,9 +90,11 @@ pub struct Store {
   pub path: PathBuf,
 }
 
-/// The console bundle the service answers (`docs/api.md`, 「The console bundle's routes」).
+/// The console face the service serves (`docs/api.md`, 「The console face」).
 #[derive(Clone, Debug, Deserialize)]
 pub struct Console {
+  /// The console's credential; an empty one stands no face.
+  pub token: String,
   /// The folder the bundle's build writes.
   pub folder: PathBuf,
 }
