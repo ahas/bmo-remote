@@ -11,7 +11,7 @@ use crate::wire::{
   Account, Health, Terminal, TerminalPage, TerminalPaste, TerminalPasted, TerminalRename, TerminalRequest,
   TerminalsQuery, WireError,
 };
-use bmo_console_face::OWNER_ROLE_HEADER;
+use bmo_console_face::{CONSOLE_MANIFEST_ROUTE, OWNER_ROLE_HEADER};
 
 /// Where the schemas the routes refer to stand in the document.
 const SCHEMAS: &str = "/components/schemas";
@@ -165,7 +165,7 @@ fn operations(generator: &mut SchemaGenerator) -> Vec<Operation> {
     },
     Operation {
       method: "get",
-      path: "/console-manifest",
+      path: CONSOLE_MANIFEST_ROUTE,
       id: "readConsoleManifest",
       tag: "console",
       summary: "The console face's manifest, by bmo-ui's console plugin contract, to the console's credential alone.",
