@@ -40,10 +40,18 @@ language pack, named here by key where a label matters.
     `remote.error.end_failed` or the service's refusal, and the tab stays. Switching tabs or leaving the
     screen ends nothing.
   - The tab's own menu renames a terminal session, beside the closings and the pin.
-  - The right end of the tab bar holds a new terminal and open the desktop as two icon buttons, on a phone
-    too, and beside them, one gap apart like the rest of the group, the shown view's menu (「The view's
-    menu」).
-  - With no tab open, the screen says so in one line, with a new terminal and the desktop to open.
+  - The right end of the tab bar holds open the desktop as an icon button, on a phone too, then, one gap
+    apart like the rest of the group, the shown view's menu (「The view's menu」), and last the new terminal.
+  - **A new terminal is made from bmo-ui's one create button** (`CreateButton`, bmo-ui's
+    `docs/components.md`, 「Creating」), named `remote.action.new_terminal`: on a wide screen a grey icon at
+    the right end of the tab bar's actions, on a phone the floating button at the screen's bottom right. It
+    answers no key, since both views take every key typed into them and the desktop takes them from the
+    whole window. While a terminal is being made it stands disabled.
+  - On a phone the views keep the room the floating button takes (`--bmo-create-room`) under them, so the
+    terminal's last line, its extra-keys row and the desktop's bottom edge stand clear of it. While a view
+    is taken to the whole window the button is not drawn, and that view keeps no room.
+  - With no tab open, the bar stays with its actions and the new terminal, and the screen says so in one
+    line under it.
 - **A tab switch never ends a session.** Every open tab's panel stays mounted and is only hidden, so a
   program keeps running and printing while its tab is not shown, and the desktop connection stays up. A
   panel shown again is fitted and repainted at once. Leaving the screen keeps every terminal and the desktop
