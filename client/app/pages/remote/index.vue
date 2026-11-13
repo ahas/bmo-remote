@@ -26,30 +26,26 @@
         >
           <template #actions>
             <RemoteViewMenu v-if="shownView !== null && !fullView" :view="shownView" :views="views" />
-            <!-- A view taken to the whole window covers the screen, so the create button is not drawn
-                 under it: on a phone it would float over the view. -->
-            <UTheme v-if="!fullView" :props="SMALL_BUTTONS">
-              <CreateButton :label="$t('remote.action.new_terminal')" :shortcut="null" :disabled="creating" @click="createTerminal()" />
-            </UTheme>
           </template>
         </TabBar>
-        <div v-else class="flex h-9 shrink-0 items-center justify-end gap-1 border-b border-default px-1 pointer-coarse:h-10">
+        <div v-else class="flex h-9 shrink-0 items-center justify-end border-b border-default px-1 pointer-coarse:h-10">
           <ActionGroup :actions="actions" :label="$t('remote.label.menu')" :narrow-fold="false" />
-          <UTheme :props="SMALL_BUTTONS">
-            <CreateButton :label="$t('remote.action.new_terminal')" :shortcut="null" :disabled="creating" @click="createTerminal()" />
-          </UTheme>
         </div>
 
         <p v-if="failure !== ''" role="alert" class="shrink-0 border-b border-default px-4 py-2 text-sm text-error">{{ failure }}</p>
 
-        <p v-if="state.tabs.length === 0" class="flex flex-1 items-center justify-center p-4 text-sm text-muted">{{ $t("remote.status.no_sessions") }}</p>
+        <div v-if="state.tabs.length === 0" class="flex flex-1 flex-col items-center justify-center gap-4 p-4 text-muted">
+          <p class="text-sm">{{ $t("remote.status.no_sessions") }}</p>
+          <div class="flex flex-wrap justify-center gap-2">
+            <UButton icon="i-material-symbols-terminal" :label="$t('remote.action.new_terminal')" :loading="creating" @click="createTerminal()" />
+            <UButton color="neutral" variant="outline" icon="i-material-symbols-desktop-windows-outline" :label="$t('remote.title.desktop')" @click="update(openTab(state, DESKTOP_TAB))" />
+          </div>
+        </div>
 
         <!-- The view taken to the whole window stands over the page, in the same place in the
              document, so nothing it holds is moved or reconnected; the tab bar stays behind, and a row
-             of the way back out of it, the view's own name and its menu stands over it instead. On a
-             phone the views in the page keep the room the floating create button takes under them;
-             the whole-window view keeps none, since the button is not drawn while it stands. -->
-        <div v-else class="flex min-h-0 flex-1 flex-col" :class="fullView ? 'fixed inset-0 z-50 bg-black' : 'pb-(--bmo-create-room)'">
+             of the way back out of it, the view's own name and its menu stands over it instead. -->
+        <div v-else class="flex min-h-0 flex-1 flex-col" :class="fullView ? 'fixed inset-0 z-50 bg-black' : ''">
           <RemoteWindowBar v-if="fullView && shownView !== null" :label="labelOf(state.active!)" :view="shownView" :views="views" :back="leaveFullView" />
           <template v-for="id in state.tabs" :key="id">
             <RemoteDesktop v-if="id === DESKTOP_TAB" v-show="state.active === id" :active="state.active === id" class="min-h-0 flex-1" />
@@ -150,11 +146,8 @@ const barTabs = computed<BarTab[]>(() =>
   })
 );
 
-// The tab bar's actions are the library's small buttons (docs/screen.md, 「The view's menu」). The create button
-// takes the size its row sets as the library's default, as a toolbar sets it, so it stands in the row at that size.
-const SMALL_BUTTONS = { button: { size: "sm" } } as const;
-
 const actions = computed<BarAction[]>(() => [
+  { id: "new", label: t("remote.action.new_terminal"), icon: "i-material-symbols-add", loading: creating.value, disabled: creating.value, onSelect: createTerminal },
   {
     id: "desktop",
     label: t("remote.action.open_desktop"),
