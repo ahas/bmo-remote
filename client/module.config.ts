@@ -41,24 +41,30 @@ const libraryComponents: ComponentResolver = (name) => {
 };
 
 // The bundle's words as the service answers them: each language file's tree under its locale's code.
+function readWords(): ConsoleWords {
+  const folder = join(here, "i18n");
+  const all: ConsoleWords = {};
+
+  for (const file of readdirSync(folder).filter((name) => name.endsWith(".json"))) {
+    all[basename(file, ".json")] = JSON.parse(readFileSync(join(folder, file), "utf8")) as Record<string, unknown>;
+  }
+
+  return all;
+}
+
+const WORDS = readWords();
+
 const words: Plugin = {
   name: "bmo-remote-words",
   generateBundle() {
-    const folder = join(here, "i18n");
-    const all: ConsoleWords = {};
-
-    for (const file of readdirSync(folder).filter((name) => name.endsWith(".json"))) {
-      all[basename(file, ".json")] = JSON.parse(readFileSync(join(folder, file), "utf8")) as Record<string, unknown>;
-    }
-
-    this.emitFile({ type: "asset", fileName: "words.json", source: `${JSON.stringify(all)}\n` });
+    this.emitFile({ type: "asset", fileName: "words.json", source: `${JSON.stringify(WORDS)}\n` });
   }
 };
 
 export default defineConfig({
   root: here,
   plugins: [
-    consoleBundle(),
+    consoleBundle({ name: "remote", words: WORDS }),
     vue(),
     tailwindcss(),
     AutoImport({

@@ -1,7 +1,7 @@
 <template>
   <!-- A terminal session's name. An empty name takes the name away. -->
   <SettingsDialog v-model:open="open" :title="$t('remote.title.rename')" :dirty="dirty">
-    <UFormField :label="$t('common.label.name')" :error="error">
+    <UFormField :label="$t('remote.label.name')" :error="error">
       <UInput v-model="name" class="w-full" autofocus :maxlength="NAME_MAX" @keydown.enter.prevent="submit()" />
     </UFormField>
 
