@@ -358,6 +358,19 @@ export function claimTerminalKeyboard(id: string | null = shownId): boolean {
   return true;
 }
 
+// Raises the phone's keyboard into the shown terminal, for the keyboard button a finger presses
+// (docs/screen.md, 「A terminal tab」). Unlike a view being shown, a press asks for the keyboard,
+// so it is given on a touch screen too. Says whether a terminal took it.
+export function raiseTerminalKeyboard(id: string | null = shownId): boolean {
+  const entry = id === null ? undefined : entries.get(id);
+
+  if (!entry?.opened || entry.released || !entry.host) return false;
+
+  entry.term.focus();
+
+  return true;
+}
+
 // The terminal of one session, made the first time a view asks for it and kept until released.
 export function useRemoteTerminal(id: string, options: { t: Translate }): RemoteTerminalSession {
   restoreChoices();

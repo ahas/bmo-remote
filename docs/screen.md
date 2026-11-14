@@ -59,8 +59,9 @@ language pack, named here by key where a label matters.
 - Its first group is the whole-window view (`remote.action.fullscreen`), while the view stands in the page, and
   a window of its own (`remote.action.open_window`); under them, the shown view's own settings — a terminal's,
   or the desktop's connection settings.
-- On a touch screen the desktop's keyboard (raising the phone's keyboard) stands beside the menu as an icon
-  button, since a menu would take focus from the desktop before the keyboard could be raised in it.
+- On a touch screen a keyboard button (raising the phone's keyboard) stands beside the menu as an icon
+  button over a terminal and over the desktop alike, since a menu would take focus from the view before the
+  keyboard could be raised in it.
 - **The whole-window view** takes the shown view over the whole window, inside the page, under one dark row:
   at its left end the way back out of it, an icon button named `remote.action.exit_fullscreen` in its
   tooltip, then the session's name, and the same menu at its right end. The way back never gathers into the
@@ -89,6 +90,9 @@ language pack, named here by key where a label matters.
   without clicking into it first reaches the shell, and Escape reaches the shell rather than closing
   anything on the screen. On a touch screen it takes no focus, which would raise the keyboard over a
   terminal being looked at (`docs/remote.md`, 「Rules the interface keeps」).
+- On a touch screen the keyboard button beside the view's menu raises the phone's keyboard into the shown
+  terminal, as a tap on the terminal does. It holds no on or off state; the keyboard goes down by the phone's
+  own key, and the terminal then lets go of focus so the next press anywhere does not raise it again.
 - The terminal keeps its black Argonaut colours and its fonts in both screen modes.
 - What the connection is doing stands over the terminal in one thin line with a bottom border, the mark
   turning while it connects; a lost connection is retried by itself, and a failure offers

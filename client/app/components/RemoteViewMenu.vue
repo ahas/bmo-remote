@@ -1,10 +1,10 @@
 <template>
   <!-- What is done with the shown view and how it is shown, as one menu (docs/screen.md):
        the whole window and a window of its own first, then the view's own settings. On a touch screen
-       the desktop's keyboard stands beside it as a button, since a menu would take focus from the
-       desktop before the keyboard could be raised in it. -->
+       a keyboard button stands beside it over a terminal and over the desktop, since a menu would take
+       focus from the view before the keyboard could be raised in it. -->
   <div class="flex shrink-0 items-center gap-1">
-    <UTooltip v-if="props.view === 'desktop' && touch" :text="$t('remote.action.keyboard_show')">
+    <UTooltip v-if="touch" :text="$t('remote.action.keyboard_show')">
       <UButton
         color="neutral"
         variant="ghost"
@@ -12,9 +12,9 @@
         square
         icon="i-material-symbols-keyboard-outline"
         :aria-label="$t('remote.action.keyboard_show')"
-        :disabled="status !== 'connected'"
+        :disabled="props.view === 'desktop' && status !== 'connected'"
         @pointerdown.prevent
-        @click="showKeyboard()"
+        @click="raiseKeyboard()"
       />
     </UTooltip>
 
@@ -32,6 +32,7 @@ import {
   TERMINAL_FONT_SIZES,
   TERMINAL_PADDINGS,
   claimTerminalKeyboard,
+  raiseTerminalKeyboard,
   useTerminalExtraKeys,
   useTerminalFontSize,
   useTerminalPadding
@@ -66,6 +67,12 @@ const extraKeys = useTerminalExtraKeys();
 // is taken, and the return stands.
 function closeAutoFocus(event: Event): void {
   if (claimTerminalKeyboard()) event.preventDefault();
+}
+
+// The phone's keyboard goes into the shown view: the desktop's own input, or the shown terminal.
+function raiseKeyboard(): void {
+  if (props.view === "desktop") showKeyboard();
+  else raiseTerminalKeyboard();
 }
 
 const content = { align: "end" as const, collisionPadding: 12, onCloseAutoFocus: closeAutoFocus };

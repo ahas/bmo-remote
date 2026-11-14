@@ -675,8 +675,8 @@ being shown, is all it takes to reach the desktop, whatever state its daemons ar
   hand focus back to the button that opened it, because on that view the keyboard's home is the terminal;
   over the desktop, where no terminal is shown, the hand-back stands. A screen a finger drives is the
   exception: focus there raises the soft keyboard over a terminal somebody may only be looking at, so a
-  finger asks for the keyboard by tapping the terminal, and the extra-keys row types without moving focus
-  at all.
+  finger asks for the keyboard by tapping the terminal or the keyboard button beside the view's menu, and
+  the extra-keys row types without moving focus at all.
 - **Escape is the shell's.** It is sent from the IME layer as one byte and stopped there, so it reaches
   neither xterm nor the page: while the terminal holds the keyboard, nothing on the screen closes or is left
   on Escape, and the whole-window view is left by its own menu item or by the back gesture instead. A Korean
