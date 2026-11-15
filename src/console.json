@@ -6,6 +6,7 @@
   "serviceName": "remote",
   "apiPrefix": "/",
   "role": "administrator",
+  "sidebarSection": "administration",
   "ownerKey": false,
   "events": false,
   "websocket": true,

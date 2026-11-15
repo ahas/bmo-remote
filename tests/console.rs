@@ -123,6 +123,7 @@ async fn the_served_manifest_is_read_by_the_contract_on_the_vendored_release() {
   assert_eq!(read["screenPath"], "/remote");
   assert_eq!(read["layer"], vendored_layer().as_str());
   assert_eq!(read["role"], "administrator");
+  assert_eq!(read["sidebarSection"], "administration");
   assert_eq!(read["ownerKey"], false);
   assert_eq!(read["websocket"], true);
   assert_eq!(read["apiPrefix"], "/");

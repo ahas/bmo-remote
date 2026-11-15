@@ -212,6 +212,8 @@ paths from the bundle's folder, and refuses at start a manifest the contract ref
   - the API prefix `/`: the screen calls every route and socket of this document;
   - the role `administrator`, with no owner key: the terminals and the desktop are the machine's own, not a
     user's;
+  - the sidebar section `administration`: the screen is one of the services an administrator runs the system
+    with, so a console that parts its sidebar draws its entry there;
   - a WebSocket, for the terminal socket and the desktop sockets; no event stream, and no notice kinds.
 - **Where no face stands,** with no console credential set or a bundle folder the face cannot read, the
   service still answers every other route to its own token, and says why on its standard error at start; the
