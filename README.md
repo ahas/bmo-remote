@@ -22,8 +22,9 @@ passes or panics.
 The bundle's own tests stand in `client/tests/`: a desktop that does not answer, tried again until it
 answers, refuses or is let go of, against a stand-in desktop and a stand-in clock (`docs/remote.md`, 「A
 desktop that does not answer」), run by `bun run test` inside `client/` as part of the bundle's check. The other behaviour tests are deferred: they are
-written and run here once the minimal services stand on the new repositories, and until then the build check,
-`cargo check --all-targets`, and the checks of the bundle and the desktop sidecar stand beside them.
+written and run here once the minimal services stand on the new repositories, and until then the testbed's
+own static check of the crate, which formats it and lints it with every target compiled, and the checks of the
+bundle and the desktop sidecar stand beside them.
 `docs/inventory.md` lists the tests the old behaviour was held to.
 
 ## Layout
