@@ -25,15 +25,6 @@ structure (archive document #301, 「원칙」).
 - A document states what is true now: no change history, no rationale told through an earlier design, no
   pasted source, signature or config fragment, and no file-and-line pins.
 
-## The code graph
-
-- **`.graph/` is this repository's own code graph:** one node per feature, the files it is made of, the
-  symbols worth knowing, the APIs it exposes and the APIs of other repositories it calls.
-- **It is written only with `bmo graph`,** run in this checkout — `create`, `update`, `alias`, `rename` and
-  `delete`. A change that moves a feature's files, symbols or boundary updates its node in the checkout. Its area
-  files are generated and untracked, so a fresh checkout builds them again, while `settings.toml` is the
-  repository's configuration and stays tracked.
-
 ## Boundaries
 
 - **No other unit is called.** The console in front of the service checks the sign-in and the `Origin`; the

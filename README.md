@@ -38,7 +38,6 @@ bundle and the desktop sidecar stand beside them.
 | `deploy/` | The service's user unit and the tmux configuration its sessions' server runs with |
 | `tests/` | The repository-wide personal-data check and the behaviour tests that stand |
 | `docs/` | The canonical statements of what the service does |
-| `.graph/` | The code graph: one node per feature, the files it is made of, and the APIs it exposes and calls |
 
 At the root stand the Cargo manifest, `VERSION`, `testbed.toml`, `rustfmt.toml`, `CLAUDE.md`,
 `PERSONAL-DATA.md`, `korean-ledger.json`, `settings.toml` and `settings.local.toml.example`, the example of
