@@ -7,8 +7,8 @@ the command that lists a set stands beside it. Nothing here was copied with its 
 
 The behaviour tests are deferred: none is carried, written or run in this phase. They are written and run
 here once the minimal services stand on the new repositories. The deferred tests are listed below so that
-work knows what the old behaviour was held to. The repository carries one test of its own, the
-repository-wide personal-data check (`PERSONAL-DATA.md`).
+work knows what the old behaviour was held to. The testbed's `personal-data` check holds the
+personal-data rule (`PERSONAL-DATA.md`).
 
 ## How the set was listed
 

@@ -8,9 +8,8 @@ hands the remote screen's requests on, as `docs/api.md` states.
 
 ## Tests
 
-The tests in `tests/` are the repository-wide personal-data check in `tests/personal_data.rs`
-(`PERSONAL-DATA.md`), which reads every tracked file for a mail address, a home path, a telephone number, a
-token and a private network address; the old archive's kept desktop port taken into the store,
+The testbed's `personal-data` check reads every tracked file for a mail address, a home path, a telephone
+number, a token and a private network address (`PERSONAL-DATA.md`). The tests in `tests/` are the old archive's kept desktop port taken into the store,
 `tests/import.rs`; and the console face, `tests/console.rs`: the manifest the service serves read through
 bmo-ui's own reading on the release the client vendors, the service's declaration and credentials wired to
 bmo-chat's console face, the console's credential and the reader's role asked where the screen needs them, and
@@ -36,7 +35,7 @@ bundle and the desktop sidecar stand beside them.
 | `client/` | The console plugin bundle: the remote screen, a project of its own |
 | `desktop-sidecar/` | The desktop sidecar: the bun package the service starts to answer the desktop's sockets, a project of its own |
 | `deploy/` | The service's user unit and the tmux configuration its sessions' server runs with |
-| `tests/` | The repository-wide personal-data check and the behaviour tests that stand |
+| `tests/` | The behaviour tests that stand |
 | `docs/` | The canonical statements of what the service does |
 
 At the root stand the Cargo manifest, `VERSION`, `testbed.toml`, `rustfmt.toml`, `CLAUDE.md`,

@@ -1,6 +1,6 @@
 # How the testbed checks, builds and deploys this repository, in the testbed's declaration format. The suite
-# runs the repository-wide personal-data check (PERSONAL-DATA.md) and the behaviour tests that stand
-# (README.md).
+# runs the behaviour tests that stand (README.md); the quick checks hold the personal-data rule
+# (PERSONAL-DATA.md).
 
 testbed = 0
 name = "bmo-remote"
@@ -24,7 +24,9 @@ paths = ["client", "desktop-sidecar"]
 # dependencies the manifests name. The ledger is the count of lines with Korean each code file may hold,
 # a file it does not name being allowed none: the Hangul the desktop's input method and the terminal's IME
 # handle stand there.
-quick = ["korean", "layout", "dependencies", "cargo-profile", "shared-versions"]
+quick = ["korean", "layout", "dependencies", "cargo-profile", "shared-versions", "personal-data"]
+# The one address PERSONAL-DATA.md allows.
+personal_data_allowed = ["dev@ahas.io"]
 korean_ledger = "korean-ledger.json"
 base_libraries = ["bmo-chat", "bmo-chat-client", "bmo-console-face", "bmo-ui", "bmo-markup"]
 
