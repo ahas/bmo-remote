@@ -22,7 +22,7 @@
         role="status"
         class="absolute inset-x-0 top-0 z-10 flex h-10 items-center gap-2 border-b border-white/10 bg-black/85 px-3 text-sm text-white/70"
       >
-        <UIcon :name="notice.icon" class="size-4 shrink-0" />
+        <UIcon :name="notice.icon" class="size-4 shrink-0" :class="notice.spins ? 'animate-spin motion-reduce:animate-none' : ''" />
         <span class="min-w-0 flex-1 truncate">{{ notice.text }}</span>
         <UButton v-if="notice.retry" color="neutral" variant="ghost" size="sm" icon="i-material-symbols-refresh" :label="notice.retry" @click="connect()" />
       </div>
@@ -77,15 +77,15 @@ const wakingText = computed(() => (status.value === "waking" && waking.value ? t
 // The password is asked for only where the console does not keep one, once it is known which.
 const asking = computed(() => accountRead.value && !keptPassword.value && !connected.value);
 
-const notice = computed<{ text: string; icon: string; retry?: string } | null>(() => {
+const notice = computed<{ text: string; icon: string; spins?: true; retry?: string } | null>(() => {
   if (!keptPassword.value && status.value !== "away") return null;
 
   switch (status.value) {
     case "loading":
     case "connecting":
-      return { text: t("remote.status.connecting"), icon: "i-material-symbols-progress-activity" };
+      return { text: t("remote.status.connecting"), icon: "i-material-symbols-progress-activity", spins: true };
     case "waking":
-      return { text: wakingText.value ?? t("remote.status.connecting"), icon: "i-material-symbols-progress-activity" };
+      return { text: wakingText.value ?? t("remote.status.connecting"), icon: "i-material-symbols-progress-activity", spins: true };
     case "ended":
       return { text: t("remote.status.connection_ended"), icon: "i-material-symbols-stop-circle-outline", retry: t("remote.action.reconnect") };
     case "away":

@@ -12,6 +12,7 @@
       <UIcon
         :name="status === 'closed' ? 'i-material-symbols-stop-circle-outline' : 'i-material-symbols-progress-activity'"
         class="size-4 shrink-0"
+        :class="status === 'closed' ? '' : 'animate-spin motion-reduce:animate-none'"
       />
       <span class="min-w-0 truncate">{{ statusLabel }}</span>
     </div>
