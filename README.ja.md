@@ -45,7 +45,7 @@ desktop that does not answer」)のほか、画面のセッション一覧、表
 | `tests/` | 現在維持されている振る舞いテスト |
 | `docs/` | サービスの動作を定める正式なドキュメント |
 
-ルートには Cargo マニフェストとそのロックファイル、MIT の `LICENSE`、`VERSION`、`testbed.toml`、`rustfmt.toml`、
+ルートには Cargo マニフェストとそのロックファイル、MIT の `LICENSE`、`VERSION`、`testbed.toml`、`install.toml`、`rustfmt.toml`、
 `CLAUDE.md`、`PERSONAL-DATA.md`、`korean-ledger.json`、`settings.toml`、そしてデプロイ側が用意するローカル設定の
 例である `settings.local.toml.example` があります。
 

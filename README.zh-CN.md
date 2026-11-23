@@ -38,7 +38,7 @@ desktop that does not answer」);以及界面的会话列表、视图操作和�
 | `tests/` | 现行的行为测试 |
 | `docs/` | 描述服务行为的权威文档 |
 
-根目录下有 Cargo 清单及其锁文件、MIT `LICENSE`、`VERSION`、`testbed.toml`、`rustfmt.toml`、`CLAUDE.md`、
+根目录下有 Cargo 清单及其锁文件、MIT `LICENSE`、`VERSION`、`testbed.toml`、`install.toml`、`rustfmt.toml`、`CLAUDE.md`、
 `PERSONAL-DATA.md`、`korean-ledger.json`、`settings.toml`，以及部署时提供的本地设置示例
 `settings.local.toml.example`。
 

@@ -1,0 +1,81 @@
+# What installing the remote service on a fresh machine needs, read by the testbed's install verb (bmo-testbed's
+# docs/install.md, 「The install declaration」). The settings are docs/api.md's 「Settings」; the desktop it relays
+# is docs/remote.md's 「What gnome-remote-desktop needs」.
+
+install = 1
+
+restart = "systemctl --user restart bmo-remote.service"
+
+[[needs]]
+program = "cargo"
+what = "Builds the service; the Rust toolchain from https://rustup.rs."
+
+# The service unit starts the desktop sidecar with the Bun at this path.
+[[needs]]
+check = 'test -x "$HOME/.bun/bin/bun"'
+what = "Builds the console bundle and runs the desktop sidecar, at ~/.bun/bin/bun; the Bun runtime from https://bun.sh (curl -fsSL https://bun.sh/install | bash)."
+
+[[needs]]
+program = "tmux"
+what = "Holds the console's terminal sessions; the tmux package."
+
+[[needs]]
+program = "grdctl"
+what = "The remote desktop the console shows is gnome-remote-desktop's remote login on this machine, listening on port 3389 with RDP credentials set by grdctl; the gnome-remote-desktop package on a GNOME desktop, with remote login turned on."
+
+[[port]]
+name = "remote.server"
+number = 3320
+
+[[port]]
+name = "remote.sidecar"
+number = 3321
+
+[[token]]
+name = "remote.service"
+file = "env/remote-service.token"
+
+[[token]]
+name = "remote.console"
+file = "env/remote-console.token"
+
+[[input]]
+name = "remote.desktop-password"
+what = "The password of this machine's gnome-remote-desktop remote login, the one stored with grdctl (Settings, System, Remote Desktop, Remote Login, in GNOME), which the service answers the desktop's authentication with."
+file = "env/remote-desktop-password"
+secret = true
+
+# The release's settings.local.toml. The store and the pasted pictures stand under the data root; the sidecar is
+# run by the Bun the service unit names.
+[[settings]]
+file = "env/remote.toml"
+text = """
+[server]
+listen = "127.0.0.1:{{port.remote.server}}"
+token = "{{token.remote.service}}"
+
+[desktop]
+password = "{{input.remote.desktop-password}}"
+
+[sidecar]
+listen = "127.0.0.1:{{port.remote.sidecar}}"
+
+[terminal]
+pastes = "{{data_root}}/remote/pastes"
+
+[store]
+path = "{{data_root}}/remote/remote.db"
+
+[console]
+token = "{{token.remote.console}}"
+"""
+
+[[line]]
+file = "env/web-console.env"
+key = "REMOTE_ADDRESS"
+value = "http://127.0.0.1:{{port.remote.server}}"
+
+[[line]]
+file = "env/web-console.env"
+key = "REMOTE_TOKEN"
+value = "{{token.remote.console}}"

@@ -43,7 +43,7 @@ bundle and the desktop sidecar stand beside them.
 | `tests/` | The behaviour tests that stand |
 | `docs/` | The canonical statements of what the service does |
 
-At the root stand the Cargo manifest and its lock, the MIT `LICENSE`, `VERSION`, `testbed.toml`, `rustfmt.toml`, `CLAUDE.md`,
+At the root stand the Cargo manifest and its lock, the MIT `LICENSE`, `VERSION`, `testbed.toml`, `install.toml`, `rustfmt.toml`, `CLAUDE.md`,
 `PERSONAL-DATA.md`, `korean-ledger.json`, `settings.toml` and `settings.local.toml.example`, the example of
 the local settings a deployment gives.
 
