@@ -121,9 +121,6 @@ async fn close(mut socket: WebSocket, code: u16, reason: &'static str) {
 
 /// One viewer, from the session looked up to the socket closed.
 async fn view(mut socket: WebSocket, standing: Arc<Standing>, id: String, cols: f64, rows: f64) {
-  let serial = PROBE_SERIAL.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
-
-  eprintln!("PROBE open {} {id} #{serial} {cols}x{rows}", probe_now());
   let found = if is_terminal_id(&id) { standing.tmux.find(&id).await } else { Ok(None) };
   let session = match found {
     Ok(Some(session)) => session,
@@ -155,11 +152,10 @@ async fn view(mut socket: WebSocket, standing: Arc<Standing>, id: String, cols: 
   loop {
     tokio::select! {
       incoming = socket.recv() => match incoming {
-        Some(Ok(Message::Binary(frame))) => { probe_frame(serial, &frame); read_frame(&client, &frame) }
+        Some(Ok(Message::Binary(frame))) => read_frame(&client, &frame),
         Some(Ok(Message::Text(frame))) => read_frame(&client, frame.as_bytes()),
         Some(Ok(Message::Ping(_) | Message::Pong(_))) => {}
         Some(Ok(Message::Close(_)) | Err(_)) | None => {
-          eprintln!("PROBE close {} #{serial}", probe_now());
           client.close();
           return;
         }
@@ -208,79 +204,4 @@ fn read_frame(client: &Attach, frame: &[u8]) {
     }
     _ => {}
   }
-}
-
-// TEMPORARY PROBE: the shape of each input frame, control bytes in hex, escape sequences as they are and other
-// printable runs counted, so the bytes a page sends on a reload can be read in the journal without what was typed.
-static PROBE_SERIAL: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
-
-fn probe_now() -> u128 {
-  std::time::SystemTime::now()
-    .duration_since(std::time::UNIX_EPOCH)
-    .map(|d| d.as_millis())
-    .unwrap_or(0)
-}
-
-fn probe_frame(serial: u64, frame: &[u8]) {
-  match frame.split_first() {
-    Some((&0, body)) => probe_input(serial, body),
-    Some((&1, body)) => {
-      eprintln!("PROBE control {} #{serial} {}", probe_now(), String::from_utf8_lossy(body))
-    }
-    _ => {}
-  }
-}
-
-fn probe_input(serial: u64, body: &[u8]) {
-  let mut shape = String::new();
-  let mut run = 0usize;
-  let mut at = 0;
-
-  while at < body.len() {
-    let byte = body[at];
-
-    if byte == 0x1b {
-      if run > 0 {
-        shape.push_str(&format!("[{run}]"));
-        run = 0;
-      }
-
-      shape.push_str("<1b>");
-      at += 1;
-
-      let start = at;
-
-      while at < body.len() && at - start < 24 && (0x20..0x7f).contains(&body[at]) {
-        let final_byte = at > start && (0x40..0x7f).contains(&body[at]);
-
-        at += 1;
-
-        if final_byte {
-          break;
-        }
-      }
-
-      shape.push_str(&String::from_utf8_lossy(&body[start..at]));
-      continue;
-    }
-
-    if (0x20..0x7f).contains(&byte) || byte >= 0x80 {
-      run += 1;
-    } else {
-      if run > 0 {
-        shape.push_str(&format!("[{run}]"));
-        run = 0;
-      }
-
-      shape.push_str(&format!("<{byte:02x}>"));
-    }
-
-    at += 1;
-  }
-
-  if run > 0 {
-    shape.push_str(&format!("[{run}]"));
-  }
-
-  eprintln!("PROBE input {} #{serial} {shape}", probe_now());
 }
