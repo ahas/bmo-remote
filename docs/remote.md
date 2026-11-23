@@ -575,14 +575,16 @@ moment of connecting rather than as a failure to press past.
     and is still a desktop to work in.
   - Every size is scaled as a whole into at least 640×480 and at most 3840×2160, keeping its shape, and
     evened.
-  - With `auto`, once the place has stood at a new size for 600 ms, the connection is made again at that
-    size. A resize in progress asks nothing.
+  - With `auto`, a change of the place keeps the connection: the picture is fitted to the place at once, and
+    once the place has stood at a size other than the one asked for 600 ms, the screen offers to fit it (이 크기로
+    맞추기), which connects again at the new size. Nothing reconnects by itself on a resize, since every new
+    connection passes the login screen's handover again.
   - While the on-screen keyboard is up, a change of the place only fits the picture again: a phone's
     keyboard shrinks the page, and the desktop keeps the size it had.
   - **The desktop is never resized under a connection.** The client release in use keeps drawing into a
     picture of the size it connected at when the server's desktop changes size under it, and panics on the
     first frame beyond it; the connection is then dead, taking no keys and drawing nothing. So no connection
-    carries the display-control channel, and a new size is a new connection.
+    carries the display-control channel, and a new size is a new connection the reader asks for.
 - **The quality** is two things: the share of the resolution the connection asks for, and the RDP
   performance flags the relay puts into the logon packet in place of the client's own, named by the desktop
   socket's `quality` query.

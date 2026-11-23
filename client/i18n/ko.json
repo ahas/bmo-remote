@@ -41,7 +41,8 @@
       "open_desktop": "데스크톱 열기",
       "open_here": "여기서 열기",
       "open_window": "새 창으로 열기",
-      "reconnect": "다시 연결"
+      "reconnect": "다시 연결",
+      "fit_size": "이 크기로 맞추기"
     },
     "aria": {
       "desktop_input": "원격 데스크톱 입력",

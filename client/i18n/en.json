@@ -41,7 +41,8 @@
       "open_desktop": "Open the desktop",
       "open_here": "Open here",
       "open_window": "Open in a new window",
-      "reconnect": "Reconnect"
+      "reconnect": "Reconnect",
+      "fit_size": "Fit to this size"
     },
     "aria": {
       "desktop_input": "Remote desktop input",

@@ -27,6 +27,12 @@
         <UButton v-if="notice.retry" color="neutral" variant="ghost" size="sm" icon="i-material-symbols-refresh" :label="notice.retry" @click="connect()" />
       </div>
 
+      <!-- The place stands at another size than the connection asked for: the picture is fitted, and a press asks
+           the desktop for the new size (docs/remote.md, 「Connection settings」). -->
+      <div v-if="sizeStale && status === 'connected' && !notice" data-fit-size class="absolute end-2 top-2 z-10">
+        <UButton color="neutral" variant="solid" size="sm" icon="i-material-symbols-fit-screen-outline" :label="$t('remote.action.fit_size')" @click="fitSize()" />
+      </div>
+
       <div v-if="asking" class="absolute inset-0 flex items-center justify-center overflow-y-auto bg-default text-default">
         <RemoteDesktopLogin
           v-model:password="password"
@@ -61,7 +67,8 @@ const props = withDefaults(defineProps<Props>(), { active: true });
 
 const { t } = useI18n();
 const desktop = useRemoteDesktop();
-const { status, lastError, waking, password, settings, keyboardOpen } = desktop;
+const { status, lastError, waking, password, settings, keyboardOpen, sizeStale } = desktop;
+const fitSize = (): void => desktop.fitSize();
 const hostRef = useTemplateRef<HTMLElement>("hostRef");
 const username = ref("");
 const keptPassword = ref(false);

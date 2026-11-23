@@ -127,10 +127,10 @@ language pack, named here by key where a label matters.
   (`docs/remote.md`, 「One desktop」), so a menu or popover over the desktop stays open under the mouse.
 - Over the desktop the mouse pointer takes the desktop's own shape — an arrow, a text bar, a resize handle —
   as the remote programs set it (`docs/remote.md`, 「The pointer」).
-- With `auto`, the desktop takes the panel's size, and once the panel has stood at a new size for a moment the
-  desktop connects again at that size; a resize in progress asks nothing, and neither does the phone's
-  keyboard coming up. On a phone the desktop takes the panel's shape, scaled up to a desktop's size, so it
-  fills the panel (`docs/remote.md`, 「Connection settings」).
+- With `auto`, the desktop takes the panel's size when it connects. A resize of the panel keeps the connection and
+  fits the picture to it; once the panel has stood at another size for a moment, a 이 크기로 맞추기 button stands at
+  the panel's top corner, and pressing it connects again at that size. While the phone's keyboard is up, a change
+  only fits the picture.
 - What the phone's keyboard types — Hangul, symbols, Enter and Backspace included — is typed on the desktop as
   it is composed (`docs/remote.md`, 「The on-screen keyboard」).
 - The mouse's back and forward buttons over the desktop are the desktop's; the page does not go back.

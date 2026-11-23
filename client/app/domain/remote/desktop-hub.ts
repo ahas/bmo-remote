@@ -136,6 +136,8 @@ let resizeTimer: ReturnType<typeof setTimeout> | undefined;
 let placeSize: { width: number; height: number } | null = null;
 // The size the connection in hand asked for.
 let askedSize: { width: number; height: number } | null = null;
+// Whether the place stands at another size than the connection asked for, so a press may fit it.
+const sizeStale = ref(false);
 
 export interface ConnectOptions {
   // The console's words, for what the connection says when it fails.
@@ -190,6 +192,8 @@ export function useRemoteDesktop() {
     settings: readonly(settings),
     setSettings,
     placeResized,
+    sizeStale: readonly(sizeStale),
+    fitSize,
     status: readonly(status),
     lastError: readonly(lastError),
     waking: readonly(waking),
@@ -471,6 +475,12 @@ function setSettings(next: Partial<DesktopSettings>): void {
 // Connects again with the settings as they now are. The desktop is never resized under a
 // connection: the client keeps drawing into a picture of the size it connected at and panics on the
 // first frame beyond it (docs/remote.md, 「Connection settings」).
+/** Connects again at the size the place now stands at. */
+function fitSize(): void {
+  sizeStale.value = false;
+  reconnect();
+}
+
 function reconnect(): void {
   if (lastOptions === null || (status.value !== "connected" && status.value !== "connecting" && status.value !== "waking")) return;
 
@@ -481,7 +491,8 @@ function reconnect(): void {
 }
 
 // The place the desktop stands in has a new size. The picture is fitted to it at once; once it has
-// stood still, a desktop sized to its place connects again at the new size. A browser that cannot lay
+// stood still, a desktop sized to its place marks its size stale and keeps its connection, and a press of
+// fitSize connects again at the new size. A browser that cannot lay
 // the phone's keyboard over the page shrinks the page for it, so while it is up the desktop keeps its
 // size.
 function placeResized(width: number, height: number): void {
@@ -496,9 +507,9 @@ function placeResized(width: number, height: number): void {
 
     const wanted = currentSize();
 
-    if (askedSize && askedSize.width === wanted.width && askedSize.height === wanted.height) return;
-
-    reconnect();
+    // The connection stays: the picture is already fitted to the place, and a new size is asked only when the
+    // reader presses for it (docs/remote.md, 「Connection settings」).
+    sizeStale.value = !(askedSize && askedSize.width === wanted.width && askedSize.height === wanted.height);
   }, RESIZE_SETTLE_MS);
 }
 
@@ -628,6 +639,7 @@ async function dial(
   const size = currentSize();
 
   askedSize = size;
+  sizeStale.value = false;
 
   const config = interaction
     .configBuilder()
