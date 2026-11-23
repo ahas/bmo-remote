@@ -547,7 +547,24 @@ being shown, is all it takes to reach the desktop, whatever state its daemons ar
 - **What ends the waiting.** One connection begun, by a press, by the tab being shown, by a new size or
   quality, or by a redirection followed, is tried until it stands or is refused. Disconnecting, closing the
   tab, another window taking the desktop, or a new connection begun ends the waiting. A connection that
-  stood and then ended is not tried again; it shows as ended, with the reconnect action.
+  stood and then ended cleanly is not tried again; it shows as ended, with the reconnect action.
+
+### A connection that falls
+
+A connection that stood and then failed is connected again by the page itself, so a line that drops shows as a
+moment of connecting rather than as a failure to press past.
+
+- **What is dialled again:** a connection that stood and then ended in an error another try may get past, by
+  the same reading as a desktop that does not answer: anything but the desktop refusing the credentials or the
+  relay refusing the request. A decode that failed is one of them, and the next connection then offers no
+  H.264 (「How it is reached」), which is why a press of the reconnect action used to succeed where the line had
+  just fallen.
+- **How often:** at most three falls within a minute are dialled again; a fourth shows as the failure it is,
+  with the reconnect action, so a desktop that keeps dropping the line is left to the reader.
+- **What is said:** each fall is written to the browser's console with what ended it, so the cause of a line
+  that keeps dropping can be read.
+- **A connection that ended cleanly** — the desktop logging the session out, another window taking it — is no
+  fall, and shows as ended.
 
 ### Connection settings
 

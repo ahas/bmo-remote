@@ -9,7 +9,7 @@ import { TOUCH_QUERY } from "bmo-ui/app/domain/prompt";
 import { attachDesktopKeyboard, componentTyping, holdHoverFocus } from "./desktop-input";
 import { canvasRasterise, createPointerShapes, pointerChannelId, readPointerMessage } from "./desktop-pointer";
 import { remoteSocketUrl } from "./service";
-import { WAKE_POLICY, keepTrying } from "./desktop-wake";
+import { WAKE_POLICY, keepTrying, redialsFall, retryable } from "./desktop-wake";
 
 import type { RemoteDesktopQuality } from "../../../shared/remote";
 import type { Translate } from "bmo-ui/shared/wording";
@@ -511,6 +511,9 @@ export function describeError(t: Translate, error: unknown): string {
   return t("remote.error.connect_failed");
 }
 
+// The moments the connections that stood and then fell were dialled again, for how often that may happen.
+const falls: number[] = [];
+
 // A dial overtaken by a newer connection or a disconnect; its end settles nothing.
 const OVERTAKEN = new Error("the connection was overtaken");
 
@@ -584,6 +587,21 @@ async function connect(options: ConnectOptions): Promise<void> {
       closeKeys(keysOf);
 
       if (mine !== attempt || status.value !== "connected") return;
+
+      // A connection that stood and then fell on something another try may get past, a decode that failed
+      // among them (which leaves the next connection without H.264), is dialled again at once, a few times a
+      // minute; a refusal, or a line that keeps falling, shows (docs/remote.md, 「A connection that falls」).
+      const now = Date.now();
+
+      console.warn(`remote desktop: the connection fell: ${describeError(options.t, error)}`, error);
+
+      if (retryable(error) && redialsFall(falls, now)) {
+        falls.push(now);
+        status.value = "idle";
+        void connect(options);
+
+        return;
+      }
 
       status.value = "error";
       lastError.value = describeError(options.t, error);

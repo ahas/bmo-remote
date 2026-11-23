@@ -3,7 +3,7 @@
 // takes, and the page's waits move the clock instead of the browser's timers.
 import { describe, expect, test } from "bun:test";
 
-import { FIRST_WAIT_MS, LONGEST_WAIT_MS, WAKE_POLICY, keepTrying, retryable } from "../app/domain/remote/desktop-wake";
+import { FALLS_REDIALLED, FALL_SPAN_MS, FIRST_WAIT_MS, LONGEST_WAIT_MS, WAKE_POLICY, keepTrying, redialsFall, retryable } from "../app/domain/remote/desktop-wake";
 
 import type { WakeClock, WakeProgress } from "../app/domain/remote/desktop-wake";
 
@@ -127,5 +127,21 @@ describe("a desktop that refuses", () => {
     expect(retryable(new Error("socket closed"))).toBe(true);
     expect(retryable(REFUSED_CREDENTIALS)).toBe(false);
     expect(retryable(WRONG_PASSWORD)).toBe(false);
+  });
+});
+
+describe("a connection that stood and then fell", () => {
+  test("is dialled again a few times a minute, then left to the reader", () => {
+    const now = 1_000_000;
+
+    expect(redialsFall([], now)).toBe(true);
+    expect(redialsFall([now - 1_000, now - 2_000], now)).toBe(true);
+    expect(redialsFall(Array.from({ length: FALLS_REDIALLED }, (_, at) => now - at * 1_000), now)).toBe(false);
+  });
+
+  test("counts only the falls within the span", () => {
+    const now = 1_000_000;
+
+    expect(redialsFall(Array.from({ length: FALLS_REDIALLED }, () => now - FALL_SPAN_MS - 1), now)).toBe(true);
   });
 });

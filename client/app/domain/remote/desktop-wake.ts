@@ -89,3 +89,14 @@ export async function keepTrying<T>(dial: () => Promise<T>, policy: WakePolicy, 
     }
   }
 }
+
+// How often a connection that stood and then fell is connected again by the page itself: at most this many times
+// within the span, so a desktop that keeps dropping the line is left to the reader rather than dialled forever
+// (docs/remote.md, 「A connection that falls」).
+export const FALLS_REDIALLED = 3;
+export const FALL_SPAN_MS = 60_000;
+
+/** Whether a fall at `now` is dialled again, given the moments of the falls already dialled. */
+export function redialsFall(falls: readonly number[], now: number): boolean {
+  return falls.filter((at) => now - at < FALL_SPAN_MS).length < FALLS_REDIALLED;
+}
