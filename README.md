@@ -1,3 +1,5 @@
+**English** | [한국어](README.ko.md) | [日本語](README.ja.md) | [简体中文](README.zh-CN.md)
+
 # bmo-remote
 
 The console's remote access as one service with its own API: terminal sessions on the machine it runs on,
@@ -9,8 +11,10 @@ hands the remote screen's requests on, as `docs/api.md` states.
 ## Tests
 
 The testbed's `personal-data` check reads every tracked file for a mail address, a home path, a telephone
-number, a token and a private network address (`PERSONAL-DATA.md`). The tests in `tests/` are the old archive's kept desktop port taken into the store,
-`tests/import.rs`; and the console face, `tests/console.rs`: the manifest the service serves read through
+number, a token and a private network address (`PERSONAL-DATA.md`). The tests in `tests/` are one test
+target, `tests/main.rs`, each file of tests a module of it: the old archive's kept desktop port taken into the
+store, `tests/import.rs`; a picture pasted into a terminal session, kept as a file of the session's own and gone
+with it, `tests/pastes.rs`; and the console face, `tests/console.rs`: the manifest the service serves read through
 bmo-ui's own reading on the release the client vendors, the service's declaration and credentials wired to
 bmo-chat's console face, the console's credential and the reader's role asked where the screen needs them, and
 the service's own token refused on the face and taken on the screen's routes. The face's own rules are its
@@ -18,9 +22,10 @@ crate's tests'. They run with `cargo test`; the manifest's reading runs bun on t
 A test that writes files writes them in a folder of its own under the system's temporary folder, and a test
 that starts a tmux server starts it on a socket of its own; both are taken down when the test ends, whether it
 passes or panics.
-The bundle's own tests stand in `client/tests/`: a desktop that does not answer, tried again until it
-answers, refuses or is let go of, against a stand-in desktop and a stand-in clock (`docs/remote.md`, 「A
-desktop that does not answer」), run by `bun run test` inside `client/` as part of the bundle's check. The other behaviour tests are deferred: they are
+The bundle's own tests stand in `client/tests/`, among them a desktop that does not answer, tried again until
+it answers, refuses or is let go of, against a stand-in desktop and a stand-in clock (`docs/remote.md`, 「A
+desktop that does not answer」), and the screen's session list, view actions and terminal paste; they run by
+`bun run test` inside `client/` as part of the bundle's check. The other behaviour tests are deferred: they are
 written and run here once the minimal services stand on the new repositories, and until then the testbed's
 own static check of the crate, which formats it and lints it with every target compiled, and the checks of the
 bundle and the desktop sidecar stand beside them.
@@ -38,7 +43,7 @@ bundle and the desktop sidecar stand beside them.
 | `tests/` | The behaviour tests that stand |
 | `docs/` | The canonical statements of what the service does |
 
-At the root stand the Cargo manifest, `VERSION`, `testbed.toml`, `rustfmt.toml`, `CLAUDE.md`,
+At the root stand the Cargo manifest and its lock, the MIT `LICENSE`, `VERSION`, `testbed.toml`, `rustfmt.toml`, `CLAUDE.md`,
 `PERSONAL-DATA.md`, `korean-ledger.json`, `settings.toml` and `settings.local.toml.example`, the example of
 the local settings a deployment gives.
 
