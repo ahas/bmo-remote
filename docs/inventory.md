@@ -108,7 +108,7 @@ Carried into the console plugin bundle under `client/`, at the same paths below 
 - **The screen's words** are the bundle's own language pack, `client/i18n/ko.json`: the 75 keys under
   `remote` of the old console's `client/i18n/locales/ko.yaml` (its lines 2037 to 2119), each value as it
   stood, and one key for each of the three refusal codes the old screen had none for, `failed`, `not_found`
-  and `unauthorized`. `client/i18n/en.json` holds the same keys in English. The shared keys the screen reads
+  and `unauthorized`. `client/i18n/en.json`, `ja.json` and `zh-CN.json` hold the same keys in English, Japanese and Simplified Chinese. The shared keys the screen reads
   stay in the layer's own words, which the console answers (`docs/api.md`, 「The console plugin bundle」).
 - **Where the screen showed the server's sentence** — a session not opened, renamed or ended, and the
   terminal socket's `error` — it shows the pack's words for the refusal's code (`docs/api.md`, 「The console

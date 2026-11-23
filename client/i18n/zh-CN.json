@@ -1,0 +1,103 @@
+{
+  "remote": {
+    "title": {
+      "remote": "远程",
+      "desktop": "桌面",
+      "remote_desktop": "远程 · 桌面",
+      "rename": "重命名",
+      "terminal_page": "远程 · {name}"
+    },
+    "label": {
+      "extra_keys": "辅助键",
+      "font_size": "字号",
+      "input_mode": "操作方式",
+      "menu": "远程菜单",
+      "name": "名称",
+      "open_sessions": "已打开的会话",
+      "padding": "边距",
+      "password": "密码",
+      "quality": "画质",
+      "quality_balanced": "均衡",
+      "quality_fast": "流畅",
+      "quality_sharp": "清晰",
+      "resolution": "分辨率",
+      "size_1280x720": "1,280 × 720",
+      "size_1600x900": "1,600 × 900",
+      "size_1920x1080": "1,920 × 1,080",
+      "size_2560x1440": "2,560 × 1,440",
+      "size_auto": "适应窗口",
+      "touch_mode_pointer": "指针",
+      "touch_mode_touch": "触控",
+      "user": "用户"
+    },
+    "action": {
+      "connect": "连接",
+      "disconnect": "断开",
+      "end": "结束",
+      "exit_fullscreen": "退出全屏",
+      "fullscreen": "全屏",
+      "keyboard_show": "显示键盘",
+      "new_terminal": "新建终端",
+      "open_desktop": "打开桌面",
+      "open_here": "在此打开",
+      "open_window": "在新窗口中打开",
+      "reconnect": "重新连接",
+      "fit_size": "适应此尺寸"
+    },
+    "aria": {
+      "desktop_input": "远程桌面输入",
+      "key_backspace": "退格",
+      "key_down": "下",
+      "key_enter": "回车",
+      "key_left": "左",
+      "key_right": "右",
+      "key_up": "上"
+    },
+    "status": {
+      "connecting": "正在连接",
+      "connection_ended": "连接已结束",
+      "no_sessions": "没有已打开的会话",
+      "not_connected": "未连接",
+      "open_elsewhere": "已在其他窗口中打开",
+      "reconnecting": "正在重新连接",
+      "session_ended": "会话已结束",
+      "session_over": "会话已结束。",
+      "terminal-disconnected": "终端连接已断开。",
+      "waking": "正在唤醒 · 第 {tries} 次重试，已过 {seconds} 秒"
+    },
+    "message": {
+      "disconnect_desktop": "桌面会话会继续保留在这台设备上。",
+      "end_many": "其中正在运行的程序也会全部结束。",
+      "end_one": "其中正在运行的程序也会全部结束。"
+    },
+    "question": {
+      "disconnect_desktop": "要断开桌面连接吗？",
+      "end_many": "要结束 {n} 个终端会话吗？",
+      "end_one": "要结束会话 {name} 吗？"
+    },
+    "error": {
+      "access_denied": "访问被拒绝。",
+      "attach-failed-because": "无法连接到终端：{reason}",
+      "bad-request": "远程服务无法读取该请求。",
+      "connect_failed": "无法连接到远程桌面。",
+      "end_failed": "无法结束会话。",
+      "failed": "终端会话操作失败。",
+      "forbidden": "当前角色无法打开远程界面。",
+      "load_failed": "无法加载远程桌面界面。",
+      "logon_failed": "无法登录。",
+      "negotiation_failed": "无法与远程桌面协商连接方式。",
+      "no-route": "远程服务中没有此地址。",
+      "no-terminal-session": "找不到该终端会话。",
+      "not-found": "远程服务中没有此项。",
+      "open_failed": "无法打开终端。",
+      "relay_refused": "远程桌面中继拒绝了连接。",
+      "relay_unreachable": "无法连接到远程桌面中继。",
+      "rename_failed": "无法重命名。",
+      "terminals_refused": "无法读取终端列表：{reason}",
+      "terminals_status": "无法读取终端列表。远程服务返回了状态 {status}。",
+      "terminals_unreached": "无法连接到远程服务，未能读取终端列表。",
+      "unauthorized": "远程服务不允许该请求。",
+      "wrong_password": "密码不正确。"
+    }
+  }
+}

@@ -351,8 +351,10 @@ from the settings folder. An empty token lets no caller in by it.
 - **Where a screen calls the service:** through bmo-ui's `relay` module, a route by its call and a socket at
   its socket address, its query carried (bmo-ui's `docs/console-bundles.md`, 「How a bundle mounts」).
 - **Wording:** the screen's own words are the bundle's language pack, one JSON file to a language under
-  `client/i18n/`: `ko.json`, and `en.json` holding the same keys. The module's build writes them into
-  `words.json` under each file's code, and the console merges them into its own pack.
+  `client/i18n/`: `ko.json`, and `en.json`, `ja.json` and `zh-CN.json` holding the same keys in the same
+  order, each word carrying the same placeholders, which the bundle's tests hold. The module's build writes
+  them into `words.json` under each file's code — `ko`, `en`, `ja` and `zh-CN` — and the console merges them
+  into its own pack, so the screen speaks whichever of the four the console speaks.
   - **From the layer's own words,** which the console answers, the keys every screen shares, under `common.`:
     `action.cancel`, `action.more`, `action.save` and `label.name`.
   - **From the bundle's own pack,** the 81 keys under `remote`. The screen shows a refusal of the routes, or

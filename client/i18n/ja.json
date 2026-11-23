@@ -1,0 +1,103 @@
+{
+  "remote": {
+    "title": {
+      "remote": "リモート",
+      "desktop": "デスクトップ",
+      "remote_desktop": "リモート · デスクトップ",
+      "rename": "名前を変更",
+      "terminal_page": "リモート · {name}"
+    },
+    "label": {
+      "extra_keys": "補助キー",
+      "font_size": "文字サイズ",
+      "input_mode": "操作方法",
+      "menu": "リモートメニュー",
+      "name": "名前",
+      "open_sessions": "開いているセッション",
+      "padding": "余白",
+      "password": "パスワード",
+      "quality": "画質",
+      "quality_balanced": "バランス",
+      "quality_fast": "速度優先",
+      "quality_sharp": "画質優先",
+      "resolution": "解像度",
+      "size_1280x720": "1,280 × 720",
+      "size_1600x900": "1,600 × 900",
+      "size_1920x1080": "1,920 × 1,080",
+      "size_2560x1440": "2,560 × 1,440",
+      "size_auto": "ウィンドウに合わせる",
+      "touch_mode_pointer": "ポインター",
+      "touch_mode_touch": "タッチ",
+      "user": "ユーザー"
+    },
+    "action": {
+      "connect": "接続",
+      "disconnect": "切断",
+      "end": "終了",
+      "exit_fullscreen": "全画面表示を終了",
+      "fullscreen": "全画面表示",
+      "keyboard_show": "キーボードを表示",
+      "new_terminal": "新しいターミナル",
+      "open_desktop": "デスクトップを開く",
+      "open_here": "ここで開く",
+      "open_window": "新しいウィンドウで開く",
+      "reconnect": "再接続",
+      "fit_size": "このサイズに合わせる"
+    },
+    "aria": {
+      "desktop_input": "リモートデスクトップ入力",
+      "key_backspace": "Backspace",
+      "key_down": "下",
+      "key_enter": "Enter",
+      "key_left": "左",
+      "key_right": "右",
+      "key_up": "上"
+    },
+    "status": {
+      "connecting": "接続中",
+      "connection_ended": "接続が終了しました",
+      "no_sessions": "開いているセッションはありません",
+      "not_connected": "接続されていません",
+      "open_elsewhere": "別のウィンドウで開いています",
+      "reconnecting": "再接続中",
+      "session_ended": "セッションが終了しました",
+      "session_over": "セッションが終了しました。",
+      "terminal-disconnected": "ターミナルの接続が切れました。",
+      "waking": "起動中 · {tries} 回目の再試行、{seconds} 秒経過"
+    },
+    "message": {
+      "disconnect_desktop": "デスクトップセッションはこのデバイスにそのまま残ります。",
+      "end_many": "その中で実行中のプログラムもすべて終了します。",
+      "end_one": "その中で実行中のプログラムもすべて終了します。"
+    },
+    "question": {
+      "disconnect_desktop": "デスクトップを切断しますか？",
+      "end_many": "ターミナルセッション {n} 件を終了しますか？",
+      "end_one": "セッション {name} を終了しますか？"
+    },
+    "error": {
+      "access_denied": "アクセスが拒否されました。",
+      "attach-failed-because": "ターミナルに接続できませんでした: {reason}",
+      "bad-request": "リモートサービスがリクエストを読み取れませんでした。",
+      "connect_failed": "リモートデスクトップに接続できませんでした。",
+      "end_failed": "セッションを終了できませんでした。",
+      "failed": "ターミナルセッションの操作に失敗しました。",
+      "forbidden": "このロールではリモート画面を開けません。",
+      "load_failed": "リモートデスクトップ画面を読み込めませんでした。",
+      "logon_failed": "サインインできませんでした。",
+      "negotiation_failed": "リモートデスクトップと接続方式を合わせられませんでした。",
+      "no-route": "リモートサービスにこのアドレスはありません。",
+      "no-terminal-session": "ターミナルセッションが見つかりません。",
+      "not-found": "リモートサービスにこの項目はありません。",
+      "open_failed": "ターミナルを開けませんでした。",
+      "relay_refused": "リモートデスクトップの中継サーバーが接続を拒否しました。",
+      "relay_unreachable": "リモートデスクトップの中継サーバーに接続できませんでした。",
+      "rename_failed": "名前を変更できませんでした。",
+      "terminals_refused": "ターミナル一覧を読み込めませんでした: {reason}",
+      "terminals_status": "ターミナル一覧を読み込めませんでした。リモートサービスがステータス {status} で応答しました。",
+      "terminals_unreached": "リモートサービスに接続できず、ターミナル一覧を読み込めませんでした。",
+      "unauthorized": "リモートサービスがリクエストを許可しませんでした。",
+      "wrong_password": "パスワードが正しくありません。"
+    }
+  }
+}

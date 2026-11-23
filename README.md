@@ -24,7 +24,7 @@ that starts a tmux server starts it on a socket of its own; both are taken down 
 passes or panics.
 The bundle's own tests stand in `client/tests/`, among them a desktop that does not answer, tried again until
 it answers, refuses or is let go of, against a stand-in desktop and a stand-in clock (`docs/remote.md`, 「A
-desktop that does not answer」), and the screen's session list, view actions and terminal paste; they run by
+desktop that does not answer」), the screen's session list, view actions and terminal paste, and its four language packs holding the same keys; they run by
 `bun run test` inside `client/` as part of the bundle's check. The other behaviour tests are deferred: they are
 written and run here once the minimal services stand on the new repositories, and until then the testbed's
 own static check of the crate, which formats it and lints it with every target compiled, and the checks of the
