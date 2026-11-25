@@ -38,7 +38,7 @@ desktop that does not answer」);以及界面的会话列表、视图操作和�
 | `tests/` | 现行的行为测试 |
 | `docs/` | 描述服务行为的权威文档 |
 
-根目录下有 Cargo 清单及其锁文件、MIT `LICENSE`、`VERSION`、`testbed.toml`、`install.toml`、`rustfmt.toml`、`CLAUDE.md`、
+根目录下有 Cargo 清单及其锁文件、MIT `LICENSE`、`testbed.toml`、`install.toml`、`rustfmt.toml`、`CLAUDE.md`、
 `PERSONAL-DATA.md`、`korean-ledger.json`、`settings.toml`，以及部署时提供的本地设置示例
 `settings.local.toml.example`。
 
@@ -66,5 +66,5 @@ vendoring 在 `client/vendor/` 下，构建它的脚本位于 `client/scripts/`;
 
 ## 版本
 
-`VERSION` 保存仓库的版本，由 crate 和控制台插件包共用。首次发布之前，版本为 `0.1.0` 加修订后缀，规则见
+版本是整个套件的版本，在构建时从 git 标签读取；清单中的版本字段是从不变动的占位值，规则见
 `docs/api.md` 的「Versions」。

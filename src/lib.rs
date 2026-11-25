@@ -26,6 +26,13 @@ use crate::http::Standing;
 use crate::settings::Settings;
 use crate::store::Store;
 
+/// The version this build answers with: the set's, which the testbed hands the build as `BMO_VERSION`, else
+/// the manifest's placeholder (bmo-chat's `docs/conventions.md`, 「Versions」).
+pub const VERSION: &str = match option_env!("BMO_VERSION") {
+  Some(version) => version,
+  None => env!("CARGO_PKG_VERSION"),
+};
+
 /// Opens the store, reads the account, stands the console face and starts the desktop sidecar, then answers the
 /// routes on the settings' address until the process is told to stop. A console face that cannot stand leaves
 /// the console's credential taken nowhere and every other route answered to the service's own token.

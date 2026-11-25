@@ -244,7 +244,7 @@ opened by the page itself, with the console's credential the console adds when i
 
 `docs/openapi.json` is the contract: every route, its parameters, its body, its answers, the codes it can
 refuse with, and the schemas of `docs/api.md`'s members. It is generated from the service's own types, and
-`bmo-remote openapi` prints it. Its version is the service's.
+`bmo-remote openapi` prints it. Its version is the manifest's placeholder (「Versions」).
 
 ## The store
 
@@ -424,8 +424,8 @@ worker:
 
 ## Versions
 
-The repository's version is the crate's, shared by the console plugin bundle. Until the first release it is
-`0.1.0` plus a revision suffix: the first version, `0.1.0`, is the base and is no revision, and every later
-version bump is one revision, `0.1.0-rev.<n>`, with `n` counting the bumps since the base from 1. Major,
-minor and patch never move before the first release, whatever the change. This repository is
-`0.1.0-rev.5`.
+The version is the set's, read off the git tags when a build is made, as bmo-chat's `docs/conventions.md`,
+「Versions」 states: the testbed hands it to the build as `BMO_VERSION`, and the health and `bmo-remote
+--version` answer it. A version moves only at a release the owner declares, which tags the commit and makes
+none. The version fields of the Cargo manifest, the console plugin bundle's and the desktop sidecar's
+`package.json` and the OpenAPI document are placeholders that never move.

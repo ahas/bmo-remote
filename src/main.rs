@@ -8,7 +8,7 @@ use bmo_remote::settings::Settings;
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
-#[command(name = "bmo-remote", version, about = "Terminal sessions and the remote desktop")]
+#[command(name = "bmo-remote", version = bmo_remote::VERSION, about = "Terminal sessions and the remote desktop")]
 struct Command {
   #[command(subcommand)]
   word: Word,

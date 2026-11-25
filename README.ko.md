@@ -42,7 +42,7 @@ desktop that does not answer」)와 화면의 세션 목록, 보기 동작, 터�
 | `tests/` | 현재 유지되는 동작 테스트 |
 | `docs/` | 서비스가 하는 일에 대한 정식 문서 |
 
-루트에는 Cargo 매니페스트와 그 잠금 파일, MIT `LICENSE`, `VERSION`, `testbed.toml`, `install.toml`, `rustfmt.toml`, `CLAUDE.md`,
+루트에는 Cargo 매니페스트와 그 잠금 파일, MIT `LICENSE`, `testbed.toml`, `install.toml`, `rustfmt.toml`, `CLAUDE.md`,
 `PERSONAL-DATA.md`, `korean-ledger.json`, `settings.toml`, 그리고 배포가 제공하는 로컬 설정의 예시인
 `settings.local.toml.example`이 있습니다.
 
@@ -72,5 +72,5 @@ vendoring되어 있습니다. `bun run bundle`은 bmo-ui의 번들 빌드로 페
 
 ## 버전
 
-`VERSION`은 저장소의 버전을 담으며, 크레이트와 콘솔 플러그인 번들이 이를 공유합니다. 첫 릴리스 전까지는
-`0.1.0`에 리비전 접미사를 붙인 형태이며, 규칙은 `docs/api.md`의 「Versions」에 있습니다.
+버전은 세트의 버전이며, 빌드할 때 git 태그에서 읽습니다. 매니페스트의 버전 필드는 움직이지 않는 자리표시자이며,
+규칙은 `docs/api.md`의 「Versions」에 있습니다.
