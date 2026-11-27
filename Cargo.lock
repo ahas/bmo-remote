@@ -390,7 +390,7 @@ dependencies = [
 
 [[package]]
 name = "bmo-console-face"
-version = "0.1.0-rev.10"
+version = "0.0.0"
 dependencies = [
  "axum",
  "headers",
@@ -403,7 +403,7 @@ dependencies = [
 
 [[package]]
 name = "bmo-remote"
-version = "0.1.0-rev.5"
+version = "0.0.0"
 dependencies = [
  "axum",
  "base64 0.22.1",
