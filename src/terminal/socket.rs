@@ -149,13 +149,16 @@ async fn view(mut socket: WebSocket, standing: Arc<Standing>, id: String, cols: 
   )
   .await;
 
+  let trace = Trace::begin(&session.id, cols, rows);
+
   loop {
     tokio::select! {
       incoming = socket.recv() => match incoming {
-        Some(Ok(Message::Binary(frame))) => read_frame(&client, &frame),
-        Some(Ok(Message::Text(frame))) => read_frame(&client, frame.as_bytes()),
+        Some(Ok(Message::Binary(frame))) => { trace.frame(&frame); read_frame(&client, &frame) }
+        Some(Ok(Message::Text(frame))) => { trace.frame(frame.as_bytes()); read_frame(&client, frame.as_bytes()) }
         Some(Ok(Message::Ping(_) | Message::Pong(_))) => {}
         Some(Ok(Message::Close(_)) | Err(_)) | None => {
+          trace.end("the viewer let go");
           client.close();
           return;
         }
@@ -203,5 +206,71 @@ fn read_frame(client: &Attach, frame: &[u8]) {
       }
     }
     _ => {}
+  }
+}
+
+/// A diagnostic of one viewer's line ends, written to the service's log while the stray line end a page reload
+/// leaves in a session is traced: when the viewer attached and let go, and every input frame holding a carriage
+/// return or a line feed with each printable character masked, so nothing typed is kept.
+struct Trace {
+  id: String,
+  serial: u64,
+  since: std::time::Instant,
+}
+
+static TRACED: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+impl Trace {
+  fn begin(id: &str, cols: f64, rows: f64) -> Self {
+    let serial = TRACED.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+
+    eprintln!("remote: line-end trace: {id} viewer {serial} attached at {cols}x{rows}");
+
+    Self {
+      id: id.to_owned(),
+      serial,
+      since: std::time::Instant::now(),
+    }
+  }
+
+  fn frame(&self, frame: &[u8]) {
+    let Some((&kind, body)) = frame.split_first() else { return };
+    let elapsed = self.since.elapsed().as_millis();
+
+    if kind == FRAME_CONTROL {
+      eprintln!(
+        "remote: line-end trace: {} viewer {} +{elapsed}ms control {}",
+        self.id,
+        self.serial,
+        String::from_utf8_lossy(body)
+      );
+      return;
+    }
+
+    if kind != FRAME_INPUT || !body.iter().any(|byte| matches!(byte, b'\r' | b'\n')) {
+      return;
+    }
+
+    let masked: String = String::from_utf8_lossy(body)
+      .chars()
+      .map(|one| match one {
+        '\r' => "\\r".to_owned(),
+        '\n' => "\\n".to_owned(),
+        '\u{1b}' => "\\e".to_owned(),
+        one if one.is_control() => format!("\\x{:02x}", one as u32),
+        _ => ".".to_owned(),
+      })
+      .collect();
+
+    eprintln!("remote: line-end trace: {} viewer {} +{elapsed}ms input {masked}", self.id, self.serial);
+  }
+
+  fn end(&self, why: &str) {
+    eprintln!(
+      "remote: line-end trace: {} viewer {} +{}ms {why}",
+      self.id,
+      self.serial,
+      self.since.elapsed().as_millis()
+    );
   }
 }
