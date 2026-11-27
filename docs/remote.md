@@ -656,6 +656,9 @@ moment of connecting rather than as a failure to press past.
   every screen shares are the console's.
 - **The terminal's faces are fetched only on the remote screen.** They are a family of their own beside the
   console's small monospace cut, and a browser loads a face only when text asks for it.
+- **A terminal attaches its session at the size its faces give.** It waits for the faces, at most three seconds,
+  before it attaches, so a session is handed one size as a page loads rather than the fallback's and then the
+  faces', and its program does not redraw twice.
 - **The user's choices stay in the browser:** font size, padding and whether the extra keys show (without a
   choice they show on a narrow screen). The keys buzz on a phone. The extra-keys row is the screen's foot (bmo-ui's
   `docs/console-bundles.md`, 「How a bundle mounts」), so what the console floats over the page stands above it.
