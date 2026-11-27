@@ -13,8 +13,10 @@ import { attachTerminalClipboard } from "./terminal-clipboard";
 import { attachTerminalIme } from "./terminal-ime";
 import { signalTerminal } from "./terminal-signals";
 import { attachTerminalTouchScroll } from "./terminal-touch-scroll";
+import { attachCarriedKeys } from "./terminal-carried-keys";
 
 import type { Ref } from "vue";
+import type { CarriedKeys } from "./terminal-carried-keys";
 import type { TerminalIme } from "./terminal-ime";
 import type { Translate } from "bmo-ui/shared/wording";
 
@@ -59,7 +61,7 @@ export interface TerminalEntry {
   host: HTMLElement | null;
   observer: ResizeObserver | null;
   // Set once the terminal has been opened on its element, which waits for the element to have a size.
-  opened: { ime: TerminalIme; detach: (() => void)[] } | null;
+  opened: { ime: TerminalIme; carried: CarriedKeys; detach: (() => void)[] } | null;
   socket: WebSocket | null;
   retry: ReturnType<typeof setTimeout> | undefined;
   attempts: number;
@@ -352,6 +354,7 @@ export function claimTerminalKeyboard(id: string | null = shownId): boolean {
 
   if (!entry?.opened || entry.released || !entry.host || !keyboardFollowsView()) return false;
 
+  entry.opened.carried.carry();
   entry.term.focus();
 
   return true;
@@ -365,6 +368,7 @@ export function raiseTerminalKeyboard(id: string | null = shownId): boolean {
 
   if (!entry?.opened || entry.released || !entry.host) return false;
 
+  entry.opened.carried.carry();
   entry.term.focus();
 
   return true;
@@ -475,11 +479,16 @@ function createEntry(id: string, t: Translate): TerminalEntry {
 function openTerminal(entry: TerminalEntry): void {
   const { term, element } = entry;
 
+  // Guarded before any other key listener of the host, so a key held as the terminal takes the keyboard reaches
+  // none of them.
+  const carried = attachCarriedKeys(element);
+
   term.open(element);
   // A plain address in the terminal's text is a link too, opened in a new tab when it is clicked.
   term.loadAddon(new WebLinksAddon((_event, uri) => openLink(uri)));
 
   const detach: (() => void)[] = [
+    carried.detach,
     attachTerminalClipboard(term, { host: element, keepPicture: (picture) => keepPicture(entry.id, picture) }),
     attachTerminalTouchScroll(term, element)
   ];
@@ -510,7 +519,7 @@ function openTerminal(entry: TerminalEntry): void {
     detach.push(() => element.removeEventListener(type, claim));
   }
 
-  entry.opened = { ime, detach };
+  entry.opened = { ime, carried, detach };
 
   // A cell's size can change with the place unchanged — the carried face arriving late — and the
   // drawn area changes with it, so that is watched too.

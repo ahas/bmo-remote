@@ -690,7 +690,10 @@ moment of connecting rather than as a failure to press past.
   whole, unconditionally. A terminal is opened only once its area has a size.
 - **The shown terminal holds the keyboard.** Whenever a terminal becomes the view on screen — mounted, its
   tab shown, the whole-window view entered or left, a menu over it gone — it takes focus, so that a key
-  pressed without clicking into it first still reaches the shell. A menu closing over it is told not to
+  pressed without clicking into it first still reaches the shell. A key already held down at the moment it takes focus is not
+  its: the Enter that opened it — on a list, a search, a link — is still going down then, and the browser hands
+  the rest of that press to the terminal. Every event of such a key is dropped before the terminal sees it, until
+  the key is released, so opening a terminal never types into its session. A menu closing over it is told not to
   hand focus back to the button that opened it, because on that view the keyboard's home is the terminal;
   over the desktop, where no terminal is shown, the hand-back stands. A screen a finger drives is the
   exception: focus there raises the soft keyboard over a terminal somebody may only be looking at, so a
