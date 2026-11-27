@@ -155,6 +155,9 @@ const HAPTIC_HOLD_MS = 18;
 // The shortest gap between two size claims (ms).
 const CLAIM_INTERVAL_MS = 300;
 
+// The longest a terminal waits for its faces before it attaches on the fallback's cells.
+const FONT_WAIT_MS = 3000;
+
 const MINIMUM_COLS = 2;
 const MINIMUM_ROWS = 1;
 
@@ -206,7 +209,11 @@ async function settleFonts(): Promise<void> {
     const probe = `${DEFAULT_TERMINAL_FONT_SIZE}px`;
 
     if (!TERMINAL_WEBFONTS.every((name) => fonts.check(`${probe} '${name}'`))) {
-      await Promise.all(TERMINAL_WEBFONTS.map((name) => fonts.load(`${probe} '${name}'`))).catch(() => undefined);
+      // A face that never arrives does not hold the terminal back past the wait.
+      await Promise.race([
+        Promise.all(TERMINAL_WEBFONTS.map((name) => fonts.load(`${probe} '${name}'`))).catch(() => undefined),
+        new Promise((resolve) => setTimeout(resolve, FONT_WAIT_MS))
+      ]);
     }
   }
 
@@ -578,6 +585,10 @@ export function revealTerminal(entry: TerminalEntry): void {
 
   fitTerminal(entry.term, entry.element);
   entry.term.refresh(0, Math.max(0, entry.term.rows - 1));
+
+  // A session is attached at the size its faces give: attached on the fallback's cells, it is resized again as
+  // they arrive, and a program redraws for each size it is handed.
+  if (!webfontArrived) return;
 
   if (!entry.socket && entry.status.value !== "closed" && entry.status.value !== "error") connect(entry);
 }
