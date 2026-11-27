@@ -2,7 +2,10 @@
 // keeps」): every event of it that reaches the terminal is dropped until it is released, and a key pressed after
 // reaches the terminal as it always did. The page and the terminal's host are plain event targets here; a real
 // browser's handing of the rest of a press to the newly focused terminal was measured by hand.
-import { beforeAll, expect, test } from "bun:test";
+//
+// Every test file shares one global object, so the stand-in page and window are put back as they were once this
+// file's tests are done: a file run after it, Vue's runtime among them, sees the globals it would see alone.
+import { afterAll, beforeAll, expect, test } from "bun:test";
 
 function key(type: string, code: string): Event {
   return Object.assign(new Event(type, { bubbles: true, cancelable: true }), { code });
@@ -10,10 +13,19 @@ function key(type: string, code: string): Event {
 
 let attachCarriedKeys: typeof import("../app/domain/remote/terminal-carried-keys").attachCarriedKeys;
 const page = new EventTarget();
+const stubbed = ["document", "window"] as const;
+const before = new Map(stubbed.map((name) => [name, Object.getOwnPropertyDescriptor(globalThis, name)]));
 
 beforeAll(async () => {
   Object.assign(globalThis, { document: page, window: new EventTarget() });
   ({ attachCarriedKeys } = await import("../app/domain/remote/terminal-carried-keys"));
+});
+
+afterAll(() => {
+  for (const [name, descriptor] of before) {
+    if (descriptor) Object.defineProperty(globalThis, name, descriptor);
+    else Reflect.deleteProperty(globalThis, name);
+  }
 });
 
 // What the terminal inside the host is handed of each event: the host's own listener stands for it.
